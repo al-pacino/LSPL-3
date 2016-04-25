@@ -90,9 +90,10 @@ enum TTokenizationError {
 
 class CTokenizer : public CTokens {
 public:
+	CTokenizer();
 
 	void TokenizeLine( const string& line );
-	bool Good() const;
+	bool Good() const { return good; }
 
 private:
 	typedef void ( CTokenizer::*TState )( char c );
@@ -100,6 +101,7 @@ private:
 	TState state;
 	size_t offset; // offset in bytes in line of source file
 	string text; // only for identifier and regex
+	bool good;
 
 	void initialState( char c );
 	void regexState( char c );

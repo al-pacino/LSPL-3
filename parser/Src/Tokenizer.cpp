@@ -72,6 +72,11 @@ size_t CToken::Length() const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CTokenizer::CTokenizer():
+	good( true )
+{
+}
+
 void CTokenizer::TokenizeLine( const string& line )
 {
 	state = &CTokenizer::initialState;
@@ -84,11 +89,6 @@ void CTokenizer::TokenizeLine( const string& line )
 	if( state != &CTokenizer::errorState ) {
 		finalize();
 	}
-}
-
-bool CTokenizer::Good() const
-{
-	return ( state != &CTokenizer::errorState );
 }
 
 void CTokenizer::initialState( char c )
@@ -290,6 +290,7 @@ void CTokenizer::addToken( TTokenType type, bool decreaseAnOffsetByOne )
 void CTokenizer::error( TTokenizationError error )
 {
 	state = &CTokenizer::errorState;
+	good = false;
 	// todo: add error processing
 	cout << "error: " << offset << ", " << static_cast<int>( error ) << endl;
 }
