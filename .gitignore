@@ -1,3 +1,6 @@
+## Ignore build results
+parser/build
+
 ## Ignore Visual Studio temporary files
 # User-specific files
 *.suo
