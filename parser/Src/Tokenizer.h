@@ -96,6 +96,9 @@ public:
 	bool Good() const { return good; }
 
 private:
+	CTokenizer( const CTokenizer& );
+	CTokenizer& operator=( const CTokenizer& );
+
 	typedef void ( CTokenizer::*TState )( char c );
 
 	TState state;
