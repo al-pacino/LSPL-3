@@ -1,0 +1,35 @@
+{
+digit					= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9".
+letter					= "a" | "b" | "..." | "z" | "A" | "B" | "..." | "Z".
+number					= digit { digit }.
+first_ident_letter		= letter | "-" | "_".
+ident_letter			= digit | first_ident_letter.
+ident					= first_ident_letter { ident_letter }.
+name					= [ ident "." ] ident.
+params					= name { "," name }.
+pattern					= ident [ "(" params ")" ] "=" permutations [ "=text>" extract_patterns ] [ "=pattern>" synthesized_patterns ].
+permutations			= elements { "~" elements } [ "<<" conditions ">>" ].
+elements				= element { element }.
+element					= simple_element | optional_element | repeat_element | "(" alternatives ")".
+simple_element			= regexp | lexical_form.
+regexp					= '"' "regular expression" '"'.
+optional_element		= "[" alternatives "]".
+repeat_element			= "{" alternatives "}" [ "<" number [ "," number ] ">" ].
+alternatives			= permutations { "|" permutations }.
+lexical_form			= ident [ "<" characteristic { "," characteristic } ">" ].
+characteristic			= [ [ ident ] comparation_type ] value { "|" value }.
+comparation_type		= "=" | "!=".
+value					= [ "$" ] ident | regexp. 
+conditions				= condition { "," condition }.
+condition				= matching_condition | dictionary_condition.
+matching_condition		= name { matching_type name }.
+matching_type			= "=" | "==".
+dictionary_condition	= ident "(" names { "," names } ")".
+names					= ident { ident }.
+extract_patterns		= extract_pattern { extract_pattern }.
+extract_pattern 		= extract_element { extract_element } [ "<" matchings ">" ].
+extract_element			= ident { ident "=" value } | "#" ident | regexp.
+matchings				= matching { "," matching }.
+matching				= name "~>" name.
+synthesized_patterns	= pattern { "," pattern }.
+}
