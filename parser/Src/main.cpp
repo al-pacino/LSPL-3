@@ -119,7 +119,7 @@ void Read( istream& input )
 		if( line.empty() ) {
 			continue;
 		}
-		tokenizer.TokenizeLine( line );
+		tokenizer.TokenizeLine( line, 0 /* line */ );
 		if( line.back() == '\\' ) { // remove '\newline' like in C/C++
 			continue;
 		}

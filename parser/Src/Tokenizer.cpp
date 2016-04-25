@@ -77,12 +77,13 @@ CTokenizer::CTokenizer():
 {
 }
 
-void CTokenizer::TokenizeLine( const string& line )
+void CTokenizer::TokenizeLine( const string& str, size_t _line )
 {
 	state = &CTokenizer::initialState;
 	text.clear();
 	offset = 0;
-	for( string::const_iterator c = line.cbegin(); c != line.cend(); ++c ) {
+	line = _line;
+	for( string::const_iterator c = str.cbegin(); c != str.cend(); ++c ) {
 		step( *c );
 		offset++;
 	}
@@ -282,7 +283,7 @@ void CTokenizer::exclamationSignState( char c )
 
 void CTokenizer::addToken( TTokenType type, bool decreaseAnOffsetByOne )
 {
-	push_back( CToken( type, 0 /* line */,
+	push_back( CToken( type, line,
 		offset - text.length() - ( decreaseAnOffsetByOne ? 1 : 0 ), text ) );
 	text.clear();
 }

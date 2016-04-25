@@ -92,7 +92,7 @@ class CTokenizer : public CTokens {
 public:
 	CTokenizer();
 
-	void TokenizeLine( const string& line );
+	void TokenizeLine( const string& str, size_t line );
 	bool Good() const { return good; }
 
 private:
@@ -102,6 +102,7 @@ private:
 	typedef void ( CTokenizer::*TState )( char c );
 
 	TState state;
+	size_t line; // current line number
 	size_t offset; // offset in bytes in line of source file
 	string text; // only for identifier and regex
 	bool good;
