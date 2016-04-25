@@ -90,8 +90,9 @@ enum TTokenizationError {
 
 class CTokenizer : public CTokens {
 public:
-	CTokenizer();
+	CTokenizer() { Reset(); }
 
+	void Reset();
 	void TokenizeLine( const string& str, size_t line );
 	bool Good() const { return good; }
 
@@ -119,6 +120,7 @@ private:
 	void exclamationSignState( char c );
 	void errorState( char c );
 
+	void initialize( size_t line = 0 );
 	void step( char c ) { ( this->*state )( c ); }
 	void finalize();
 	void addToken( TTokenType type, bool decreaseAnOffsetByOne = false );

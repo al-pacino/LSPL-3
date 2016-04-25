@@ -72,17 +72,18 @@ size_t CToken::Length() const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CTokenizer::CTokenizer():
-	good( true )
+void CTokenizer::Reset()
 {
-}
-
-void CTokenizer::TokenizeLine( const string& str, size_t _line )
-{
-	state = &CTokenizer::initialState;
+	good = true;
+	state = nullptr;
 	text.clear();
 	offset = 0;
-	line = _line;
+	line = 0;
+}
+
+void CTokenizer::TokenizeLine( const string& str, size_t line )
+{
+	initialize( line );
 	for( string::const_iterator c = str.cbegin(); c != str.cend(); ++c ) {
 		step( *c );
 		offset++;
@@ -259,6 +260,14 @@ void CTokenizer::greaterThanSignState( char c )
 void CTokenizer::errorState( char /* c */ )
 {
 	// just skip rest characters in line
+}
+
+void CTokenizer::initialize( size_t _line )
+{
+	state = &CTokenizer::initialState;
+	text.clear();
+	offset = 0;
+	line = _line;
 }
 
 void CTokenizer::finalize()
