@@ -286,7 +286,9 @@ void CTokenizer::exclamationSignState( char c )
 		addToken( TT_ExclamationPointEqualSign, true/*decreaseAnOffsetByOne*/ );
 		state = &CTokenizer::initialState;
 	} else {
-		error( TE_UnknowCharacter ); // todo: think about it
+		offset--; // dirty hack to show error in exclamation point
+		error( TE_UnknowCharacter );
+		offset++; // restore the correct value
 	}
 }
 
