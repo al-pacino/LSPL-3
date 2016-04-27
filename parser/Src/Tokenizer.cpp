@@ -98,6 +98,9 @@ void CTokenizer::initialState( char c )
 	switch( c ) {
 		case ' ': case '\t':
 			break; // skip blank character
+		case ';':
+			state = &CTokenizer::commentState;
+			break;
 		case '.':
 			addToken( TT_Dot );
 			break;
@@ -162,6 +165,11 @@ void CTokenizer::initialState( char c )
 			}		
 			break;
 	}
+}
+
+void CTokenizer::commentState( char /* c */ )
+{
+	// just skip any characters after ';'
 }
 
 void CTokenizer::regexState( char c )
@@ -273,6 +281,10 @@ void CTokenizer::initialize( size_t _line )
 void CTokenizer::finalize()
 {
 	assert( state != &CTokenizer::errorState );
+	if( state == &CTokenizer::commentState ) {
+		return;
+	}
+
 	step( ' ' );
 	if( state != &CTokenizer::initialState ) {
 		assert( state == &CTokenizer::regexState );

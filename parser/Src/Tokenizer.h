@@ -109,6 +109,7 @@ private:
 	bool good;
 
 	void initialState( char c );
+	void commentState( char c );
 	void regexState( char c );
 	void regexStateAfterBackslash( char c );
 	void numberState( char c );
