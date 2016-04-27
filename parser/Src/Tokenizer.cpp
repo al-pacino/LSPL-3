@@ -286,6 +286,10 @@ void CTokenizer::finalize()
 	}
 
 	step( ' ' );
+	if( state == &CTokenizer::errorState ) {
+		return;
+	}
+
 	if( state != &CTokenizer::initialState ) {
 		assert( state == &CTokenizer::regexState );
 		error( TE_NewlineInRegex );
