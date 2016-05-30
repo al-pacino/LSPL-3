@@ -1,3 +1,5 @@
+#include <CommonStd.h>
+
 #include <Tokenizer.h>
 
 namespace LsplParser {
@@ -78,19 +80,19 @@ void CTokenizer::Reset()
 	state = nullptr;
 	text.clear();
 	offset = 0;
-	line = 0;
+	lineNumber = 1;
 }
 
-void CTokenizer::TokenizeLine( const string& str, size_t line )
+void CTokenizer::TokenizeLine( const string& line )
 {
-	initialize( line );
-	for( string::const_iterator c = str.cbegin(); c != str.cend(); ++c ) {
+	initialize();
+
+	for( string::const_iterator c = line.cbegin(); c != line.cend(); ++c ) {
 		step( *c );
 		offset++;
 	}
-	if( state != &CTokenizer::errorState ) {
-		finalize();
-	}
+
+	finalize();
 }
 
 void CTokenizer::initialState( char c )
@@ -270,18 +272,18 @@ void CTokenizer::errorState( char /* c */ )
 	// just skip rest characters in line
 }
 
-void CTokenizer::initialize( size_t _line )
+void CTokenizer::initialize()
 {
 	state = &CTokenizer::initialState;
 	text.clear();
 	offset = 0;
-	line = _line;
 }
 
 void CTokenizer::finalize()
 {
-	assert( state != &CTokenizer::errorState );
-	if( state == &CTokenizer::commentState ) {
+	if( state == &CTokenizer::errorState
+		|| state == &CTokenizer::commentState )
+	{
 		return;
 	}
 
@@ -310,7 +312,7 @@ void CTokenizer::exclamationSignState( char c )
 
 void CTokenizer::addToken( TTokenType type, bool decreaseAnOffsetByOne )
 {
-	push_back( CToken( type, line,
+	push_back( CToken( type, lineNumber,
 		offset - text.length() - ( decreaseAnOffsetByOne ? 1 : 0 ), text ) );
 	text.clear();
 }
