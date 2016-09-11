@@ -38,7 +38,7 @@ private:
 	void readLine();
 	bool tokenizeLine();
 	bool skipEmptyLines();
-	bool lineStartsWithSpaceOrTab() const;
+	bool lineStartsWithSpace() const;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

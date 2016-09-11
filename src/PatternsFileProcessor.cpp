@@ -57,7 +57,7 @@ void CPatternsFileProcessor::ReadPattern( CTokens& patternTokens )
 	check_logic( file.is_open() );
 	check_logic( !tokenizer.empty() );
 
-	if( lineStartsWithSpaceOrTab() ) {
+	if( lineStartsWithSpace() ) {
 		CError error( CSharedFileLine( line, lineNumber ),
 			"a pattern definition is required to be"
 			" written from the first character of the line" );
@@ -69,7 +69,7 @@ void CPatternsFileProcessor::ReadPattern( CTokens& patternTokens )
 	// read rest lines of pattern
 	while( file.good() ) {
 		readLine();
-		if( !lineStartsWithSpaceOrTab() ) {
+		if( !lineStartsWithSpace() ) {
 			break;
 		}
 		if( !tokenizeLine() ) {
@@ -101,6 +101,30 @@ bool CPatternsFileProcessor::tokenizeLine()
 	return ( tokenizer.size() > sizeBefore );
 }
 
+const size_t TabSize = 4;
+
+static void ReplaceTabsWithSpacesInSignleLine( string& line )
+{
+	string result;
+	result.reserve( line.length() );
+	size_t offset = 0;
+	for( char c : line ) {
+		if( ( static_cast<unsigned char>( c ) & 0xC0 ) == 0xC0 ) {
+			continue;
+		}
+		check_logic( c != '\n' && c != '\r' );
+		if( c == '\t' ) {
+			const size_t spaceCount = TabSize - ( offset % TabSize );
+			result += string( spaceCount, ' ' );
+			offset += spaceCount;
+		} else {
+			result += c;
+			offset++;
+		}
+	}
+	line = move( result );
+}
+
 void CPatternsFileProcessor::readLine()
 {
 	check_logic( file.good() );
@@ -112,6 +136,9 @@ void CPatternsFileProcessor::readLine()
 	if( !line.empty() && line.back() == '\r' ) {
 		line.pop_back();
 	}
+
+	// not so effective...
+	ReplaceTabsWithSpacesInSignleLine( line );
 }
 
 // skips empty lines (lines without any tokens)
@@ -120,11 +147,11 @@ bool CPatternsFileProcessor::skipEmptyLines()
 {
 	tokenizer.Reset();
 
-	while( !tokenizeLine() && file.good() ) {
+	while( !tokenizeLine() && !errorProcessor.HasCriticalErrors() && file.good() ) {
 		readLine();
 	}
 
-	if( tokenizer.empty() ) {
+	if( tokenizer.empty() || errorProcessor.HasCriticalErrors() ) {
 		reset();
 		return false;
 	}
@@ -133,9 +160,9 @@ bool CPatternsFileProcessor::skipEmptyLines()
 }
 
 // returns true if the line starts with space or tab
-bool CPatternsFileProcessor::lineStartsWithSpaceOrTab() const
+bool CPatternsFileProcessor::lineStartsWithSpace() const
 {
-	return ( !line.empty() && ( line.front() == ' ' || line.front() == '\t' ) );
+	return ( !line.empty() && line.front() == ' ' );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
