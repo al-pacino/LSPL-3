@@ -4,7 +4,7 @@ namespace LsplTools {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-const size_t TabSize = 4;
+const size_t TabSize = 8;
 
 inline bool IsByteFirstInUtf8Symbol( char c )
 {
