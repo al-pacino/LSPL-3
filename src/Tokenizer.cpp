@@ -228,7 +228,7 @@ void CTokenizer::error( TErrorType errorType )
 		case TE_NewlineInRegex:
 			check_logic( state == &CTokenizer::regexState );
 			error.Message = "newline in regular expression";
-			error.LineSegments.emplace_back( offset - text.length() - 1,
+			error.LineSegments.emplace_back( offset - text.length(),
 				numeric_limits<size_t>::max() );
 			break;
 	}
@@ -240,7 +240,7 @@ void CTokenizer::error( TErrorType errorType )
 void CTokenizer::initialState( char c )
 {
 	switch( c ) {
-		case ' ': case '\t':
+		case ' ':
 			break; // skip blank character
 		case ';':
 			state = &CTokenizer::commentState;
