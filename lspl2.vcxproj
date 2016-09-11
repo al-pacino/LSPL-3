@@ -160,6 +160,7 @@
     <ClInclude Include="src\PatternsFileProcessor.h" />
     <ClInclude Include="src\SharedFileLine.h" />
     <ClInclude Include="src\Tokenizer.h" />
+    <ClInclude Include="src\Tools.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ErrorProcessor.cpp" />
@@ -167,6 +168,7 @@
     <ClCompile Include="src\Parser.cpp" />
     <ClCompile Include="src\PatternsFileProcessor.cpp" />
     <ClCompile Include="src\Tokenizer.cpp" />
+    <ClCompile Include="src\Tools.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

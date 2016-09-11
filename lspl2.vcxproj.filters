@@ -24,6 +24,9 @@
     <ClInclude Include="src\SharedFileLine.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Tools.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -39,6 +42,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\ErrorProcessor.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Tools.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
