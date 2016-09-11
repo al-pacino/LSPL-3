@@ -21,13 +21,13 @@ int main( int argc, const char* argv[] )
 		CTokens tokens;
 		while( reader.IsOpen() && !errorProcessor.HasCriticalErrors() ) {
 			reader.ReadPattern( tokens );
+			// todo:
 		}
 
 		if( errorProcessor.HasAnyErrors() ) {
 			errorProcessor.PrintErrors( cerr, argv[1] );
 			return 1;
 		}
-
 		// todo:
 	} catch( exception& e ) {
 		cerr << e.what() << endl;

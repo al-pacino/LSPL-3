@@ -17,17 +17,16 @@ struct CError {
 	vector<CLineSegment> LineSegments;
 	string Message;
 
-	explicit CError( TErrorSeverity severity = ES_Error,
-			CSharedFileLine line = CSharedFileLine(),
-			const string& message = "" ) :
+	explicit CError( CSharedFileLine line = CSharedFileLine(),
+			const string& message = "", TErrorSeverity severity = ES_Error ) :
 		Severity( severity ),
 		Line( line ),
 		Message( message )
 	{
 	}
 
-	explicit CError( const string& message ) :
-		Severity( ES_CriticalError ),
+	explicit CError( const string& message, TErrorSeverity severity = ES_Error ) :
+		Severity( severity ),
 		Message( message )
 	{
 	}

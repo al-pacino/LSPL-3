@@ -16,8 +16,7 @@ bool CPatternParser::Parse()
 
 void CPatternParser::addError( const string& text )
 {
-	CError error;
-	error.Message = text;
+	CError error( text );
 
 	if( hasToken() ) {
 		error.Line = token->Line;

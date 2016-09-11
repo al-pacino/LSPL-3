@@ -31,9 +31,9 @@ void CPatternsFileProcessor::Open( const string& filename )
 	reset();
 	file.open( filename, ios::in | ios::binary );
 	if( !file.is_open() ) {
-		errorProcessor.AddError( CError( "file not found" ) );
+		errorProcessor.AddError( CError( "file not found", ES_CriticalError ) );
 	} else if( !skipEmptyLines() ) {
-		errorProcessor.AddError( CError( "file is empty" ) );
+		errorProcessor.AddError( CError( "file is empty", ES_CriticalError ) );
 	}
 }
 
@@ -58,8 +58,11 @@ void CPatternsFileProcessor::ReadPattern( CTokens& patternTokens )
 	check_logic( !tokenizer.empty() );
 
 	if( lineStartsWithSpaceOrTab() ) {
-		// todo: error:
-		// A pattern definition is required to be written from the first character of the line.
+		CError error( CSharedFileLine( line, lineNumber ),
+			"a pattern definition is required to be"
+			" written from the first character of the line" );
+		error.LineSegments.emplace_back( 0, tokenizer.front().Offset + 1 );
+		errorProcessor.AddError( move( error ) );
 	}
 	line.clear();
 

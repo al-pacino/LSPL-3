@@ -219,7 +219,7 @@ void CTokenizer::addToken( TTokenType type, bool decreaseAnOffsetByOne )
 
 void CTokenizer::error( TErrorType errorType )
 {
-	CError error( ES_CriticalError, line );
+	CError error( line, "", ES_CriticalError );
 	switch( errorType ) {
 		case TE_UnknowCharacter:
 			error.Message = "unknown character";
