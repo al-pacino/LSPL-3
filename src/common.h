@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <exception>
+#include <algorithm>
 #include <unordered_map>
 
 using namespace std;
