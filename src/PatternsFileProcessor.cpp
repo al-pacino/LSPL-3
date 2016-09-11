@@ -1,6 +1,7 @@
 #include <common.h>
 #include <PatternsFileProcessor.h>
 #include <ErrorProcessor.h>
+#include <Tools.h>
 
 namespace LsplParser {
 
@@ -101,30 +102,6 @@ bool CPatternsFileProcessor::tokenizeLine()
 	return ( tokenizer.size() > sizeBefore );
 }
 
-const size_t TabSize = 4;
-
-static void ReplaceTabsWithSpacesInSignleLine( string& line )
-{
-	string result;
-	result.reserve( line.length() );
-	size_t offset = 0;
-	for( char c : line ) {
-		if( ( static_cast<unsigned char>( c ) & 0xC0 ) == 0xC0 ) {
-			continue;
-		}
-		check_logic( c != '\n' && c != '\r' );
-		if( c == '\t' ) {
-			const size_t spaceCount = TabSize - ( offset % TabSize );
-			result += string( spaceCount, ' ' );
-			offset += spaceCount;
-		} else {
-			result += c;
-			offset++;
-		}
-	}
-	line = move( result );
-}
-
 void CPatternsFileProcessor::readLine()
 {
 	check_logic( file.good() );
@@ -138,7 +115,7 @@ void CPatternsFileProcessor::readLine()
 	}
 
 	// not so effective...
-	ReplaceTabsWithSpacesInSignleLine( line );
+	LsplTools::ReplaceTabsWithSpacesInSignleLine( line );
 }
 
 // skips empty lines (lines without any tokens)
