@@ -5,6 +5,7 @@
 #include <stack>
 #include <tuple>
 #include <bitset>
+#include <locale>
 #include <memory>
 #include <string>
 #include <vector>
