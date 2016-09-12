@@ -32,6 +32,9 @@ struct CError {
 	}
 
 	void Print( ostream& out ) const;
+
+private:
+	string highlightSymbols() const;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
