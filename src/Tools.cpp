@@ -56,6 +56,11 @@ string::size_type IsValidUtf8( const string& text )
 
 string::size_type IsValidText( const string& text )
 {
+	for( string::size_type i = 0; i < text.length(); i++ ) {
+		if( iscntrl( text[i], locale::classic() ) ) {
+			return i;
+		}
+	}
 	return string::npos;
 }
 
