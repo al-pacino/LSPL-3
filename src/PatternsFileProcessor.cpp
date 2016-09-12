@@ -122,7 +122,7 @@ void CPatternsFileProcessor::readLine()
 		const string::size_type invalidCharOffset = LsplTools::IsValidText( line );
 		if( invalidCharOffset != string::npos ) {
 			errorProcessor.AddError( CError(
-				CLineSegment( invalidByteOffset ),
+				CLineSegment( invalidCharOffset ),
 				CSharedFileLine( line, lineNumber ),
 				"the file is not a text file", ES_CriticalError ) );
 			line.clear();
