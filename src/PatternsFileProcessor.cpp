@@ -32,9 +32,9 @@ void CPatternsFileProcessor::Open( const string& filename )
 	reset();
 	file.open( filename, ios::in | ios::binary );
 	if( !file.is_open() ) {
-		errorProcessor.AddError( CError( "file not found", ES_CriticalError ) );
+		errorProcessor.AddError( CError( "the file not found", ES_CriticalError ) );
 	} else if( !skipEmptyLines() ) {
-		errorProcessor.AddError( CError( "file is empty", ES_CriticalError ) );
+		errorProcessor.AddError( CError( "the file is empty", ES_CriticalError ) );
 	}
 }
 
@@ -59,11 +59,11 @@ void CPatternsFileProcessor::ReadPattern( CTokens& patternTokens )
 	check_logic( !tokenizer.empty() );
 
 	if( lineStartsWithSpace() ) {
-		CError error( CSharedFileLine( line, lineNumber ),
+		errorProcessor.AddError( CError(
+			CLineSegment( 0, tokenizer.front().Offset + 1 ),
+			CSharedFileLine( line, lineNumber ),
 			"a pattern definition is required to be"
-			" written from the first character of the line" );
-		error.LineSegments.emplace_back( 0, tokenizer.front().Offset + 1 );
-		errorProcessor.AddError( move( error ) );
+			" written from the first character of the line" ) );
 	}
 	line.clear();
 
@@ -114,8 +114,26 @@ void CPatternsFileProcessor::readLine()
 		line.pop_back();
 	}
 
-	// not so effective...
-	LsplTools::ReplaceTabsWithSpacesInSignleLine( line );
+	const string::size_type invalidByteOffset = LsplTools::IsValidUtf8( line );
+	if( invalidByteOffset == string::npos ) {
+		// not so effective...
+		LsplTools::ReplaceTabsWithSpacesInSignleLine( line );
+
+		const string::size_type invalidCharOffset = LsplTools::IsValidText( line );
+		if( invalidCharOffset != string::npos ) {
+			errorProcessor.AddError( CError(
+				CLineSegment( invalidByteOffset ),
+				CSharedFileLine( line, lineNumber ),
+				"the file is not a text file", ES_CriticalError ) );
+			line.clear();
+		}
+	} else {
+		errorProcessor.AddError( CError(
+			CLineSegment( invalidByteOffset ),
+			CSharedFileLine( line, lineNumber ),
+			"the file is not valid UTF-8", ES_CriticalError ) );
+		line.clear();
+	}
 }
 
 // skips empty lines (lines without any tokens)
@@ -124,7 +142,7 @@ bool CPatternsFileProcessor::skipEmptyLines()
 {
 	tokenizer.Reset();
 
-	while( !tokenizeLine() && !errorProcessor.HasCriticalErrors() && file.good() ) {
+	while( !errorProcessor.HasCriticalErrors() && !tokenizeLine() && file.good() ) {
 		readLine();
 	}
 
