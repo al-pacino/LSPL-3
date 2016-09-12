@@ -26,6 +26,16 @@ void ReplaceTabsWithSpacesInSignleLine( string& line )
 	line = move( result );
 }
 
+string::size_type IsValidUtf8( const string& text )
+{
+	return string::npos;
+}
+
+string::size_type IsValidText( const string& text )
+{
+	return string::npos;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 } // end of LsplTools namespace
