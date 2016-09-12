@@ -29,11 +29,12 @@ CPatternsFileProcessor::~CPatternsFileProcessor()
 
 void CPatternsFileProcessor::Open( const string& filename )
 {
+	check_logic( !errorProcessor.HasCriticalErrors() );
 	reset();
 	file.open( filename, ios::in | ios::binary );
 	if( !file.is_open() ) {
 		errorProcessor.AddError( CError( "the file not found", ES_CriticalError ) );
-	} else if( !skipEmptyLines() ) {
+	} else if( !skipEmptyLines() && !errorProcessor.HasCriticalErrors() ) {
 		errorProcessor.AddError( CError( "the file is empty", ES_CriticalError ) );
 	}
 }
@@ -57,6 +58,7 @@ void CPatternsFileProcessor::ReadPattern( CTokens& patternTokens )
 
 	check_logic( file.is_open() );
 	check_logic( !tokenizer.empty() );
+	check_logic( !errorProcessor.HasCriticalErrors() );
 
 	if( lineStartsWithSpace() ) {
 		errorProcessor.AddError( CError(
@@ -131,7 +133,7 @@ void CPatternsFileProcessor::readLine()
 		errorProcessor.AddError( CError(
 			CLineSegment( invalidByteOffset ),
 			CSharedFileLine( line, lineNumber ),
-			"the file is not valid UTF-8", ES_CriticalError ) );
+			"the file is not valid UTF-8 file", ES_CriticalError ) );
 		line.clear();
 	}
 }
