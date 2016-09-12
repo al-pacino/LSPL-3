@@ -1,39 +1,9 @@
 #include <common.h>
 #include <Tokenizer.h>
 #include <ErrorProcessor.h>
+#include <Tools.h>
 
 namespace LsplParser {
-
-///////////////////////////////////////////////////////////////////////////////
-
-// mask for ASCII digits
-static bitset<256> NumberCharacters( "11111111110000000000000000"
-	"00000000000000000000000000000000" );
-
-// mask for ASCII digits, letters, '-' and '_'
-static bitset<256> IdentifierCharacters( "11111111111111111111111111"
-	"01000011111111111111111111111111" "000000011111111110010000000000000"
-	"00000000000000000000000000000000" );
-
-// mask for ASCII control characters
-static bitset<256> ControlCharacters( "10000000000000000000000000000000"
-	"00000000000000000000000000000000" "00000000000000000000000000000000"
-	"11111111111111111111111111111111" );
-
-inline bool IsNumberCharacter( char c )
-{
-	return NumberCharacters.test( static_cast<unsigned char>( c ) );
-}
-
-inline bool IsIdentifierCharacter( char c )
-{
-	return IdentifierCharacters.test( static_cast<unsigned char>( c ) );
-}
-
-inline bool IsControlCharacter( char c )
-{
-	return ControlCharacters.test( static_cast<unsigned char>( c ) );
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -114,6 +84,14 @@ void CToken::Print( ostream& out ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+inline bool IsIdentifierCharacter( char c )
+{
+	return !LsplTools::IsByteAsciiSymbol( c )
+		|| ( isalnum( c, locale::classic() ) || c == '-' || c == '_' );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 CTokenizer::CTokenizer( CErrorProcessor& _errorProcessor ) :
 	errorProcessor( _errorProcessor )
 {
@@ -157,20 +135,12 @@ void CTokenizer::step( char c )
 
 void CTokenizer::finalize()
 {
-	if( state == &CTokenizer::errorState
-		|| state == &CTokenizer::commentState )
-	{
-		return;
-	}
-
 	step( ' ' );
-	if( state == &CTokenizer::errorState ) {
-		return;
-	}
-
-	if( state != &CTokenizer::initialState ) {
-		check_logic( state == &CTokenizer::regexState );
-		error( TE_NewlineInRegex );
+	if( state == &CTokenizer::regexState ) {
+		addToken( TT_Regexp, true /* decreaseAnOffsetByOne */ );
+		errorProcessor.AddError( CError(
+			CLineSegment( offset - text.length(), numeric_limits<size_t>::max() ),
+			line, "newline in regular expression" ) );
 	}
 
 	reset();
@@ -217,24 +187,9 @@ void CTokenizer::addToken( TTokenType type, bool decreaseAnOffsetByOne )
 	text.clear();
 }
 
-void CTokenizer::error( TErrorType errorType )
+void CTokenizer::checkIdentifier()
 {
-	CError error( line, "", ES_CriticalError );
-	switch( errorType ) {
-		case TE_UnknowCharacter:
-			error.Message = "unknown character";
-			error.LineSegments.emplace_back( offset );
-			break;
-		case TE_NewlineInRegex:
-			check_logic( state == &CTokenizer::regexState );
-			error.Message = "newline in regular expression";
-			error.LineSegments.emplace_back( offset - text.length(),
-				numeric_limits<size_t>::max() );
-			break;
-	}
-	errorProcessor.AddError( move( error ) );
-
-	state = &CTokenizer::errorState;
+	// check text
 }
 
 void CTokenizer::initialState( char c )
@@ -298,15 +253,16 @@ void CTokenizer::initialState( char c )
 			text.clear();
 			break;
 		default:
-			if( IsNumberCharacter( c ) ) {
+			if( isdigit( c, locale::classic() ) ) {
 				state = &CTokenizer::numberState;
 				text.assign( 1, c );
 			} else if( IsIdentifierCharacter( c ) ) {
 				state = &CTokenizer::indentifierState;
 				text.assign( 1, c );
 			} else {
-				error( TE_UnknowCharacter );
-			}		
+				errorProcessor.AddError( CError( CLineSegment( offset ),
+					line, "unknown character " + c, ES_CriticalError ) );
+			}
 			break;
 	}
 }
@@ -318,9 +274,7 @@ void CTokenizer::commentState( char /* c */ )
 
 void CTokenizer::regexState( char c )
 {
-	if( IsControlCharacter( c ) ) {
-		error( TE_UnknowCharacter );
-	} else if( c == '"' ) { 
+	if( c == '"' ) {
 		addToken( TT_Regexp, true /* decreaseAnOffsetByOne */ );
 		state = &CTokenizer::initialState;
 	} else {
@@ -333,17 +287,13 @@ void CTokenizer::regexState( char c )
 
 void CTokenizer::regexStateAfterBackslash( char c )
 {
-	if( IsControlCharacter( c ) ) {
-		error( TE_UnknowCharacter );
-	} else {
-		text.append( 1, c );
-		state = &CTokenizer::regexState;
-	}
+	state = &CTokenizer::regexState;
+	text.append( 1, c );
 }
 
 void CTokenizer::numberState( char c )
 {
-	if( IsNumberCharacter( c ) ) {
+	if( isdigit( c, locale::classic() ) ) {
 		text.append( 1, c );
 	} else {
 		addToken( TT_Number );
@@ -357,6 +307,7 @@ void CTokenizer::indentifierState( char c )
 	if( IsIdentifierCharacter( c ) ) {
 		text.append( 1, c );
 	} else {
+		checkIdentifier();
 		addToken( TT_Identifier );
 		state = &CTokenizer::initialState;
 		step( c );
@@ -407,21 +358,15 @@ void CTokenizer::greaterThanSignState( char c )
 	}
 }
 
-void CTokenizer::errorState( char /* c */ )
-{
-	// just skip rest characters in line
-}
-
 void CTokenizer::exclamationSignState( char c )
 {
-	if( c == '=' ) {
-		addToken( TT_ExclamationPointEqualSign, true/*decreaseAnOffsetByOne*/ );
-		state = &CTokenizer::initialState;
-	} else {
-		offset--; // dirty hack to show error in exclamation point
-		error( TE_UnknowCharacter );
-		offset++; // restore the correct value
+	if( c != '=' ) {
+		errorProcessor.AddError( CError( CLineSegment( offset - 1, 2 ),
+			line, "incorrect operation, you may possibly mean !=" ) );
 	}
+
+	addToken( TT_ExclamationPointEqualSign, true/*decreaseAnOffsetByOne*/ );
+	state = &CTokenizer::initialState;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -83,12 +83,7 @@ private:
 	void finalize();
 	void reset();
 	void addToken( TTokenType type, bool decreaseAnOffsetByOne = false );
-
-	enum TErrorType {
-		TE_UnknowCharacter, // unknown character 'hexnumber', like C2018
-		TE_NewlineInRegex // newline in regular expression, like C2001
-	};
-	void error( TErrorType errorType );
+	void checkIdentifier();
 
 	void initialState( char c );
 	void commentState( char c );
@@ -101,7 +96,6 @@ private:
 	void lessThanSignState( char c );
 	void greaterThanSignState( char c );
 	void exclamationSignState( char c );
-	void errorState( char c );
 };
 
 ///////////////////////////////////////////////////////////////////////////////
