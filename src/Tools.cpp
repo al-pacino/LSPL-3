@@ -40,6 +40,10 @@ string::size_type IsValidUtf8( const string& text )
 			if( rest > 6 ) { // max number of bytes in UTF-8 symbol
 				return i;
 			}
+			check_logic( rest != 1 );
+			if( rest > 0 ) {
+				rest--;
+			}
 		} else {
 			if( rest > 0 ) {
 				rest--;
