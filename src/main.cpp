@@ -21,7 +21,8 @@ int main( int argc, const char* argv[] )
 		CTokens tokens;
 		while( reader.IsOpen() && !errorProcessor.HasCriticalErrors() ) {
 			reader.ReadPattern( tokens );
-			// todo:
+			tokens.Print( cout );
+			cout << endl;
 		}
 
 		if( errorProcessor.HasAnyErrors() ) {

@@ -52,7 +52,18 @@ struct CToken : public CLineSegment {
 	void Print( ostream& out ) const;
 };
 
-typedef vector<CToken> CTokens;
+///////////////////////////////////////////////////////////////////////////////
+
+class CTokens : public vector<CToken> {
+public:
+	void Print( ostream& out ) const
+	{
+		for( const CToken& token : *this ) {
+			token.Print( out );
+			out << " ";
+		}
+	}
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 
