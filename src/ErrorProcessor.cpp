@@ -114,6 +114,7 @@ void CErrorProcessor::PrintErrors( ostream& out, const string& filename ) const
 				out << filename << ":";
 			}
 			error.Print( out );
+			out << endl;
 		}
 	}
 }
