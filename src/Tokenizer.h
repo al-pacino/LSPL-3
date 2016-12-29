@@ -79,13 +79,18 @@ public:
 	{
 	}
 
+	const CToken& Last() const
+	{
+		return *( end - 1 );
+	}
+
 	bool Has() const
 	{
 		return ( token != end );
 	}
 	bool Next( size_t count = 1 )
 	{
-		check_logic( count > static_cast<size_t>( end - token ) );
+		check_logic( count <= static_cast<size_t>( end - token ) );
 		token += count;
 		return Has();
 	}
