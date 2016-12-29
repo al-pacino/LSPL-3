@@ -67,6 +67,82 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 
+class CTokensList {
+public:
+	CTokensList()
+	{
+	}
+
+	explicit CTokensList( const CTokens& tokens ) :
+		token( tokens.cbegin() ),
+		end( tokens.cend() )
+	{
+	}
+
+	bool Has() const
+	{
+		return ( token != end );
+	}
+	bool Next( size_t count = 1 )
+	{
+		if( count > static_cast<size_t>( end - token ) ) {
+			throw logic_error( "CTokensIterator::Next()" );
+		}
+		token += count;
+		return Has();
+	}
+	const CToken& Token() const
+	{
+		if( !Has() ) {
+			throw logic_error( "CTokensIterator::Token()" );
+		}
+		return *token;
+	}
+	const CToken* operator->() const
+	{
+		if( !Has() ) {
+			throw logic_error( "CTokensIterator::Token()" );
+		}
+		return token.operator->();
+	}
+	// checks current token exists and its type is tokenType
+	bool CheckType( const TTokenType type ) const
+	{
+		return ( Has() && Token().Type == type );
+	}
+	bool CheckType( size_t offset, const TTokenType type ) const
+	{
+		if( static_cast<size_t>( end - token ) > offset ) {
+			return ( type == ( token + offset )->Type );
+		}
+		return false;
+	}
+	// if CheckType( type ) does Next
+	bool MatchType( const TTokenType type )
+	{
+		if( CheckType( type ) ) {
+			Next();
+			return true;
+		}
+		return false;
+	}
+	bool MatchNumber( size_t& number )
+	{
+		if( CheckType( TT_Number ) ) {
+			number = token->Number;
+			Next();
+			return true;
+		}
+		return false;
+	}
+
+private:
+	CTokens::const_iterator token;
+	CTokens::const_iterator end;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
 class CErrorProcessor;
 
 class CTokenizer : public CTokens {
