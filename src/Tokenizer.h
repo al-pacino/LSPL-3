@@ -85,24 +85,18 @@ public:
 	}
 	bool Next( size_t count = 1 )
 	{
-		if( count > static_cast<size_t>( end - token ) ) {
-			throw logic_error( "CTokensIterator::Next()" );
-		}
+		check_logic( count > static_cast<size_t>( end - token ) );
 		token += count;
 		return Has();
 	}
 	const CToken& Token() const
 	{
-		if( !Has() ) {
-			throw logic_error( "CTokensIterator::Token()" );
-		}
+		check_logic( Has() );
 		return *token;
 	}
 	const CToken* operator->() const
 	{
-		if( !Has() ) {
-			throw logic_error( "CTokensIterator::Token()" );
-		}
+		check_logic( Has() );
 		return token.operator->();
 	}
 	// checks current token exists and its type is tokenType
