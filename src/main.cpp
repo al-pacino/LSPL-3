@@ -19,10 +19,13 @@ int main( int argc, const char* argv[] )
 		CPatternsFileProcessor reader( errorProcessor, argv[1] );
 
 		CTokens tokens;
+		CPatternParser parser( errorProcessor );
 		while( reader.IsOpen() && !errorProcessor.HasCriticalErrors() ) {
 			reader.ReadPattern( tokens );
 			tokens.Print( cout );
 			cout << endl;
+
+			parser.Parse( tokens );
 		}
 
 		if( errorProcessor.HasAnyErrors() ) {

@@ -181,33 +181,14 @@ class CPatternParser {
 	CPatternParser& operator=( const CPatternParser& ) = delete;
 
 public:
-	CPatternParser( const CTokens& _tokens ) :
-		tokens( _tokens )
-	{
-		check_logic( !tokens.empty() );
-		token = tokens.cbegin();
-	}
+	explicit CPatternParser( CErrorProcessor& errorProcessor );
 
-	bool Parse();
+	void Parse( const CTokens& tokens );
 
 private:
-	const CTokens& tokens;
-	CTokens::const_iterator token;
+	CErrorProcessor& errorProcessor;
+	CTokensList tokens;
 
-	bool hasToken() const
-	{
-		return ( token != tokens.cend() );
-	}
-
-	bool nextToken()
-	{
-		check_logic( hasToken() );
-		++token;
-		return ( token != tokens.cend() );
-	}
-
-	bool isTokenOfType( TTokenType tokenType ) const;
-	bool isNextTokenOfType( TTokenType tokenType );
 	void addError( const string& text );
 
 	bool readWordOrPatternName( CWordOrPatternName& name );
@@ -216,8 +197,8 @@ private:
 	bool readPatternName();
 	bool readPatternArguments();
 
-	bool readWordCondition();
-	bool readWordConditions();
+	bool readElementCondition();
+	bool readElementConditions();
 
 	bool readMatchingCondition();
 	bool readDictionaryCondition();
@@ -228,6 +209,13 @@ private:
 	bool readElements( unique_ptr<CBasePatternNode>& elements );
 	bool readTransposition( unique_ptr<CBasePatternNode>& out );
 	bool readAlternatives( unique_ptr<CBasePatternNode>& alternatives );
+
+	// next methods check syntax of read extraction patterns
+	bool readTextExtractionPrefix();
+	bool readTextExtractionPatterns();
+	bool readTextExtractionPattern();
+	bool readTextExtractionElements();
+	bool readTextExtractionElement( const bool required = false );
 };
 
 ///////////////////////////////////////////////////////////////////////////////

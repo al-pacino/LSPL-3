@@ -9,34 +9,41 @@ namespace LsplParser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool CPatternParser::Parse()
+CPatternParser::CPatternParser( CErrorProcessor& _errorProcessor ) :
+	errorProcessor( _errorProcessor )
 {
-	return readPattern();
+}
+
+void CPatternParser::Parse( const CTokens& _tokens )
+{
+	tokens = CTokensList( _tokens );
+
+	if( !readPattern() ) {
+		return;
+	}
+
+	if( !readTextExtractionPatterns() ) {
+		return;
+	}
+
+	if( tokens.Has() ) {
+		addError( "end of template definition expected" );
+	}
 }
 
 void CPatternParser::addError( const string& text )
 {
 	CError error( text );
 
-	if( hasToken() ) {
-		error.Line = token->Line;
-		error.LineSegments.push_back( *token );
+	if( tokens.Has() ) {
+		error.Line = tokens->Line;
+		error.LineSegments.push_back( tokens.Token() );
 	} else {
-		error.Line = tokens.back().Line;
+		error.Line = tokens.Last().Line;
 		error.LineSegments.emplace_back();
 	}
-}
 
-// checks that current token exists and its type is tokenType
-bool CPatternParser::isTokenOfType( TTokenType tokenType ) const
-{
-	return ( hasToken() && token->Type == tokenType );
-}
-
-// shifts to the next token and does isTokenOfType
-bool CPatternParser::isNextTokenOfType( TTokenType tokenType )
-{
-	return ( nextToken() && token->Type == tokenType );
+	errorProcessor.AddError( move( error ) );
 }
 
 // reads Identifier [ . Identifier ]
@@ -44,12 +51,12 @@ bool CPatternParser::readWordOrPatternName( CWordOrPatternName& name )
 {
 	name.Reset();
 
-	if( !isTokenOfType( TT_Identifier ) ) {
-		addError( "word class or template name expected" );
+	if( !tokens.CheckType( TT_Identifier ) ) {
+		addError( "word class or pattern name expected" );
 		return false;
 	}
 
-	string nameWithOptionalIndex = token->Text;
+	string nameWithOptionalIndex = tokens->Text;
 	const size_t pos = nameWithOptionalIndex.find_last_not_of( "0123456789" );
 	check_logic( pos != string::npos );
 	name.SetName( nameWithOptionalIndex.substr( 0, pos + 1 ) );
@@ -61,16 +68,17 @@ bool CPatternParser::readWordOrPatternName( CWordOrPatternName& name )
 		}
 	}
 	//checkWordClassOrPatternName( name.Name() );
+	tokens.Next(); // skip identifier
 
-	if( isNextTokenOfType( TT_Dot ) ) {
-		if( !isNextTokenOfType( TT_Identifier ) ) {
+	if( tokens.MatchType( TT_Dot ) ) {
+		if( !tokens.CheckType( TT_Identifier ) ) {
 			addError( "word class attribute name expected" );
 			return false;
 		}
 
-		name.SetSubName( token->Text );
+		name.SetSubName( tokens->Text );
 		//checkWordClassAttributeName( name.Name() );
-		nextToken();
+		tokens.Next(); // skip identifier
 	}
 
 	return true;
@@ -78,114 +86,92 @@ bool CPatternParser::readWordOrPatternName( CWordOrPatternName& name )
 
 bool CPatternParser::readPatternName()
 {
-	if( !isTokenOfType( TT_Identifier ) ) {
+	if( !tokens.CheckType( TT_Identifier ) ) {
 		addError( "template name expected" );
 		return false;
 	}
 
-	const string patternName = token->Text;
+	const string patternName = tokens->Text;
 	//checkWordClassOrPatternName( patternName );
 
-	nextToken();
+	tokens.Next();
 	return true;
 }
 
 bool CPatternParser::readPatternArguments()
 {
-	if( isTokenOfType( TT_OpeningParenthesis ) ) {
-		while( true ) {
-			nextToken();
-
+	if( tokens.MatchType( TT_OpeningParenthesis ) ) {
+		do {
 			CWordOrPatternName name;
 			if( !readWordOrPatternName( name ) ) {
 				return false;
 			}
 
-			name.Print( cout );
+			name.Print( cout ); // TODO: temporary
+		} while( tokens.MatchType( TT_Comma ) );
 
-			if( !isTokenOfType( TT_Comma ) ) {
-				break;
-			}
-		}
-		if( !isTokenOfType( TT_ClosingParenthesis ) ) {
+		if( !tokens.MatchType( TT_ClosingParenthesis ) ) {
 			addError( "closing parenthesis `)` expected" );
 			return false;
 		}
-		nextToken();
 	}
 	return true;
 }
 
 bool CPatternParser::readPattern()
 {
-	if( readPatternName() && readPatternArguments() ) {
-		if( isTokenOfType( TT_EqualSign ) ) {
-			nextToken();
-			unique_ptr<CBasePatternNode> alternatives;
-			if( readAlternatives( alternatives ) ) {
-				if( hasToken() ) {
-					addError( "end of template definition expected" );
-				} else {
-					alternatives->Print( cout );
-					return true;
-				}
-			}
-		} else {
-			addError( "equal sign `=` expected" );
-		}
+	if( !readPatternName() || !readPatternArguments() ) {
+		return false;
 	}
-	return false;
+	if( !tokens.MatchType( TT_EqualSign ) ) {
+		addError( "equal sign `=` expected" );
+		return false;
+	}
+	unique_ptr<CBasePatternNode> alternatives;
+	if( !readAlternatives( alternatives ) ) {
+		return false;
+	}
+
+	alternatives->Print( cout ); // TODO: temporary
+	return true;
 }
 
-bool CPatternParser::readWordCondition()
+bool CPatternParser::readElementCondition()
 {
-	auto testToken = token;
-	if( testToken != tokens.cend()
-		&& testToken->Type == TT_Identifier
-		&& ++testToken != tokens.cend()
-		&& ( testToken->Type == TT_EqualSign
-			|| testToken->Type == TT_ExclamationPointEqualSign ) )
+	if( tokens.CheckType( TT_Identifier ) &&
+		( tokens.CheckType( 1, TT_EqualSign )
+			|| tokens.CheckType( 1, TT_ExclamationPointEqualSign ) ) )
 	{
-		// todo:
-		nextToken();
-		nextToken();
+		tokens.Next( 2 );
 	}
 
-	while( true ) {
-		if( isTokenOfType( TT_Regexp ) ) {
+	do {
+		if( tokens.MatchType( TT_Regexp ) ) {
 			// todo:
-		} else if( isTokenOfType( TT_Identifier ) ) {
+		} else if( tokens.MatchType( TT_Identifier ) ) {
 			// todo:
 		} else {
 			addError( "regular expression or word class attribute value expected" );
 			return false;
 		}
-		if( !isNextTokenOfType( TT_VerticalBar ) ) {
-			break;
-		}
-		nextToken();
-	}
+	} while( tokens.MatchType( TT_VerticalBar ) );
 
 	return true;
 }
 
-bool CPatternParser::readWordConditions()
+bool CPatternParser::readElementConditions()
 {
-	if( isTokenOfType( TT_LessThanSign ) ) {
-		while( true ) {
-			nextToken();
-			if( !readWordCondition() ) {
+	if( tokens.MatchType( TT_LessThanSign ) ) {
+		do {
+			if( !readElementCondition() ) {
 				return false;
 			}
-			if( !isTokenOfType( TT_Comma ) ) {
-				break;
-			}
-		}
-		if( !isTokenOfType( TT_GreaterThanSign ) ) {
+		} while( tokens.MatchType( TT_Comma ) );
+
+		if( !tokens.MatchType( TT_GreaterThanSign ) ) {
 			addError( "greater than sign `>` expected" );
 			return false;
 		}
-		nextToken();
 	}
 	return true;
 }
@@ -194,79 +180,83 @@ bool CPatternParser::readElement( unique_ptr<CBasePatternNode>& element )
 {
 	element = nullptr;
 
-	if( hasToken() ) {
-		if( token->Type == TT_Regexp ) {
-			element.reset( new CRegexpNode( token->Text ) );
-			nextToken();
-		} else if( token->Type == TT_Identifier ) {
-			element.reset( new CWordNode( token->Text ) );
-			nextToken();
-			if( !readWordConditions() ) {
-				return false;
-			}
-		} else if( token->Type == TT_OpeningBrace ) {
-			nextToken();
-			unique_ptr<CBasePatternNode> alternatives;
-			if( !readAlternatives( alternatives ) ) {
-				return false;
-			}
-			check_logic( static_cast<bool>( alternatives ) );
-			if( !isTokenOfType( TT_ClosingBrace ) ) {
-				addError( "closing brace `}` expected" );
-				return false;
-			}
-			size_t min = 0;
-			size_t max = numeric_limits<size_t>::max();
-			if( isNextTokenOfType( TT_LessThanSign ) ) { // < NUMBER, NUMBER >
-				if( !isNextTokenOfType( TT_Number ) ) {
-					addError( "number (0, 1, 2, etc.) expected" );
+	if( tokens.Has() ) {
+		switch( tokens->Type ) {
+			case TT_Regexp:
+				element.reset( new CRegexpNode( tokens->Text ) );
+				tokens.Next();
+				break;
+			case TT_Identifier:
+				element.reset( new CWordNode( tokens->Text ) );
+				tokens.Next();
+				if( !readElementConditions() ) {
 					return false;
 				}
-				min = token->Number;
-				if( isNextTokenOfType( TT_Comma ) ) {
-					if( !isNextTokenOfType( TT_Number ) ) {
+				break;
+			case TT_OpeningBrace:
+			{
+				tokens.Next();
+				unique_ptr<CBasePatternNode> alternatives;
+				if( !readAlternatives( alternatives ) ) {
+					return false;
+				}
+				check_logic( static_cast<bool>( alternatives ) );
+				if( !tokens.MatchType( TT_ClosingBrace ) ) {
+					addError( "closing brace `}` expected" );
+					return false;
+				}
+				size_t min = 0;
+				size_t max = numeric_limits<size_t>::max();
+				if( tokens.MatchType( TT_LessThanSign ) ) { // < NUMBER, NUMBER >
+					if( !tokens.MatchNumber( min ) ) {
 						addError( "number (0, 1, 2, etc.) expected" );
 						return false;
 					}
-					max = token->Number;
-					nextToken();
+					if( tokens.MatchType( TT_Comma ) && !tokens.MatchNumber( max ) ) {
+						addError( "number (0, 1, 2, etc.) expected" );
+						return false;
+					}
+					if( !tokens.MatchType( TT_GreaterThanSign ) ) {
+						addError( "greater than sign `>` expected" );
+						return false;
+					}
+					if( min > max || max == 0 ) {
+						addError( "incorrect min max values for repeating" );
+					}
 				}
-				if( !isTokenOfType( TT_GreaterThanSign ) ) {
-					addError( "greater than sign `>` expected" );
+				element.reset( new CRepeatingNode( move( alternatives ), min, max ) );
+				break;
+			}
+			case TT_OpeningBracket:
+			{
+				tokens.Next();
+				unique_ptr<CBasePatternNode> alternatives;
+				if( !readAlternatives( alternatives ) ) {
 					return false;
 				}
-				if( min > max || max == 0 ) {
-					addError( "incorrect min max values for repeating" );
+				check_logic( static_cast<bool>( alternatives ) );
+				if( !tokens.MatchType( TT_ClosingBracket ) ) {
+					addError( "closing bracket `]` expected" );
+					return false;
 				}
-				nextToken();
+				element.reset( new CRepeatingNode( move( alternatives ) ) );
 			}
-			element.reset( new CRepeatingNode( move( alternatives ), min, max ) );
-		} else if( token->Type == TT_OpeningBracket ) {
-			nextToken();
-			unique_ptr<CBasePatternNode> alternatives;
-			if( !readAlternatives( alternatives ) ) {
-				return false;
+			case TT_OpeningParenthesis:
+			{
+				tokens.Next();
+				unique_ptr<CBasePatternNode> alternatives( new CAlternativesNode );
+				if( !readAlternatives( alternatives ) ) {
+					return false;
+				}
+				check_logic( static_cast<bool>( alternatives ) );
+				if( !tokens.MatchType( TT_ClosingParenthesis ) ) {
+					addError( "closing parenthesis `)` expected" );
+					return false;
+				}
+				swap( element, alternatives );
 			}
-			check_logic( static_cast<bool>( alternatives ) );
-			if( !isTokenOfType( TT_ClosingBracket ) ) {
-				addError( "closing bracket `]` expected" );
-				return false;
-			}
-			nextToken();
-			element.reset( new CRepeatingNode( move( alternatives ) ) );
-		} else if( token->Type == TT_OpeningParenthesis ) {
-			nextToken();
-			unique_ptr<CBasePatternNode> alternatives( new CAlternativesNode );
-			if( !readAlternatives( alternatives ) ) {
-				return false;
-			}
-			check_logic( static_cast<bool>( alternatives ) );
-			if( !isTokenOfType( TT_ClosingParenthesis ) ) {
-				addError( "closing parenthesis `)` expected" );
-				return false;
-			}
-			nextToken();
-			swap( element, alternatives );
+			default:
+				break;
 		}
 	}
 	return true;
@@ -305,22 +295,24 @@ bool CPatternParser::readMatchingCondition()
 {
 	bool isEqual = false;
 	bool isDoubleEqual = false;
+
 	while( true ) {
 		CWordOrPatternName name;
 		if( !readWordOrPatternName( name ) ) {
 			return false;
 		}
-		name.Print( cout );
 
-		if( isTokenOfType( TT_EqualSign ) ) {
+		name.Print( cout ); // temporary
+
+		if( tokens.MatchType( TT_EqualSign ) ) {
 			isEqual = true;
-		} else if( isTokenOfType( TT_DoubleEqualSign ) ) {
+		} else if( tokens.MatchType( TT_DoubleEqualSign ) ) {
 			isDoubleEqual = true;
 		} else {
 			break;
 		}
-		nextToken();
 	}
+
 	if( !isEqual && !isDoubleEqual ) {
 		addError( "equal sign `=` or double equal `==` sign expected" );
 		return false;
@@ -334,42 +326,36 @@ bool CPatternParser::readMatchingCondition()
 // reads TT_Identifier `(` TT_Identifier { TT_Identifier } { `,` TT_Identifier { TT_Identifier } } `)`
 bool CPatternParser::readDictionaryCondition()
 {
-	if( !isTokenOfType( TT_Identifier ) ) {
+	if( !tokens.MatchType( TT_Identifier ) ) {
 		addError( "dictionary name expected" );
 		return false;
 	}
-	if( !isNextTokenOfType( TT_OpeningParenthesis ) ) {
+	if( !tokens.MatchType( TT_OpeningParenthesis ) ) {
 		addError( "opening parenthesis `(` expected" );
 		return false;
 	}
-	while( true ) {
+	do {
 		vector<string> names;
-		while( isNextTokenOfType( TT_Identifier ) ) {
-			names.push_back( token->Text );
+		while( tokens.CheckType( TT_Identifier ) ) {
+			names.push_back( tokens->Text );
+			tokens.Next();
 		}
 		if( names.empty() ) {
 			addError( "at least one template element expected" );
 			return false;
 		}
-		if( !isTokenOfType( TT_Comma ) ) {
-			break;
-		}
-	}
-	if( !isTokenOfType( TT_ClosingParenthesis ) ) {
+	} while( tokens.MatchType( TT_Comma ) );
+
+	if( !tokens.MatchType( TT_ClosingParenthesis ) ) {
 		addError( "closing parenthesis `)` expected" );
 		return false;
 	}
-	nextToken();
 	return true;
 }
 
 bool CPatternParser::readAlternativeCondition()
 {
-	auto testToken = token;
-	if( testToken != tokens.cend()
-		&& ++testToken != tokens.cend()
-		&& testToken->Type == TT_OpeningParenthesis )
-	{
+	if( tokens.CheckType( 1, TT_OpeningParenthesis ) ) {
 		return readDictionaryCondition();
 	} else {
 		return readMatchingCondition();
@@ -379,21 +365,17 @@ bool CPatternParser::readAlternativeCondition()
 // reads << ... >>
 bool CPatternParser::readAlternativeConditions()
 {
-	if( isTokenOfType( TT_DoubleLessThanSign ) ) {
-		while( true ) {
-			nextToken();
+	if( tokens.MatchType( TT_DoubleLessThanSign ) ) {
+		do {
 			if( !readAlternativeCondition() ) {
 				return false;
 			}
-			if( !isTokenOfType( TT_Comma ) ) {
-				break;
-			}
-		}
-		if( !isTokenOfType( TT_DoubleGreaterThanSign ) ) {
+		} while( tokens.MatchType( TT_Comma ) );
+
+		if( !tokens.MatchType( TT_DoubleGreaterThanSign ) ) {
 			addError( "double greater than sign `>>` expected" );
 			return false;
 		}
-		nextToken();
 	}
 	return true;
 }
@@ -402,19 +384,14 @@ bool CPatternParser::readTransposition( unique_ptr<CBasePatternNode>& out )
 {
 	out = nullptr;
 	unique_ptr<CTranspositionNode> transposition( new CTranspositionNode );
-	while( true ) {
+	do {
 		unique_ptr<CBasePatternNode> elements;
 		if( !readElements( elements ) ) {
 			return false;
 		}
 		check_logic( static_cast<bool>( elements ) );
 		transposition->push_back( move( elements ) );
-		if( isTokenOfType( TT_Tilde ) ) {
-			nextToken();
-		} else {
-			break;
-		}
-	}
+	} while( tokens.MatchType( TT_Tilde ) );
 	check_logic( !transposition->empty() );
 
 	if( !readAlternativeConditions() ) {
@@ -434,19 +411,14 @@ bool CPatternParser::readAlternatives( unique_ptr<CBasePatternNode>& out )
 {
 	out = nullptr;
 	unique_ptr<CAlternativesNode> alternatives( new CAlternativesNode );
-	while( true ) {
+	do {
 		unique_ptr<CBasePatternNode> transposition;
 		if( !readTransposition( transposition ) ) {
 			return false;
 		}
 		check_logic( static_cast<bool>( transposition ) );
 		alternatives->push_back( move( transposition ) );
-		if( token != tokens.cend() && token->Type == TT_VerticalBar ) {
-			++token;
-		} else {
-			break;
-		}
-	}
+	} while( tokens.MatchType( TT_VerticalBar ) );
 	check_logic( !alternatives->empty() );
 
 	if( alternatives->size() == 1 ) {
@@ -455,6 +427,107 @@ bool CPatternParser::readAlternatives( unique_ptr<CBasePatternNode>& out )
 		out.reset( alternatives.release() );
 	}
 
+	return true;
+}
+
+bool CPatternParser::readTextExtractionPrefix()
+{
+	CTokensList tmp( tokens );
+	if( tmp.MatchType( TT_EqualSign )
+		&& tmp.CheckType( TT_Identifier ) && tmp->Text == "text"
+		&& tmp.Next() && tmp.CheckType( TT_GreaterThanSign ) )
+	{
+		tokens.Next( 3 );
+		return true;
+	}
+	return false;
+}
+
+bool CPatternParser::readTextExtractionPatterns()
+{
+	if( readTextExtractionPrefix() ) {
+		do {
+			if( !readTextExtractionPattern() ) {
+				return false;
+			}
+		} while( tokens.MatchType( TT_Comma ) );
+	}
+	return true;
+}
+
+bool CPatternParser::readTextExtractionPattern()
+{
+	if( !readTextExtractionElements() ) {
+		return false;
+	}
+
+	if( tokens.MatchType( TT_DoubleLessThanSign ) ) {
+		do {
+			CWordOrPatternName name;
+			if( !readWordOrPatternName( name ) ) {
+				return false;
+			}
+			if( !tokens.MatchType( TT_TildeGreaterThanSign ) ) {
+				addError( "tilde and greater than sign `~>` expected" );
+				return false;
+			}
+			if( !readWordOrPatternName( name ) ) {
+				return false;
+			}
+		} while( tokens.MatchType( TT_Comma ) );
+
+		if( !tokens.MatchType( TT_DoubleGreaterThanSign ) ) {
+			addError( "double greater than sign `>>` expected" );
+			return false;
+		}
+	}
+	return true;
+}
+
+bool CPatternParser::readTextExtractionElements()
+{
+	if( !readTextExtractionElement( true /* required */ ) ) {
+		return false;
+	}
+
+	while( readTextExtractionElement() ) {
+	}
+
+	return true;
+}
+
+bool CPatternParser::readTextExtractionElement( const bool required )
+{
+	if( tokens.CheckType( TT_Regexp ) ) {
+		tokens.Next();
+	} else if( tokens.MatchType( TT_NumberSign ) ) {
+		if( !tokens.MatchType( TT_Identifier ) ) {
+			addError( "word class or pattern name expected" );
+			return false;
+		}
+	} else if( tokens.MatchType( TT_Identifier ) ) {
+		if( tokens.MatchType( TT_LessThanSign ) ) {
+			while( tokens.MatchType( TT_Identifier ) ) {
+				if( tokens.MatchType( TT_Regexp ) ) {
+					// todo:
+				} else if( tokens.MatchType( TT_Identifier ) ) {
+					// todo:
+				} else {
+					addError( "regular expression or word class attribute value expected" );
+					return false;
+				}
+			}
+			if( !tokens.MatchType( TT_GreaterThanSign ) ) {
+				addError( "greater than sign `>` expected" );
+				return false;
+			}
+		}
+	} else {
+		if( required ) {
+			addError( "text extraction element expected" );
+		}
+		return false;
+	}
 	return true;
 }
 
