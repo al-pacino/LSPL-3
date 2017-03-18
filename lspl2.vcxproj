@@ -171,6 +171,7 @@
     <ClCompile Include="src\Configuration.cpp" />
     <ClCompile Include="src\ErrorProcessor.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Matcher.cpp" />
     <ClCompile Include="src\Parser.cpp" />
     <ClCompile Include="src\PatternsFileProcessor.cpp" />
     <ClCompile Include="src\Tokenizer.cpp" />
