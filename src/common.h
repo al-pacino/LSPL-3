@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <exception>
 #include <algorithm>
@@ -25,3 +26,9 @@ using namespace std;
 				+ __FILE__ + "," + to_string( __LINE__ ) ); \
 		} \
 	} while( false )
+
+#ifdef _DEBUG
+#define debug_check_logic check_logic
+#else
+#define debug_check_logic
+#endif
