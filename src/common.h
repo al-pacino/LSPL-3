@@ -2,6 +2,7 @@
 
 #include <map>
 #include <list>
+#include <regex>
 #include <stack>
 #include <tuple>
 #include <bitset>
@@ -12,9 +13,11 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <exception>
 #include <algorithm>
+#include <exception>
+#include <forward_list>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace std;
 
