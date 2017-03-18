@@ -159,6 +159,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h" />
+    <ClInclude Include="src\Configuration.h" />
     <ClInclude Include="src\ErrorProcessor.h" />
     <ClInclude Include="src\Parser.h" />
     <ClInclude Include="src\PatternsFileProcessor.h" />
@@ -167,6 +168,7 @@
     <ClInclude Include="src\Tools.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Configuration.cpp" />
     <ClCompile Include="src\ErrorProcessor.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Parser.cpp" />
