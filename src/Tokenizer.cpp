@@ -160,26 +160,27 @@ void CTokenizer::addToken( TTokenType type, bool decreaseAnOffsetByOne )
 	if( decreaseAnOffsetByOne ) {
 		lineSegment.Offset--;
 	}
-	emplace_back( type, line, lineSegment );
+	push_back( CTokenPtr( new CToken( type, line, lineSegment ) ) );
+	CToken& token = *back();
 	switch( type ) {
 		case TT_Regexp:
-			back().Text = text;
-			back().Length = text.length() + 2;
+			token.Text = text;
+			token.Length = text.length() + 2;
 			break;
 		case TT_Number:
-			back().Number = stoul( text );
-			back().Length = text.length();
+			token.Number = stoul( text );
+			token.Length = text.length();
 			break;
 		case TT_Identifier:
-			back().Text = text;
-			back().Length = text.length();
+			token.Text = text;
+			token.Length = text.length();
 			break;
 		case TT_DoubleEqualSign:
 		case TT_TildeGreaterThanSign:
 		case TT_DoubleLessThanSign:
 		case TT_DoubleGreaterThanSign:
 		case TT_ExclamationPointEqualSign:
-			back().Length = 2;
+			token.Length = 2;
 			break;
 		default:
 			break;

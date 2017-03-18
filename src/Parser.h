@@ -6,172 +6,486 @@ namespace LsplParser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+typedef pair<CTokenPtr, CTokenPtr> CExtendedName;
+typedef vector<CExtendedName> CExtendedNames;
+
+struct CPatterDef {
+	CTokenPtr Name;
+	CExtendedNames Arguments;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+struct CMatchingCondition {
+	bool IsStrong;
+	CExtendedNames Elements;
+
+	CMatchingCondition() :
+		IsStrong( false )
+	{
+	}
+
+	void Clear()
+	{
+		IsStrong = false;
+		Elements.clear();
+	}
+
+	void Print( ostream& out ) const
+	{
+		for( const CExtendedName& name : Elements ) {
+			out << "=";
+			if( IsStrong ) {
+				out << "=";
+			}
+			name.first->Print( out );
+			if( name.second ) {
+				out << ".";
+				name.second->Print( out );
+			}
+		}
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+struct CDictionaryCondition {
+	CTokenPtr DictionaryName;
+	vector<vector<CTokenPtr>> Arguments;
+
+	void Clear()
+	{
+		DictionaryName = nullptr;
+		Arguments.clear();
+	}
+
+	void Print( ostream& out ) const
+	{
+		DictionaryName->Print( out );
+		out << "(";
+		for( const vector<CTokenPtr>& argument : Arguments ) {
+			bool isFirst = true;
+			for( const CTokenPtr& token : argument ) {
+				if( isFirst ) {
+					out << ",";
+				} else {
+					out << " ";
+				}
+				isFirst = false;
+				token->Print( out );
+			}
+		}
+		out << ")";
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+struct CAlternativeConditions {
+	vector<CMatchingCondition> MatchingConditions;
+	vector<CDictionaryCondition> DictionaryConditions;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
 class CBasePatternNode {
 	CBasePatternNode( const CBasePatternNode& ) = delete;
 	CBasePatternNode& operator=( const CBasePatternNode& ) = delete;
 
 public:
-	CBasePatternNode() {}
-	virtual ~CBasePatternNode() = 0 {}
-	virtual void Print( ostream& out, size_t offset = 0 ) const = 0;
-	virtual string Type() const = 0 {}
+	CBasePatternNode()
+	{
+	}
+
+	virtual ~CBasePatternNode() = 0
+	{
+	}
+
+	virtual void Print( ostream& out ) const = 0;
+	virtual void MakeVariants( vector<string>& variants ) const = 0;
 };
 
-class CPatternNodesSequence : public CBasePatternNode, public vector<unique_ptr<CBasePatternNode>> {
+template<typename ChildrenType = CBasePatternNode>
+class CPatternNodesSequence : public CBasePatternNode, public vector<unique_ptr<ChildrenType>> {
 public:
-	virtual ~CPatternNodesSequence() = 0 {}
-	virtual void Print( ostream& out, size_t offset ) const
+	virtual ~CPatternNodesSequence() = 0
 	{
-		out << string( offset, ' ' ) << Type() << ":" << endl;
-		for( const unique_ptr<CBasePatternNode>& node : *this ) {
-			node->Print( out, offset + 3 );
+	}
+
+protected:
+	void CollectAllSubVariants( vector<vector<string>>& allSubVariants ) const
+	{
+		allSubVariants.clear();
+		allSubVariants.reserve( size() );
+		for( const unique_ptr<CBasePatternNode>& childNode : *this ) {
+			vector<string> subVariants;
+			childNode->MakeVariants( subVariants );
+			allSubVariants.push_back( subVariants );
+		}
+	}
+
+	void AddVariants( const vector<vector<string>>& allSubVariants,
+		vector<string>& variants ) const
+	{
+		vector<size_t> indices( allSubVariants.size(), 0 );
+		do {
+			string variant;
+			for( size_t i = 0; i < indices.size(); i++ ) {
+				variant += allSubVariants[i][indices[i]];
+			}
+			variants.push_back( variant );
+		} while( nextIndices( allSubVariants, indices ) );
+	}
+
+private:
+	static bool nextIndices( const vector<vector<string>>& allSubVariants,
+		vector<size_t>& indices )
+	{
+		for( size_t pos = indices.size(); pos > 0; pos-- ) {
+			const size_t realPos = pos - 1;
+			if( indices[realPos] < allSubVariants[realPos].size() - 1 ) {
+				indices[realPos]++;
+				return true;
+			} else {
+				indices[realPos] = 0;
+			}
+		}
+		return false;
+	}
+};
+
+class CTranspositionNode : public CPatternNodesSequence<> {
+public:
+	virtual ~CTranspositionNode()
+	{
+	}
+
+	virtual void Print( ostream& out ) const override
+	{
+		bool isFirst = true;
+		for( const unique_ptr<CBasePatternNode>& childNode : *this ) {
+			if( !isFirst ) {
+				out << " ~";
+			}
+			isFirst = false;
+			childNode->Print( out );
+		}
+	}
+
+	virtual void MakeVariants( vector<string>& variants ) const override
+	{
+		vector<vector<string>> allSubVariants;
+		CollectAllSubVariants( allSubVariants );
+		AddVariants( allSubVariants, variants );
+		if( variants.empty() ) {
+			throw logic_error( "CTranspositionNode::MakeVariants variants.empty()" );
 		}
 	}
 };
 
-class CTranspositionNode : public CPatternNodesSequence {
+class CElementsNode : public CPatternNodesSequence<> {
 public:
-	virtual ~CTranspositionNode() {}
-
-	virtual string Type() const
+	virtual ~CElementsNode()
 	{
-		return "CTranspositionNode";
+	}
+
+	virtual void Print( ostream& out ) const override
+	{
+		for( const unique_ptr<CBasePatternNode>& childNode : *this ) {
+			childNode->Print( out );
+		}
+	}
+
+	virtual void MakeVariants( vector<string>& variants ) const override
+	{
+		vector<vector<string>> allSubVariants;
+		CollectAllSubVariants( allSubVariants );
+		AddVariants( allSubVariants, variants );
+		if( variants.empty() ) {
+			throw logic_error( "CElementsNode::MakeVariants variants.empty()" );
+		}
 	}
 };
 
-class CElementsNode : public CPatternNodesSequence {
+class CAlternativeNode : public CBasePatternNode, public CAlternativeConditions {
 public:
-	virtual ~CElementsNode() {}
-
-	virtual string Type() const
+	CAlternativeNode( unique_ptr<CBasePatternNode> childNode ) :
+		node( move( childNode ) )
 	{
-		return "CElementsNode";
+	}
+
+	virtual ~CAlternativeNode()
+	{
+	}
+
+	virtual void Print( ostream& out ) const override
+	{
+		node->Print( out );
+		out << getConditions();
+	}
+
+	virtual void MakeVariants( vector<string>& variants ) const override
+	{
+		node->MakeVariants( variants );
+		const string conditions = getConditions();
+		if( !conditions.empty() ) {
+			for( string& variant : variants ) {
+				variant += conditions;
+			}
+		}
+		if( variants.empty() ) {
+			throw logic_error( "CAlternativeNode::MakeVariants variants.empty()" );
+		}
+	}
+
+private:
+	unique_ptr<CBasePatternNode> node;
+
+	string getConditions() const
+	{
+		if( MatchingConditions.empty() && DictionaryConditions.empty() ) {
+			return "";
+		}
+		ostringstream oss;
+		oss << "<<";
+		bool isFirst = true;
+		for( const CMatchingCondition& cond : MatchingConditions ) {
+			if( !isFirst ) {
+				oss << ",";
+			}
+			isFirst = false;
+			cond.Print( oss );
+		}
+		for( const CDictionaryCondition& cond : DictionaryConditions ) {
+			if( !isFirst ) {
+				oss << ",";
+			}
+			isFirst = false;
+			cond.Print( oss );
+		}
+		oss << ">>";
+		return oss.str();
 	}
 };
 
-class CAlternativesNode : public CPatternNodesSequence {
+class CAlternativesNode : public CPatternNodesSequence<CAlternativeNode> {
 public:
-	virtual ~CAlternativesNode() {}
-
-	virtual string Type() const
+	virtual ~CAlternativesNode()
 	{
-		return "CAlternativesNode";
+	}
+
+	virtual void Print( ostream& out ) const override
+	{
+		bool isFirst = true;
+		out << " (";
+		for( const unique_ptr<CAlternativeNode>& alternative : *this ) {
+			if( !isFirst ) {
+				out << " |";
+			}
+			isFirst = false;
+			alternative->Print( out );
+		}
+		out << ")";
+	}
+
+	virtual void MakeVariants( vector<string>& variants ) const override
+	{
+		variants.clear();
+		for( const unique_ptr<CAlternativeNode>& alternative : *this ) {
+			vector<string> subVariants;
+			alternative->MakeVariants( subVariants );
+			variants.insert( variants.end(), subVariants.cbegin(), subVariants.cend() );
+		}
+		if( variants.empty() ) {
+			throw logic_error( "CAlternativesNode::MakeVariants variants.empty()" );
+		}
 	}
 };
 
 class CRepeatingNode : public CBasePatternNode {
 public:
-	CRepeatingNode( unique_ptr<CBasePatternNode> _node, size_t _min = 0, size_t _max = 1 ) :
-		node( move( _node ) ),
-		min( _min ),
-		max( _max )
+	CRepeatingNode( unique_ptr<CAlternativesNode> alternativesNode,
+		CTokenPtr minToken = nullptr, CTokenPtr maxToken = nullptr ) :
+		node( move( alternativesNode ) ),
+		min( minToken ),
+		max( maxToken )
 	{
-		check_logic( min <= max );
-		check_logic( max > 0 );
+		if( min == nullptr && max != nullptr ) {
+			throw logic_error( "CRepeatingNode::CRepeatingNode" );
+		}
 	}
 
-	void Print( ostream& out, size_t offset ) const
+	virtual ~CRepeatingNode()
 	{
-		out << string( offset, ' ' ) << Type() << " " << min << " " << max << endl;
-		node->Print( out, offset + 4 );
 	}
 
-	virtual ~CRepeatingNode() {}
-
-	virtual string Type() const
+	virtual void Print( ostream& out ) const override
 	{
-		return "CRepeatingNode";
+		out << " {";
+		node->Print( out );
+		out << "}";
+		if( min ) {
+			out << "<";
+			min->Print( out );
+			if( max ) {
+				out << ",";
+				max->Print( out );
+			}
+			out << ">";
+		}
+	}
+
+	virtual void MakeVariants( vector<string>& variants ) const override
+	{
+		const size_t minCount = getMinCount();
+		const size_t maxCount = getMaxCount();
+
+		if( maxCount < minCount ) {
+			throw logic_error( "CRepeatingNode::MakeVariants maxCount < minCount" );
+		}
+
+		variants.clear();
+		vector<string> subVariants;
+		node->MakeVariants( subVariants );
+
+		variants.reserve( maxCount - minCount + 1 );
+		for( size_t count = minCount; count <= maxCount; count++ ) {
+			if( count == 0 ) {
+				variants.push_back( "" );
+				continue;
+			}
+			for( const string& variant : subVariants ) {
+				string tmp = "";
+				for( size_t i = 0; i < count; i++ ) {
+					tmp += variant;
+				}
+				variants.push_back( tmp );
+			}
+		}
+		if( variants.empty() ) {
+			throw logic_error( "CRepeatingNode::MakeVariants variants.empty()" );
+		}
 	}
 
 private:
 	unique_ptr<CBasePatternNode> node;
-	size_t min;
-	size_t max;
+	CTokenPtr min;
+	CTokenPtr max;
+
+	size_t getMinCount() const
+	{
+		return ( ( min != nullptr ) ? min->Number : 0 );
+	}
+	size_t getMaxCount() const
+	{
+		if( max != nullptr ) {
+			return max->Number;
+		} else if( min != nullptr ) {
+			return getMinCount();
+		} else {
+			return 1;
+		}
+	}
 };
 
 class CRegexpNode : public CBasePatternNode {
 public:
-	CRegexpNode( const string& _regexp ) :
-		regexp( _regexp )
+	CRegexpNode( CTokenPtr regexpToken ) :
+		regexp( regexpToken )
 	{
 	}
 
-	virtual ~CRegexpNode() {}
-
-	virtual string Type() const
-	{
-		return "CRegexpNode";
-	}
-
-	void Print( ostream& out, size_t offset ) const
-	{
-		out << string( offset, ' ' ) << '"' << regexp << '"' << endl;
-	}
-
-private:
-	string regexp;
-};
-
-class CWordNode : public CBasePatternNode {
-public:
-	CWordNode( const string& _type ) :
-		type( _type )
+	virtual ~CRegexpNode()
 	{
 	}
 
-	virtual ~CWordNode() {}
-
-	void Print( ostream& out, size_t offset ) const
+	virtual void Print( ostream& out ) const override
 	{
-		out << string( offset, ' ' ) << type << endl;
+		out << " ";
+		regexp->Print( out );
 	}
 
-	virtual string Type() const
+	virtual void MakeVariants( vector<string>& variants ) const override
 	{
-		return "CWordNode";
+		variants.clear();
+		ostringstream oss;
+		Print( oss );
+		variants.push_back( oss.str() );
 	}
 
 private:
-	string type;
-	/* conditions */
+	CTokenPtr regexp;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CWordOrPatternName {
+struct CElementCondition {
+	CTokenPtr Name;
+	CTokenPtr Sign;
+	vector<CTokenPtr> Values;
+
+	void Clear()
+	{
+		Name = nullptr;
+		Sign = nullptr;
+		Values.clear();
+	}
+};
+
+typedef vector<CElementCondition> CElementConditions;
+
+///////////////////////////////////////////////////////////////////////////////
+
+class CElementNode : public CBasePatternNode, public CElementConditions {
 public:
-	CWordOrPatternName()
+	CElementNode( CTokenPtr elementToken ) :
+		element( elementToken )
 	{
-		Reset();
 	}
 
-	void Reset()
+	virtual ~CElementNode()
 	{
-		name.clear();
-		subName.clear();
-		index = 0;
 	}
 
-	const string& Name() const { return name; }
-	void SetName( const string& newName ) { name = newName; }
-	const string& SubName() const { return subName; }
-	void SetSubName( const string& newSubName ) { subName = newSubName; }
-	size_t Index() const { return index; }
-	void SetIndex( const size_t newIndex ) { index = newIndex; }
-
-	void Print( ostream& out ) const
+	void Print( ostream& out ) const override
 	{
-		out << "NAME: " << name << "[" << index << "]";
-		if( !subName.empty() ) {
-			out << "." << subName;
+		out << " ";
+		element->Print( out );
+		out << "<";
+		bool isFirst = true;
+		for( const CElementCondition& cond : *this ) {
+			if( !isFirst ) {
+				out << ",";
+			}
+			isFirst = false;
+			if( cond.Name ) {
+				cond.Name->Print( out );
+			}
+			if( cond.Sign ) {
+				cond.Sign->Print( out );
+			}
+			bool isInternalFirst = true;
+			for( CTokenPtr value : cond.Values ) {
+				if( !isInternalFirst ) {
+					out << "|";
+				}
+				isInternalFirst = false;
+				value->Print( out );
+			}
 		}
-		out << endl;
+		out << ">";
+	}
+
+	virtual void MakeVariants( vector<string>& variants ) const override
+	{
+		variants.clear();
+		ostringstream oss;
+		Print( oss );
+		variants.push_back( oss.str() );
 	}
 
 private:
-	string name;
-	string subName;
-	size_t index;
+	CTokenPtr element;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -191,24 +505,24 @@ private:
 
 	void addError( const string& text );
 
-	bool readWordOrPatternName( CWordOrPatternName& name );
+	bool readExtendedName( CExtendedName& name );
 
 	bool readPattern();
 	bool readPatternName();
 	bool readPatternArguments();
 
-	bool readElementCondition();
-	bool readElementConditions();
+	bool readElementCondition( CElementCondition& elementCondition );
+	bool readElementConditions( CElementConditions& elementConditions );
 
-	bool readMatchingCondition();
-	bool readDictionaryCondition();
-	bool readAlternativeCondition();
-	bool readAlternativeConditions();
+	bool readMatchingCondition( CMatchingCondition& condition );
+	bool readDictionaryCondition( CDictionaryCondition& condition );
+	bool readAlternativeCondition( CAlternativeConditions& conditions );
+	bool readAlternativeConditions( CAlternativeConditions& conditions );
 
 	bool readElement( unique_ptr<CBasePatternNode>& element );
 	bool readElements( unique_ptr<CBasePatternNode>& elements );
-	bool readTransposition( unique_ptr<CBasePatternNode>& out );
-	bool readAlternatives( unique_ptr<CBasePatternNode>& alternatives );
+	bool readAlternative( unique_ptr<CAlternativeNode>& alternative );
+	bool readAlternatives( unique_ptr<CAlternativesNode>& alternatives );
 
 	// next methods check syntax of read extraction patterns
 	bool readTextExtractionPrefix();

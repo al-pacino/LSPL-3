@@ -52,14 +52,16 @@ struct CToken : public CLineSegment {
 	void Print( ostream& out ) const;
 };
 
+typedef shared_ptr<CToken> CTokenPtr;
+
 ///////////////////////////////////////////////////////////////////////////////
 
-class CTokens : public vector<CToken> {
+class CTokens : public vector<CTokenPtr> {
 public:
 	void Print( ostream& out ) const
 	{
-		for( const CToken& token : *this ) {
-			token.Print( out );
+		for( const CTokenPtr& token : *this ) {
+			token->Print( out );
 			out << " ";
 		}
 	}
@@ -81,9 +83,8 @@ public:
 
 	const CToken& Last() const
 	{
-		return *( end - 1 );
+		return *( ( end - 1 )->get() );
 	}
-
 	bool Has() const
 	{
 		return ( token != end );
@@ -94,25 +95,26 @@ public:
 		token += count;
 		return Has();
 	}
-	const CToken& Token() const
+	const CToken& Token( size_t offset = 0 ) const
 	{
-		check_logic( Has() );
-		return *token;
+		check_logic( offset < static_cast<size_t>( end - token ) );
+		return *( ( token + offset )->get() );
+	}
+	CTokenPtr TokenPtr( size_t offset = 0 ) const
+	{
+		check_logic( offset < static_cast<size_t>( end - token ) );
+		return *( token + offset );
 	}
 	const CToken* operator->() const
 	{
 		check_logic( Has() );
-		return token.operator->();
+		return token->get();
 	}
-	// checks current token exists and its type is tokenType
-	bool CheckType( const TTokenType type ) const
-	{
-		return ( Has() && Token().Type == type );
-	}
-	bool CheckType( size_t offset, const TTokenType type ) const
+	// checks token exists and its type is tokenType
+	bool CheckType( const TTokenType type, size_t offset = 0) const
 	{
 		if( static_cast<size_t>( end - token ) > offset ) {
-			return ( type == ( token + offset )->Type );
+			return ( type == Token( offset ).Type );
 		}
 		return false;
 	}
@@ -125,10 +127,10 @@ public:
 		}
 		return false;
 	}
-	bool MatchNumber( size_t& number )
+	bool MatchType( const TTokenType type, CTokenPtr& tokenPtr )
 	{
-		if( CheckType( TT_Number ) ) {
-			number = token->Number;
+		if( CheckType( type ) ) {
+			tokenPtr = TokenPtr();
 			Next();
 			return true;
 		}

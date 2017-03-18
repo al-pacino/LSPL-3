@@ -1,5 +1,3 @@
-#pragma once
-
 #include <common.h>
 #include <Parser.h>
 #include <Tokenizer.h>
@@ -47,27 +45,14 @@ void CPatternParser::addError( const string& text )
 }
 
 // reads Identifier [ . Identifier ]
-bool CPatternParser::readWordOrPatternName( CWordOrPatternName& name )
+bool CPatternParser::readExtendedName( CExtendedName& name )
 {
-	name.Reset();
-
 	if( !tokens.CheckType( TT_Identifier ) ) {
 		addError( "word class or pattern name expected" );
 		return false;
 	}
 
-	string nameWithOptionalIndex = tokens->Text;
-	const size_t pos = nameWithOptionalIndex.find_last_not_of( "0123456789" );
-	check_logic( pos != string::npos );
-	name.SetName( nameWithOptionalIndex.substr( 0, pos + 1 ) );
-	const string index = nameWithOptionalIndex.substr( pos + 1 );
-	if( !index.empty() ) {
-		name.SetIndex( stoul( index ) );
-		if( name.Index() == 0 ) {
-			addError( "name index must be positive (1, 2, 3, etc.)" );
-		}
-	}
-	//checkWordClassOrPatternName( name.Name() );
+	name.first = tokens.TokenPtr();
 	tokens.Next(); // skip identifier
 
 	if( tokens.MatchType( TT_Dot ) ) {
@@ -76,9 +61,10 @@ bool CPatternParser::readWordOrPatternName( CWordOrPatternName& name )
 			return false;
 		}
 
-		name.SetSubName( tokens->Text );
-		//checkWordClassAttributeName( name.Name() );
+		name.second = tokens.TokenPtr();
 		tokens.Next(); // skip identifier
+	} else {
+		name.second = nullptr;
 	}
 
 	return true;
@@ -87,13 +73,11 @@ bool CPatternParser::readWordOrPatternName( CWordOrPatternName& name )
 bool CPatternParser::readPatternName()
 {
 	if( !tokens.CheckType( TT_Identifier ) ) {
-		addError( "template name expected" );
+		addError( "pattern name expected" );
 		return false;
 	}
 
-	const string patternName = tokens->Text;
-	//checkWordClassOrPatternName( patternName );
-
+	//..
 	tokens.Next();
 	return true;
 }
@@ -101,13 +85,12 @@ bool CPatternParser::readPatternName()
 bool CPatternParser::readPatternArguments()
 {
 	if( tokens.MatchType( TT_OpeningParenthesis ) ) {
+		CExtendedNames arguments;
 		do {
-			CWordOrPatternName name;
-			if( !readWordOrPatternName( name ) ) {
+			arguments.emplace_back();
+			if( !readExtendedName( arguments.back() ) ) {
 				return false;
 			}
-
-			name.Print( cout ); // TODO: temporary
 		} while( tokens.MatchType( TT_Comma ) );
 
 		if( !tokens.MatchType( TT_ClosingParenthesis ) ) {
@@ -127,29 +110,46 @@ bool CPatternParser::readPattern()
 		addError( "equal sign `=` expected" );
 		return false;
 	}
-	unique_ptr<CBasePatternNode> alternatives;
+	unique_ptr<CAlternativesNode> alternatives;
 	if( !readAlternatives( alternatives ) ) {
 		return false;
 	}
 
 	alternatives->Print( cout ); // TODO: temporary
+	cout << endl;
+	cout << endl;
+
+	vector<string> variants;
+	alternatives->MakeVariants( variants );
+	for( const string& variant : variants ) {
+		cout << variant << endl;
+	}
+
 	return true;
 }
 
-bool CPatternParser::readElementCondition()
+bool CPatternParser::readElementCondition( CElementCondition& elementCondition )
 {
+	elementCondition.Clear();
+
 	if( tokens.CheckType( TT_Identifier ) &&
-		( tokens.CheckType( 1, TT_EqualSign )
-			|| tokens.CheckType( 1, TT_ExclamationPointEqualSign ) ) )
+		( tokens.CheckType( TT_EqualSign, 1 /* offset */ )
+			|| tokens.CheckType( TT_ExclamationPointEqualSign, 1 /* offset */ ) ) )
 	{
+		elementCondition.Name = tokens.TokenPtr();
+		elementCondition.Sign = tokens.TokenPtr( 1 /* offset */ );
 		tokens.Next( 2 );
+	} else if( tokens.CheckType( TT_EqualSign )
+		|| tokens.CheckType( TT_ExclamationPointEqualSign ) )
+	{
+		elementCondition.Sign = tokens.TokenPtr();
+		tokens.Next();
 	}
 
 	do {
-		if( tokens.MatchType( TT_Regexp ) ) {
-			// todo:
-		} else if( tokens.MatchType( TT_Identifier ) ) {
-			// todo:
+		if( tokens.CheckType( TT_Regexp ) || tokens.CheckType( TT_Identifier ) ) {
+			elementCondition.Values.push_back( tokens.TokenPtr() );
+			tokens.Next();
 		} else {
 			addError( "regular expression or word class attribute value expected" );
 			return false;
@@ -159,11 +159,14 @@ bool CPatternParser::readElementCondition()
 	return true;
 }
 
-bool CPatternParser::readElementConditions()
+bool CPatternParser::readElementConditions( CElementConditions& elementConditions )
 {
+	elementConditions.clear();
+
 	if( tokens.MatchType( TT_LessThanSign ) ) {
 		do {
-			if( !readElementCondition() ) {
+			elementConditions.emplace_back();
+			if( !readElementCondition( elementConditions.back() ) ) {
 				return false;
 			}
 		} while( tokens.MatchType( TT_Comma ) );
@@ -183,20 +186,23 @@ bool CPatternParser::readElement( unique_ptr<CBasePatternNode>& element )
 	if( tokens.Has() ) {
 		switch( tokens->Type ) {
 			case TT_Regexp:
-				element.reset( new CRegexpNode( tokens->Text ) );
+				element.reset( new CRegexpNode( tokens.TokenPtr() ) );
 				tokens.Next();
 				break;
 			case TT_Identifier:
-				element.reset( new CWordNode( tokens->Text ) );
+			{
+				unique_ptr<CElementNode> tmpElement( new CElementNode( tokens.TokenPtr() ) );
 				tokens.Next();
-				if( !readElementConditions() ) {
+				if( !readElementConditions( *tmpElement ) ) {
 					return false;
 				}
+				element = move( tmpElement );
 				break;
+			}
 			case TT_OpeningBrace:
 			{
 				tokens.Next();
-				unique_ptr<CBasePatternNode> alternatives;
+				unique_ptr<CAlternativesNode> alternatives;
 				if( !readAlternatives( alternatives ) ) {
 					return false;
 				}
@@ -205,23 +211,23 @@ bool CPatternParser::readElement( unique_ptr<CBasePatternNode>& element )
 					addError( "closing brace `}` expected" );
 					return false;
 				}
-				size_t min = 0;
-				size_t max = numeric_limits<size_t>::max();
+
+				CTokenPtr min;
+				CTokenPtr max;
 				if( tokens.MatchType( TT_LessThanSign ) ) { // < NUMBER, NUMBER >
-					if( !tokens.MatchNumber( min ) ) {
+					if( !tokens.MatchType( TT_Number, min ) ) {
 						addError( "number (0, 1, 2, etc.) expected" );
 						return false;
 					}
-					if( tokens.MatchType( TT_Comma ) && !tokens.MatchNumber( max ) ) {
+					if( tokens.MatchType( TT_Comma )
+						&& !tokens.MatchType( TT_Number, max ) )
+					{
 						addError( "number (0, 1, 2, etc.) expected" );
 						return false;
 					}
 					if( !tokens.MatchType( TT_GreaterThanSign ) ) {
 						addError( "greater than sign `>` expected" );
 						return false;
-					}
-					if( min > max || max == 0 ) {
-						addError( "incorrect min max values for repeating" );
 					}
 				}
 				element.reset( new CRepeatingNode( move( alternatives ), min, max ) );
@@ -230,7 +236,7 @@ bool CPatternParser::readElement( unique_ptr<CBasePatternNode>& element )
 			case TT_OpeningBracket:
 			{
 				tokens.Next();
-				unique_ptr<CBasePatternNode> alternatives;
+				unique_ptr<CAlternativesNode> alternatives;
 				if( !readAlternatives( alternatives ) ) {
 					return false;
 				}
@@ -240,11 +246,12 @@ bool CPatternParser::readElement( unique_ptr<CBasePatternNode>& element )
 					return false;
 				}
 				element.reset( new CRepeatingNode( move( alternatives ) ) );
+				break;
 			}
 			case TT_OpeningParenthesis:
 			{
 				tokens.Next();
-				unique_ptr<CBasePatternNode> alternatives( new CAlternativesNode );
+				unique_ptr<CAlternativesNode> alternatives;
 				if( !readAlternatives( alternatives ) ) {
 					return false;
 				}
@@ -253,7 +260,8 @@ bool CPatternParser::readElement( unique_ptr<CBasePatternNode>& element )
 					addError( "closing parenthesis `)` expected" );
 					return false;
 				}
-				swap( element, alternatives );
+				element = move( alternatives );
+				break;
 			}
 			default:
 				break;
@@ -291,42 +299,43 @@ bool CPatternParser::readElements( unique_ptr<CBasePatternNode>& out )
 	return true;
 }
 
-bool CPatternParser::readMatchingCondition()
+bool CPatternParser::readMatchingCondition( CMatchingCondition& condition )
 {
-	bool isEqual = false;
-	bool isDoubleEqual = false;
-
-	while( true ) {
-		CWordOrPatternName name;
-		if( !readWordOrPatternName( name ) ) {
-			return false;
-		}
-
-		name.Print( cout ); // temporary
-
-		if( tokens.MatchType( TT_EqualSign ) ) {
-			isEqual = true;
-		} else if( tokens.MatchType( TT_DoubleEqualSign ) ) {
-			isDoubleEqual = true;
-		} else {
-			break;
-		}
+	condition.Elements.emplace_back();
+	if( !readExtendedName( condition.Elements.back() ) ) {
+		return false;
 	}
 
-	if( !isEqual && !isDoubleEqual ) {
+	condition.IsStrong = tokens.MatchType( TT_DoubleEqualSign );
+	if( !condition.IsStrong && !tokens.MatchType( TT_EqualSign ) ) {
 		addError( "equal sign `=` or double equal `==` sign expected" );
 		return false;
 	}
-	if( isEqual && isDoubleEqual ) {
-		addError( "inconsistent equal sign `=` and double equal `==` sign" );
-	}
+
+	do {
+		condition.Elements.emplace_back();
+		if( !readExtendedName( condition.Elements.back() ) ) {
+			return false;
+		}
+
+		if( tokens.CheckType( TT_EqualSign ) ) {
+			if( condition.IsStrong ) {
+				addError( "inconsistent equal sign `=` and double equal `==` sign" );
+			}
+		} else if( tokens.CheckType( TT_DoubleEqualSign ) ) {
+			if( !condition.IsStrong ) {
+				addError( "inconsistent equal sign `=` and double equal `==` sign" );
+			}
+		}
+	} while( tokens.MatchType( TT_EqualSign ) || tokens.MatchType( TT_DoubleEqualSign ) );
+
 	return true;
 }
 
 // reads TT_Identifier `(` TT_Identifier { TT_Identifier } { `,` TT_Identifier { TT_Identifier } } `)`
-bool CPatternParser::readDictionaryCondition()
+bool CPatternParser::readDictionaryCondition( CDictionaryCondition& condition )
 {
-	if( !tokens.MatchType( TT_Identifier ) ) {
+	if( !tokens.MatchType( TT_Identifier, condition.DictionaryName ) ) {
 		addError( "dictionary name expected" );
 		return false;
 	}
@@ -335,13 +344,13 @@ bool CPatternParser::readDictionaryCondition()
 		return false;
 	}
 	do {
-		vector<string> names;
+		condition.Arguments.emplace_back();
 		while( tokens.CheckType( TT_Identifier ) ) {
-			names.push_back( tokens->Text );
+			condition.Arguments.back().push_back( tokens.TokenPtr() );
 			tokens.Next();
 		}
-		if( names.empty() ) {
-			addError( "at least one template element expected" );
+		if( condition.Arguments.back().empty() ) {
+			addError( "at least one pattern element expected" );
 			return false;
 		}
 	} while( tokens.MatchType( TT_Comma ) );
@@ -353,21 +362,23 @@ bool CPatternParser::readDictionaryCondition()
 	return true;
 }
 
-bool CPatternParser::readAlternativeCondition()
+bool CPatternParser::readAlternativeCondition( CAlternativeConditions& conditions )
 {
-	if( tokens.CheckType( 1, TT_OpeningParenthesis ) ) {
-		return readDictionaryCondition();
+	if( tokens.CheckType( TT_OpeningParenthesis, 1 /* offset */ ) ) {
+		conditions.DictionaryConditions.emplace_back();
+		return readDictionaryCondition( conditions.DictionaryConditions.back() );
 	} else {
-		return readMatchingCondition();
+		conditions.MatchingConditions.emplace_back();
+		return readMatchingCondition( conditions.MatchingConditions.back() );
 	}
 }
 
 // reads << ... >>
-bool CPatternParser::readAlternativeConditions()
+bool CPatternParser::readAlternativeConditions( CAlternativeConditions& conditions )
 {
 	if( tokens.MatchType( TT_DoubleLessThanSign ) ) {
 		do {
-			if( !readAlternativeCondition() ) {
+			if( !readAlternativeCondition( conditions ) ) {
 				return false;
 			}
 		} while( tokens.MatchType( TT_Comma ) );
@@ -380,9 +391,8 @@ bool CPatternParser::readAlternativeConditions()
 	return true;
 }
 
-bool CPatternParser::readTransposition( unique_ptr<CBasePatternNode>& out )
+bool CPatternParser::readAlternative( unique_ptr<CAlternativeNode>& alternative )
 {
-	out = nullptr;
 	unique_ptr<CTranspositionNode> transposition( new CTranspositionNode );
 	do {
 		unique_ptr<CBasePatternNode> elements;
@@ -394,50 +404,44 @@ bool CPatternParser::readTransposition( unique_ptr<CBasePatternNode>& out )
 	} while( tokens.MatchType( TT_Tilde ) );
 	check_logic( !transposition->empty() );
 
-	if( !readAlternativeConditions() ) {
-		return false;
+	if( transposition->size() == 1 ) {
+		alternative.reset( new CAlternativeNode( move( transposition->front() ) ) );
+	} else {
+		alternative.reset( new CAlternativeNode( move( transposition ) ) );
 	}
 
-	if( transposition->size() == 1 ) {
-		swap( out, transposition->front() );
-	} else {
-		out.reset( transposition.release() );
+	if( !readAlternativeConditions( *alternative ) ) {
+		return false;
 	}
 
 	return true;
 }
 
-bool CPatternParser::readAlternatives( unique_ptr<CBasePatternNode>& out )
+bool CPatternParser::readAlternatives( unique_ptr<CAlternativesNode>& alternatives )
 {
-	out = nullptr;
-	unique_ptr<CAlternativesNode> alternatives( new CAlternativesNode );
+	alternatives.reset( new CAlternativesNode );
+
 	do {
-		unique_ptr<CBasePatternNode> transposition;
-		if( !readTransposition( transposition ) ) {
+		unique_ptr<CAlternativeNode> alternative;
+		if( !readAlternative( alternative ) ) {
 			return false;
 		}
-		check_logic( static_cast<bool>( transposition ) );
-		alternatives->push_back( move( transposition ) );
+		check_logic( static_cast<bool>( alternative ) );
+		alternatives->push_back( move( alternative ) );
 	} while( tokens.MatchType( TT_VerticalBar ) );
 	check_logic( !alternatives->empty() );
-
-	if( alternatives->size() == 1 ) {
-		swap( out, alternatives->front() );
-	} else {
-		out.reset( alternatives.release() );
-	}
 
 	return true;
 }
 
 bool CPatternParser::readTextExtractionPrefix()
 {
-	CTokensList tmp( tokens );
-	if( tmp.MatchType( TT_EqualSign )
-		&& tmp.CheckType( TT_Identifier ) && tmp->Text == "text"
-		&& tmp.Next() && tmp.CheckType( TT_GreaterThanSign ) )
+	if( tokens.CheckType( TT_EqualSign )
+		&& tokens.CheckType( TT_Identifier, 1 /* offset */ )
+		&& tokens.Token( 1 /* offset */ ).Text == "text"
+		&& tokens.CheckType( TT_GreaterThanSign, 2 /* offset */ ) )
 	{
-		tokens.Next( 3 );
+		tokens.Next( 3 /* count */ );
 		return true;
 	}
 	return false;
@@ -463,15 +467,15 @@ bool CPatternParser::readTextExtractionPattern()
 
 	if( tokens.MatchType( TT_DoubleLessThanSign ) ) {
 		do {
-			CWordOrPatternName name;
-			if( !readWordOrPatternName( name ) ) {
+			CExtendedName name;
+			if( !readExtendedName( name ) ) {
 				return false;
 			}
 			if( !tokens.MatchType( TT_TildeGreaterThanSign ) ) {
 				addError( "tilde and greater than sign `~>` expected" );
 				return false;
 			}
-			if( !readWordOrPatternName( name ) ) {
+			if( !readExtendedName( name ) ) {
 				return false;
 			}
 		} while( tokens.MatchType( TT_Comma ) );

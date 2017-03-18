@@ -62,7 +62,7 @@ void CPatternsFileProcessor::ReadPattern( CTokens& patternTokens )
 
 	if( lineStartsWithSpace() ) {
 		errorProcessor.AddError( CError(
-			CLineSegment( 0, tokenizer.front().Offset + 1 ),
+			CLineSegment( 0, tokenizer.front()->Offset + 1 ),
 			CSharedFileLine( line, lineNumber ),
 			"a pattern definition is required to be"
 			" written from the first character of the line" ) );
