@@ -1,0 +1,77 @@
+{
+	"word_signs": [
+		{
+			"names": [ "speech_part", "sp" ],
+			"type": "main",
+			"values": [ "W", "N", "A", "V", "Pa", "Ap", "Pn", "Av", "Cn", "Pr", "Pt", "Int", "Num" ]
+		},
+		{
+			"names": [ "stem", "st" ],
+			"type": "string"
+		},
+		{
+			"names": [ "lemma" ],
+			"type": "string"
+		},
+		{
+			"names": [ "case", "c" ],
+			"type": "enum",
+			"values": [ "nom", "gen", "dat", "acc", "ins", "prep", "un" ],
+			"consistent": true
+		},
+		{
+			"names": [ "number", "n" ],
+			"type": "enum",
+			"values": [ "sing", "plur" ],
+			"consistent": true
+		},
+		{
+			"names": [ "gender", "g" ],
+			"type": "enum",
+			"values": [ "masc", "fem", "neut" ],
+			"consistent": true
+		},
+		{
+			"names": [ "degree_of_comparison", "doc" ],
+			"type": "enum",
+			"values": [ "com", "sup", "no" ],
+			"consistent": true
+		},
+		{
+			"names": [ "tense", "t" ],
+			"type": "enum",
+			"values": [ "prep", "past", "fut", "inf" ],
+			"consistent": true
+		},
+		{
+			"names": [ "animate", "a" ],
+			"type": "enum",
+			"values": [ "anim", "inan" ],
+			"consistent": true
+		},
+		{
+			"names": [ "form", "f" ],
+			"type": "enum",
+			"values": [ "full", "short" ],
+			"consistent": true
+		},
+		{
+			"names": [ "mode", "m" ],
+			"type": "enum",
+			"values": [ "ind", "imp", "conj", "cond" ],
+			"consistent": true
+		},
+		{
+			"names": [ "person", "p" ],
+			"type": "enum",
+			"values": [ "ind", "imp", "conj", "cond" ],
+			"consistent": true
+		},
+		{
+			"names": [ "reflexive", "r" ],
+			"type": "enum",
+			"values": [ "no", "yes" ],
+			"consistent": true
+		}
+	]
+}
