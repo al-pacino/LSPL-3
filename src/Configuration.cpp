@@ -336,4 +336,4 @@ CConfigurationPtr LoadConfigurationFromFile( const char* filename,
 ///////////////////////////////////////////////////////////////////////////////
 
 } // end of Configuration namespace
-} // end of LsplParser namespace
+} // end of Lspl namespace
