@@ -54,6 +54,7 @@ struct CPatternDefinitionCheckContext {
 	const Configuration::CConfiguration& Configuration;
 	CErrorProcessor& ErrorProcessor;
 	vector<CTokenPtr>& PatternReferences;
+	unordered_set<string> Elements;
 
 	CPatternDefinitionCheckContext(
 			const Configuration::CConfiguration& configuration,
@@ -65,7 +66,9 @@ struct CPatternDefinitionCheckContext {
 	{
 	}
 
-	unordered_set<string> Elements;
+	bool CheckSubName( const CTokenPtr& subNameToken,
+		const bool patternReference, size_t& index ) const;
+	string CheckExtendedName( const CExtendedName& extendedName ) const;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

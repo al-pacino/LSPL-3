@@ -21,30 +21,99 @@ void AddTokensError( CErrorProcessor& errorProcessor,
 		if( token->Line != error.Line ) {
 			break;
 		}
-		error.LineSegments.push_back( *token );
+		if( merge ) {
+			error.LineSegments.back().Merge( *token );
+		} else {
+			error.LineSegments.push_back( *token );
+		}
 	}
-	if( merge ) {
-		const size_t begin = error.LineSegments.front().Offset;
-		const size_t end = error.LineSegments.back().EndOffset();
-		error.LineSegments.clear();
-		error.LineSegments.emplace_back( begin, end - begin );
-	}
-
 	errorProcessor.AddError( move( error ) );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken,
+	const bool patternReference, size_t& index ) const
+{
+	debug_check_logic( static_cast<bool>( subNameToken ) );
+
+	CIndexedName subName;
+	bool found = false;
+	if( !subName.Parse( subNameToken ) || patternReference ) {
+		found = Configuration.WordSigns().Find( subName.Name, index );
+		if( found && !patternReference &&
+			Configuration.WordSigns()[index].Type == Configuration::WST_Main ) {
+			ErrorProcessor.AddError( CError( *subNameToken,
+				"main word sign is not allowed for predefined words" ) );
+		}
+	}
+	if( !found ) {
+		ErrorProcessor.AddError( CError( *subNameToken,
+			"there is no such word sign in configuration" ) );
+	}
+	return found;
+}
+
+string CPatternDefinitionCheckContext::CheckExtendedName(
+	const CExtendedName& extendedName ) const
+{
+	debug_check_logic( static_cast<bool>( extendedName.first ) );
+
+	const Configuration::COrderedStrings& mainValues =
+		Configuration.WordSigns().MainWordSign().Values;
+
+	CIndexedName name( extendedName.first );
+	const bool patternReference = !mainValues.Has( name.Name );
+	if( static_cast<bool>( extendedName.second ) ) {
+		size_t unused;
+		if( CheckSubName( extendedName.second, patternReference, unused ) ) {
+			return CIndexedName( extendedName.second ).Name;
+		}
+	}
+	return "";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void CMatchingCondition::Check( CPatternDefinitionCheckContext& context ) const
 {
-	// TODO:
+	debug_check_logic( Elements.size() >= 2 );
+	auto element = Elements.cbegin();
+	const string subName = context.CheckExtendedName( *element );
+	bool wellFormed = true;
+	for( ++element; element != Elements.cend(); ++element ) {
+		const string elementSubName = context.CheckExtendedName( *element );
+		if( wellFormed && elementSubName != subName ) {
+			wellFormed = false;
+		}
+	}
+
+	if( !wellFormed ) {
+		CError error( *Elements.front().first, "inconsistent condition" );
+		for( const CExtendedName& extendedName : Elements ) {
+			if( error.Line != extendedName.first->Line ) {
+				break;
+			}
+			error.LineSegments.push_back( *extendedName.first );
+			if( static_cast<bool>( extendedName.second ) ) {
+				if( error.Line != extendedName.second->Line ) {
+					break;
+				}
+				error.LineSegments.back().Merge( *extendedName.second );
+			}
+		}
+		context.ErrorProcessor.AddError( move( error ) );
+	}
 }
 
 void CDictionaryCondition::Check( CPatternDefinitionCheckContext& context ) const
 {
+	// STUB:
+	context.ErrorProcessor.AddError( CError( *DictionaryName,
+		"dictionary conditions are not implemented yet" ) );
+
 	// TODO: check dictionary name
 	// TODO: check number of arguments
-
 	const Configuration::COrderedStrings& mainValues =
 		context.Configuration.WordSigns().MainWordSign().Values;
 
@@ -90,21 +159,7 @@ void CElementCondition::Check( CPatternDefinitionCheckContext& context,
 	debug_check_logic( !Values.empty() );
 	size_t index;
 	if( static_cast<bool>( Name ) ) {
-		CIndexedName name;
-		bool found = false;
-		if( !name.Parse( Name ) || patternReference ) {
-			found = wordSigns.Find( name.Name, index );
-			if( found && !patternReference
-				&& wordSigns[index].Type == Configuration::WST_Main )
-			{
-				context.ErrorProcessor.AddError( CError( *Name,
-					"main word sign is not allowed for predefined words" ) );
-				return;
-			}
-		}
-		if( !found ) {
-			context.ErrorProcessor.AddError( CError( *Name,
-				"there is no such word sign in configuration" ) );
+		if( !context.CheckSubName( Name, patternReference, index ) ) {
 			return;
 		}
 	} else {
@@ -181,25 +236,7 @@ string CPatternDefinition::Check(
 				"there is no such word in pattern definition" ) );
 		}
 
-		const bool patternReference = !mainValues.Has( name.Name );
-		if( static_cast<bool>( extendedName.second ) ) {
-			CIndexedName subName;
-			bool found = false;
-			if( !subName.Parse( extendedName.second ) || patternReference ) {
-				size_t index;
-				found = configuration.WordSigns().Find( subName.Name, index );
-				if( found && !patternReference && configuration.WordSigns()[index].Type
-						== Configuration::WST_Main )
-				{
-					errorProcessor.AddError( CError( *( extendedName.second ),
-						"main word sign is not allowed for predefined words" ) );
-				}
-			}
-			if( !found ) {
-				errorProcessor.AddError( CError( *( extendedName.second ),
-					"there is no such word sign in configuration" ) );
-			}
-		}
+		context.CheckExtendedName( extendedName );
 	}
 
 	return IndexedName.Name;
