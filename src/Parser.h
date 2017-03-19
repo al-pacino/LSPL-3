@@ -11,26 +11,65 @@ typedef vector<CExtendedName> CExtendedNames;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-struct CMatchingCondition {
-	bool IsStrong;
+enum TAlternativeConditionType {
+	ACT_MatchingCondition,
+	ACT_DictionaryCondition
+};
+
+struct CMatchingCondition;
+struct CDictionaryCondition;
+
+class CAlternativeCondition {
+public:
+	virtual ~CAlternativeCondition()
+	{
+	}
+
+	TAlternativeConditionType Type() const
+	{
+		return type;
+	}
+
+	const CMatchingCondition& MatchingCondition() const;
+	const CDictionaryCondition& DictionaryCondition() const;
+
+	virtual void Print( ostream& out ) const = 0;
+
+protected:
+	CAlternativeCondition( const TAlternativeConditionType conditionType ) :
+		type( conditionType )
+	{
+	}
+
+private:
+	TAlternativeConditionType type;
+};
+
+typedef vector<unique_ptr<CAlternativeCondition>> CAlternativeConditions;
+
+///////////////////////////////////////////////////////////////////////////////
+
+struct CMatchingCondition : public CAlternativeCondition {
+	bool Strong;
 	CExtendedNames Elements;
 
 	CMatchingCondition() :
-		IsStrong( false )
+		CAlternativeCondition( ACT_MatchingCondition ),
+		Strong( false )
 	{
 	}
 
 	void Clear()
 	{
-		IsStrong = false;
+		Strong = false;
 		Elements.clear();
 	}
 
-	void Print( ostream& out ) const
+	virtual void Print( ostream& out ) const override
 	{
 		for( const CExtendedName& name : Elements ) {
 			out << "=";
-			if( IsStrong ) {
+			if( Strong ) {
 				out << "=";
 			}
 			name.first->Print( out );
@@ -42,11 +81,23 @@ struct CMatchingCondition {
 	}
 };
 
+inline const CMatchingCondition&
+CAlternativeCondition::MatchingCondition() const
+{
+	check_logic( Type() == ACT_MatchingCondition );
+	return static_cast<const CMatchingCondition&>( *this );
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
-struct CDictionaryCondition {
+struct CDictionaryCondition : public CAlternativeCondition {
 	CTokenPtr DictionaryName;
 	vector<vector<CTokenPtr>> Arguments;
+
+	CDictionaryCondition() :
+		CAlternativeCondition( ACT_DictionaryCondition )
+	{
+	}
 
 	void Clear()
 	{
@@ -54,7 +105,7 @@ struct CDictionaryCondition {
 		Arguments.clear();
 	}
 
-	void Print( ostream& out ) const
+	virtual void Print( ostream& out ) const override
 	{
 		DictionaryName->Print( out );
 		out << "(";
@@ -74,12 +125,12 @@ struct CDictionaryCondition {
 	}
 };
 
-///////////////////////////////////////////////////////////////////////////////
-
-struct CAlternativeConditions {
-	vector<CMatchingCondition> MatchingConditions;
-	vector<CDictionaryCondition> DictionaryConditions;
-};
+inline const CDictionaryCondition&
+CAlternativeCondition::DictionaryCondition() const
+{
+	check_logic( Type() == ACT_DictionaryCondition );
+	return static_cast<const CDictionaryCondition&>( *this );
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -200,7 +251,7 @@ public:
 	}
 };
 
-class CAlternativeNode : public CBasePatternNode, public CAlternativeConditions {
+class CAlternativeNode : public CBasePatternNode {
 public:
 	CAlternativeNode( unique_ptr<CBasePatternNode> childNode ) :
 		node( move( childNode ) )
@@ -209,6 +260,11 @@ public:
 
 	virtual ~CAlternativeNode()
 	{
+	}
+
+	CAlternativeConditions& Conditions()
+	{
+		return conditions;
 	}
 
 	virtual void Print( ostream& out ) const override
@@ -232,31 +288,23 @@ public:
 
 private:
 	unique_ptr<CBasePatternNode> node;
+	CAlternativeConditions conditions;
 
 	string getConditions() const
 	{
-		if( MatchingConditions.empty() && DictionaryConditions.empty() ) {
-			return "";
-		}
-		ostringstream oss;
-		oss << "<<";
-		bool isFirst = true;
-		for( const CMatchingCondition& cond : MatchingConditions ) {
-			if( !isFirst ) {
+		auto condition = conditions.cbegin();
+		if( condition != conditions.cend() ) {
+			ostringstream oss;
+			oss << "<<";
+			( *condition )->Print( oss );
+			for( ++condition; condition != conditions.cend(); ++condition ) {
 				oss << ",";
+				( *condition )->Print( oss );
 			}
-			isFirst = false;
-			cond.Print( oss );
+			oss << ">>";
+			return oss.str();
 		}
-		for( const CDictionaryCondition& cond : DictionaryConditions ) {
-			if( !isFirst ) {
-				oss << ",";
-			}
-			isFirst = false;
-			cond.Print( oss );
-		}
-		oss << ">>";
-		return oss.str();
+		return "";
 	}
 };
 

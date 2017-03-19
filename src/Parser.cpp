@@ -308,8 +308,8 @@ bool CPatternParser::readMatchingCondition( CMatchingCondition& condition )
 		return false;
 	}
 
-	condition.IsStrong = tokens.MatchType( TT_DoubleEqualSign );
-	if( !condition.IsStrong && !tokens.MatchType( TT_EqualSign ) ) {
+	condition.Strong = tokens.MatchType( TT_DoubleEqualSign );
+	if( !condition.Strong && !tokens.MatchType( TT_EqualSign ) ) {
 		addError( "equal sign `=` or double equal `==` sign expected" );
 		return false;
 	}
@@ -321,11 +321,11 @@ bool CPatternParser::readMatchingCondition( CMatchingCondition& condition )
 		}
 
 		if( tokens.CheckType( TT_EqualSign ) ) {
-			if( condition.IsStrong ) {
+			if( condition.Strong ) {
 				addError( "inconsistent equal sign `=` and double equal `==` sign" );
 			}
 		} else if( tokens.CheckType( TT_DoubleEqualSign ) ) {
-			if( !condition.IsStrong ) {
+			if( !condition.Strong ) {
 				addError( "inconsistent equal sign `=` and double equal `==` sign" );
 			}
 		}
@@ -367,12 +367,19 @@ bool CPatternParser::readDictionaryCondition( CDictionaryCondition& condition )
 bool CPatternParser::readAlternativeCondition( CAlternativeConditions& conditions )
 {
 	if( tokens.CheckType( TT_OpeningParenthesis, 1 /* offset */ ) ) {
-		conditions.DictionaryConditions.emplace_back();
-		return readDictionaryCondition( conditions.DictionaryConditions.back() );
+		unique_ptr<CDictionaryCondition> condition( new CDictionaryCondition );
+		if( !readDictionaryCondition( *condition ) ) {
+			return false;
+		}
+		conditions.emplace_back( condition.release() );
 	} else {
-		conditions.MatchingConditions.emplace_back();
-		return readMatchingCondition( conditions.MatchingConditions.back() );
+		unique_ptr<CMatchingCondition> condition( new CMatchingCondition );
+		if( !readMatchingCondition( *condition ) ) {
+			return false;
+		}
+		conditions.emplace_back( condition.release() );
 	}
+	return true;
 }
 
 // reads << ... >>
@@ -412,7 +419,7 @@ bool CPatternParser::readAlternative( unique_ptr<CAlternativeNode>& alternative 
 		alternative.reset( new CAlternativeNode( move( transposition ) ) );
 	}
 
-	if( !readAlternativeConditions( *alternative ) ) {
+	if( !readAlternativeConditions( alternative->Conditions() ) ) {
 		return false;
 	}
 
