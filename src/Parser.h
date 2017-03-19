@@ -13,6 +13,26 @@ typedef vector<CExtendedName> CExtendedNames;
 
 ///////////////////////////////////////////////////////////////////////////////
 
+struct CPatternDefinitionCheckContext {
+	const Configuration::CConfiguration& Configuration;
+	CErrorProcessor& ErrorProcessor;
+	vector<CTokenPtr>& PatternReferences;
+
+	CPatternDefinitionCheckContext(
+			const Configuration::CConfiguration& configuration,
+			CErrorProcessor& errorProcessor,
+			vector<CTokenPtr>& patternReferences ) :
+		Configuration( configuration ),
+		ErrorProcessor( errorProcessor ),
+		PatternReferences( patternReferences )
+	{
+	}
+
+	unordered_set<string> Elements;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
 enum TAlternativeConditionType {
 	ACT_MatchingCondition,
 	ACT_DictionaryCondition
@@ -151,6 +171,10 @@ public:
 
 	virtual void Print( ostream& out ) const = 0;
 	virtual void MakeVariants( vector<string>& variants ) const = 0;
+
+	virtual void Check( CPatternDefinitionCheckContext& context ) const
+	{
+	}
 };
 
 template<typename ChildrenType = CBasePatternNode>

@@ -8,40 +8,94 @@ namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool ParseName( /* in, out */ string& name, /* out */ size_t& index )
-{
-	const size_t pos = name.find_last_not_of( "0123456789" );
-	debug_check_logic( pos != string::npos );
-	if( pos < name.length() - 1 ) {
-		index = stoul( name.substr( pos + 1 ) );
-		name = name.substr( 0, pos + 1 );
-		return true;
+struct CIndexedName {
+	string Name;
+	size_t Index;
+
+	CIndexedName() :
+		Index( 0 )
+	{
 	}
-	index = 0;
-	return false;
-}
+
+	explicit CIndexedName( const CTokenPtr token )
+	{
+		Parse( token );
+	}
+
+	bool Parse( const CTokenPtr token )
+	{
+		debug_check_logic( token->Type == TT_Identifier );
+		Name = token->Text;
+		const size_t pos = Name.find_last_not_of( "0123456789" );
+		debug_check_logic( pos != string::npos );
+		if( pos < Name.length() - 1 ) {
+			Index = stoul( Name.substr( pos + 1 ) );
+			Name.erase( pos + 1 );
+			return true;
+		}
+		Index = 0;
+		return false;
+	}
+
+	string Normalize() const
+	{
+		return ( Name + to_string( Index ) );
+	}
+};
 
 string CPatternDefinition::Check(
 	const Configuration::CConfiguration& configuration,
 	CErrorProcessor& errorProcessor,
 	vector<CTokenPtr>& references ) const
 {
-	debug_check_logic( Name->Type == TT_Identifier );
-
-	string name = Name->Text;
-	size_t unused;
-	if( ParseName( name, unused ) ) {
-		errorProcessor.AddError( CError( *Name, Name->Line,
+	CIndexedName IndexedName;
+	if( IndexedName.Parse( Name ) ) {
+		errorProcessor.AddError( CError( *Name,
 			"pattern name CANNOT ends with index" ) );
 	}
 
-	if( configuration.WordSigns().MainWordSign().Values.Has( name ) ) {
-		errorProcessor.AddError( CError( *Name, Name->Line,
-			"pattern name CANNOT be equal to predefined name" ) );
-		name.clear();
+	const Configuration::COrderedStrings& mainValues
+		= configuration.WordSigns().MainWordSign().Values;
+
+	if( mainValues.Has( IndexedName.Name ) ) {
+		errorProcessor.AddError( CError( *Name,
+			"pattern name CANNOT be equal to predefined word" ) );
+		IndexedName.Name.clear();
 	}
 
-	return name;
+	CPatternDefinitionCheckContext context( configuration, errorProcessor, references );
+	Alternatives->Check( context );
+
+	// check Arguments
+	for( const CExtendedName& extendedName : Arguments ) {
+		CIndexedName name( extendedName.first );
+		if( context.Elements.find( name.Normalize() ) == context.Elements.end() ) {
+			errorProcessor.AddError( CError( *(extendedName.first),
+				"there is no such word in pattern definition" ) );
+		}
+
+		const bool patternReference = !mainValues.Has( name.Name );
+		if( static_cast<bool>( extendedName.second ) ) {
+			CIndexedName subName;
+			bool found = false;
+			if( !subName.Parse( extendedName.second ) || patternReference ) {
+				size_t index;
+				found = configuration.WordSigns().Find( subName.Name, index );
+				if( found && !patternReference && configuration.WordSigns()[index].Type
+						== Configuration::WST_Main )
+				{
+					errorProcessor.AddError( CError( *( extendedName.second ),
+						"main word sign is not for predefined words" ) );
+				}
+			}
+			if( !found ) {
+				errorProcessor.AddError( CError( *( extendedName.second ),
+					"there is no such word sign in configuration" ) );
+			}
+		}
+	}
+
+	return IndexedName.Name;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

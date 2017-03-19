@@ -60,7 +60,7 @@ int main( int argc, const char* argv[] )
 				auto pair = namePatternDefs.insert(
 					make_pair( patternName, move( patternDef ) ) );
 				if( !pair.second ) {
-					errorProcessor.AddError( CError( *nameToken, nameToken->Line,
+					errorProcessor.AddError( CError( *nameToken,
 						"pattern with such name was already defined" ) );
 				}
 			}
