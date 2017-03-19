@@ -34,6 +34,12 @@ void CPatternDefinitionCheckContext::AddComplexError(
 	ErrorProcessor.AddError( move( error ) );
 }
 
+bool CPatternDefinitionCheckContext::HasElement(
+	const CTokenPtr& elementToken ) const
+{
+	return ( Elements.find( CIndexedName( elementToken ).Normalize() ) != Elements.cend() );
+}
+
 bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken,
 	const bool patternReference, size_t& index ) const
 {
@@ -84,6 +90,8 @@ void CMatchingCondition::Check( CPatternDefinitionCheckContext& context ) const
 	const string subName = context.CheckExtendedName( *element );
 	bool wellFormed = true;
 	for( ++element; element != Elements.cend(); ++element ) {
+		context.ConditionElements.push_back( element->first );
+
 		const string elementSubName = context.CheckExtendedName( *element );
 		if( wellFormed && elementSubName != subName ) {
 			wellFormed = false;
@@ -115,7 +123,9 @@ void CDictionaryCondition::Check( CPatternDefinitionCheckContext& context ) cons
 	for( const auto& argument : Arguments ) {
 		for( const CTokenPtr& token : argument ) {
 			CIndexedName name( token );
-			if( !mainValues.Has( name.Name ) ) {
+			if( mainValues.Has( name.Name ) ) {
+				context.ConditionElements.push_back( token );
+			} else {
 				context.ErrorProcessor.AddError( CError( *token,
 					"pattern is not allowed in dictionary conditions" ) );
 			}
@@ -223,14 +233,20 @@ string CPatternDefinition::Check(
 	CPatternDefinitionCheckContext context( configuration, errorProcessor, references );
 	Alternatives->Check( context );
 
-	// check Arguments
-	for( const CExtendedName& extendedName : Arguments ) {
-		CIndexedName name( extendedName.first );
-		if( context.Elements.find( name.Normalize() ) == context.Elements.end() ) {
-			errorProcessor.AddError( CError( *(extendedName.first),
+	// check ConditionElements
+	for( const CTokenPtr& conditionElement : context.ConditionElements ) {
+		if( !context.HasElement( conditionElement ) ) {
+			errorProcessor.AddError( CError( *conditionElement,
 				"there is no such word in pattern definition" ) );
 		}
+	}
 
+	// check Arguments
+	for( const CExtendedName& extendedName : Arguments ) {
+		if( !context.HasElement( extendedName.first ) ) {
+			errorProcessor.AddError( CError( *extendedName.first,
+				"there is no such word in pattern definition" ) );
+		}
 		context.CheckExtendedName( extendedName );
 	}
 

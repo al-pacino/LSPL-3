@@ -17,13 +17,14 @@ struct CIndexedName {
 	{
 	}
 
-	explicit CIndexedName( const CTokenPtr token )
+	explicit CIndexedName( const CTokenPtr& token )
 	{
 		Parse( token );
 	}
 
-	bool Parse( const CTokenPtr token )
+	bool Parse( const CTokenPtr& token )
 	{
+		debug_check_logic( static_cast<bool>( token ) );
 		debug_check_logic( token->Type == TT_Identifier );
 		Name = token->Text;
 		const size_t pos = Name.find_last_not_of( "0123456789" );
@@ -55,6 +56,7 @@ struct CPatternDefinitionCheckContext {
 	CErrorProcessor& ErrorProcessor;
 	vector<CTokenPtr>& PatternReferences;
 	unordered_set<string> Elements;
+	vector<CTokenPtr> ConditionElements;
 
 	CPatternDefinitionCheckContext(
 			const Configuration::CConfiguration& configuration,
@@ -70,6 +72,7 @@ struct CPatternDefinitionCheckContext {
 	void AddComplexError( const vector<CTokenPtr>& tokens,
 		const char* message ) const;
 
+	bool HasElement( const CTokenPtr& elementToken ) const;
 	bool CheckSubName( const CTokenPtr& subNameToken,
 		const bool patternReference, size_t& index ) const;
 	string CheckExtendedName( const CExtendedName& extendedName ) const;
