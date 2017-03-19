@@ -61,7 +61,16 @@ int main( int argc, const char* argv[] )
 					make_pair( patternName, move( patternDef ) ) );
 				if( !pair.second ) {
 					errorProcessor.AddError( CError( *nameToken,
-						"pattern with such name was already defined" ) );
+						"redefinition of pattern" ) );
+				}
+			}
+			if( !errorProcessor.HasCriticalErrors() ) {
+				for( const CTokenPtr& reference : references ) {
+					const string referenceName = CIndexedName( reference ).Normalize();
+					if( namePatternDefs.find( referenceName ) == namePatternDefs.end() ) {
+						errorProcessor.AddError( CError( *reference,
+							"undefined pattern" ) );
+					}
 				}
 			}
 		}
