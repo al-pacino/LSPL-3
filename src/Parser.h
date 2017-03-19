@@ -172,9 +172,8 @@ public:
 		vector<vector<string>> allSubVariants;
 		CollectAllSubVariants( allSubVariants );
 		AddVariants( allSubVariants, variants );
-		if( variants.empty() ) {
-			throw logic_error( "CTranspositionNode::MakeVariants variants.empty()" );
-		}
+
+		check_logic( !variants.empty() );
 	}
 };
 
@@ -196,9 +195,8 @@ public:
 		vector<vector<string>> allSubVariants;
 		CollectAllSubVariants( allSubVariants );
 		AddVariants( allSubVariants, variants );
-		if( variants.empty() ) {
-			throw logic_error( "CElementsNode::MakeVariants variants.empty()" );
-		}
+
+		check_logic( !variants.empty() );
 	}
 };
 
@@ -228,9 +226,8 @@ public:
 				variant += conditions;
 			}
 		}
-		if( variants.empty() ) {
-			throw logic_error( "CAlternativeNode::MakeVariants variants.empty()" );
-		}
+
+		check_logic( !variants.empty() );
 	}
 
 private:
@@ -291,9 +288,8 @@ public:
 			alternative->MakeVariants( subVariants );
 			variants.insert( variants.end(), subVariants.cbegin(), subVariants.cend() );
 		}
-		if( variants.empty() ) {
-			throw logic_error( "CAlternativesNode::MakeVariants variants.empty()" );
-		}
+
+		check_logic( !variants.empty() );
 	}
 };
 
@@ -305,9 +301,7 @@ public:
 		min( minToken ),
 		max( maxToken )
 	{
-		if( min == nullptr && max != nullptr ) {
-			throw logic_error( "CRepeatingNode::CRepeatingNode" );
-		}
+		check_logic( min != nullptr || max == nullptr );
 	}
 
 	virtual ~CRepeatingNode()
@@ -335,9 +329,7 @@ public:
 		const size_t minCount = getMinCount();
 		const size_t maxCount = getMaxCount();
 
-		if( maxCount < minCount ) {
-			throw logic_error( "CRepeatingNode::MakeVariants maxCount < minCount" );
-		}
+		check_logic( minCount <= maxCount );
 
 		variants.clear();
 		vector<string> subVariants;
@@ -357,9 +349,8 @@ public:
 				variants.push_back( tmp );
 			}
 		}
-		if( variants.empty() ) {
-			throw logic_error( "CRepeatingNode::MakeVariants variants.empty()" );
-		}
+
+		check_logic( !variants.empty() );
 	}
 
 private:
