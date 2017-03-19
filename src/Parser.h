@@ -8,6 +8,43 @@ namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+struct CIndexedName {
+	string Name;
+	size_t Index;
+
+	CIndexedName() :
+		Index( 0 )
+	{
+	}
+
+	explicit CIndexedName( const CTokenPtr token )
+	{
+		Parse( token );
+	}
+
+	bool Parse( const CTokenPtr token )
+	{
+		debug_check_logic( token->Type == TT_Identifier );
+		Name = token->Text;
+		const size_t pos = Name.find_last_not_of( "0123456789" );
+		debug_check_logic( pos != string::npos );
+		if( pos < Name.length() - 1 ) {
+			Index = stoul( Name.substr( pos + 1 ) );
+			Name.erase( pos + 1 );
+			return true;
+		}
+		Index = 0;
+		return false;
+	}
+
+	string Normalize() const
+	{
+		return ( Name + to_string( Index ) );
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
 typedef pair<CTokenPtr, CTokenPtr> CExtendedName;
 typedef vector<CExtendedName> CExtendedNames;
 
@@ -56,6 +93,7 @@ public:
 	const CDictionaryCondition& DictionaryCondition() const;
 
 	virtual void Print( ostream& out ) const = 0;
+	virtual void Check( CPatternDefinitionCheckContext& context ) const = 0;
 
 protected:
 	CAlternativeCondition( const TAlternativeConditionType conditionType ) :
@@ -101,6 +139,8 @@ struct CMatchingCondition : public CAlternativeCondition {
 			}
 		}
 	}
+
+	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
 };
 
 inline const CMatchingCondition&
@@ -145,6 +185,8 @@ struct CDictionaryCondition : public CAlternativeCondition {
 		}
 		out << ")";
 	}
+
+	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
 };
 
 inline const CDictionaryCondition&
@@ -171,10 +213,7 @@ public:
 
 	virtual void Print( ostream& out ) const = 0;
 	virtual void MakeVariants( vector<string>& variants ) const = 0;
-
-	virtual void Check( CPatternDefinitionCheckContext& context ) const
-	{
-	}
+	virtual void Check( CPatternDefinitionCheckContext& context ) const = 0;
 };
 
 template<typename ChildrenType = CBasePatternNode>
@@ -182,6 +221,13 @@ class CPatternNodesSequence : public CBasePatternNode, public vector<unique_ptr<
 public:
 	virtual ~CPatternNodesSequence() = 0
 	{
+	}
+
+	virtual void Check( CPatternDefinitionCheckContext& context ) const override
+	{
+		for( const unique_ptr<ChildrenType>& node : *this ) {
+			node->Check( context );
+		}
 	}
 
 protected:
@@ -312,6 +358,8 @@ public:
 		check_logic( !variants.empty() );
 	}
 
+	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
+
 private:
 	unique_ptr<CBasePatternNode> node;
 	CAlternativeConditions conditions;
@@ -369,9 +417,16 @@ public:
 
 class CRepeatingNode : public CBasePatternNode {
 public:
-	CRepeatingNode( unique_ptr<CAlternativesNode> alternativesNode,
-		CTokenPtr minToken = nullptr, CTokenPtr maxToken = nullptr ) :
+	explicit CRepeatingNode( unique_ptr<CAlternativesNode> alternativesNode ) :
 		node( move( alternativesNode ) ),
+		optionalNode( true )
+	{
+	}
+
+	CRepeatingNode( unique_ptr<CAlternativesNode> alternativesNode,
+			CTokenPtr minToken, CTokenPtr maxToken ) :
+		node( move( alternativesNode ) ),
+		optionalNode( false ),
 		min( minToken ),
 		max( maxToken )
 	{
@@ -427,8 +482,11 @@ public:
 		check_logic( !variants.empty() );
 	}
 
+	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
+
 private:
 	unique_ptr<CBasePatternNode> node;
+	const bool optionalNode;
 	CTokenPtr min;
 	CTokenPtr max;
 
@@ -473,6 +531,8 @@ public:
 		variants.push_back( oss.str() );
 	}
 
+	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
+
 private:
 	CTokenPtr regexp;
 };
@@ -481,22 +541,25 @@ private:
 
 struct CElementCondition {
 	CTokenPtr Name;
-	CTokenPtr Sign;
+	CTokenPtr EqualSign;
 	vector<CTokenPtr> Values;
 
 	void Clear()
 	{
 		Name = nullptr;
-		Sign = nullptr;
+		EqualSign = nullptr;
 		Values.clear();
 	}
+
+	void Check( CPatternDefinitionCheckContext& context,
+		const bool patternReference ) const;
 };
 
 typedef vector<CElementCondition> CElementConditions;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CElementNode : public CBasePatternNode, public CElementConditions {
+class CElementNode : public CBasePatternNode {
 public:
 	CElementNode( CTokenPtr elementToken ) :
 		element( elementToken )
@@ -507,13 +570,18 @@ public:
 	{
 	}
 
+	CElementConditions& Conditions()
+	{
+		return conditions;
+	}
+
 	void Print( ostream& out ) const override
 	{
 		out << " ";
 		element->Print( out );
 		out << "<";
 		bool isFirst = true;
-		for( const CElementCondition& cond : *this ) {
+		for( const CElementCondition& cond : conditions ) {
 			if( !isFirst ) {
 				out << ",";
 			}
@@ -521,8 +589,8 @@ public:
 			if( cond.Name ) {
 				cond.Name->Print( out );
 			}
-			if( cond.Sign ) {
-				cond.Sign->Print( out );
+			if( cond.EqualSign ) {
+				cond.EqualSign->Print( out );
 			}
 			bool isInternalFirst = true;
 			for( CTokenPtr value : cond.Values ) {
@@ -544,8 +612,11 @@ public:
 		variants.push_back( oss.str() );
 	}
 
+	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
+
 private:
 	CTokenPtr element;
+	CElementConditions conditions;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

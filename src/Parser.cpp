@@ -8,40 +8,147 @@ namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-struct CIndexedName {
-	string Name;
-	size_t Index;
+void AddTokensError( CErrorProcessor& errorProcessor,
+	const vector<CTokenPtr>& tokens, const char* message,
+	const bool merge = false )
+{
+	debug_check_logic( !tokens.empty() );
+	debug_check_logic( static_cast<bool>( tokens.front() ) );
 
-	CIndexedName() :
-		Index( 0 )
-	{
-	}
-
-	explicit CIndexedName( const CTokenPtr token )
-	{
-		Parse( token );
-	}
-
-	bool Parse( const CTokenPtr token )
-	{
-		debug_check_logic( token->Type == TT_Identifier );
-		Name = token->Text;
-		const size_t pos = Name.find_last_not_of( "0123456789" );
-		debug_check_logic( pos != string::npos );
-		if( pos < Name.length() - 1 ) {
-			Index = stoul( Name.substr( pos + 1 ) );
-			Name.erase( pos + 1 );
-			return true;
+	CError error( *tokens.front(), message );
+	for( const CTokenPtr& token : tokens ) {
+		debug_check_logic( static_cast<bool>( token ) );
+		if( token->Line != error.Line ) {
+			break;
 		}
-		Index = 0;
-		return false;
+		error.LineSegments.push_back( *token );
+	}
+	if( merge ) {
+		const size_t begin = error.LineSegments.front().Offset;
+		const size_t end = error.LineSegments.back().EndOffset();
+		error.LineSegments.clear();
+		error.LineSegments.emplace_back( begin, end - begin );
 	}
 
-	string Normalize() const
-	{
-		return ( Name + to_string( Index ) );
+	errorProcessor.AddError( move( error ) );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void CMatchingCondition::Check( CPatternDefinitionCheckContext& context ) const
+{
+	// TODO:
+}
+
+void CDictionaryCondition::Check( CPatternDefinitionCheckContext& context ) const
+{
+	// TODO: check dictionary name
+	// TODO: check number of arguments
+
+	const Configuration::COrderedStrings& mainValues =
+		context.Configuration.WordSigns().MainWordSign().Values;
+
+	for( const auto& argument : Arguments ) {
+		for( const CTokenPtr& token : argument ) {
+			CIndexedName name( token );
+			if( !mainValues.Has( name.Name ) ) {
+				context.ErrorProcessor.AddError( CError( *token,
+					"pattern is not allowed in dictionary conditions" ) );
+			}
+		}
 	}
-};
+}
+
+void CAlternativeNode::Check( CPatternDefinitionCheckContext& context ) const
+{
+	node->Check( context );
+
+	for( const unique_ptr<CAlternativeCondition>& condition : conditions ) {
+		condition->Check( context );
+	}
+}
+
+void CRepeatingNode::Check( CPatternDefinitionCheckContext& context ) const
+{
+	if( min != nullptr && max != nullptr && max->Number < min->Number ) {
+		AddTokensError( context.ErrorProcessor, { min, max },
+			"inconsistent min/max repeating value" );
+	}
+
+	node->Check( context );
+}
+
+void CRegexpNode::Check( CPatternDefinitionCheckContext& context ) const
+{
+	// TODO: check regex syntax!
+}
+
+void CElementCondition::Check( CPatternDefinitionCheckContext& context,
+	const bool patternReference ) const
+{
+	const Configuration::CWordSigns& wordSigns = context.Configuration.WordSigns();
+	debug_check_logic( !Values.empty() );
+	size_t index;
+	if( static_cast<bool>( Name ) ) {
+		CIndexedName name;
+		bool found = false;
+		if( !name.Parse( Name ) || patternReference ) {
+			found = wordSigns.Find( name.Name, index );
+			if( found && !patternReference
+				&& wordSigns[index].Type == Configuration::WST_Main )
+			{
+				context.ErrorProcessor.AddError( CError( *Name,
+					"main word sign is not allowed for predefined words" ) );
+				return;
+			}
+		}
+		if( !found ) {
+			context.ErrorProcessor.AddError( CError( *Name,
+				"there is no such word sign in configuration" ) );
+			return;
+		}
+	} else {
+		vector<CTokenPtr> tokens;
+		if( static_cast<bool>( EqualSign ) ) {
+			tokens.push_back( EqualSign );
+		}
+		tokens.insert( tokens.end(), Values.cbegin(), Values.cend() );
+		AddTokensError( context.ErrorProcessor, tokens,
+			"there is no default word sign in configuration", true /* merge */ );
+		return;
+	}
+
+	const Configuration::CWordSign& wordSign = wordSigns[index];
+	/*if( wordSign.Type == Configuration::WST_String ) {
+		for( const CTokenPtr& tokenPtr : Values ) {
+			if( tokenPtr->Type != TT_Regexp ) {
+				context.ErrorProcessor.AddError( CError( *tokenPtr,
+					"string constant expected" ) );
+			}
+		}
+	} else {*/
+	for( const CTokenPtr& value : Values ) {
+		debug_check_logic( value->Type == TT_Identifier || value->Type == TT_Regexp );
+		if( !wordSign.Values.Has( value->Text ) ) {
+			context.ErrorProcessor.AddError( CError( *value,
+				"there is no such word sign value for this word sign in configuration" ) );
+		}
+	}
+}
+
+void CElementNode::Check( CPatternDefinitionCheckContext& context ) const
+{
+	CIndexedName name( element );
+	context.Elements.insert( name.Normalize() );
+	const bool patternReference = !context.Configuration.WordSigns()
+		.MainWordSign().Values.Has( name.Name );
+	if( patternReference ) {
+		context.PatternReferences.push_back( element );
+	}
+	for( const CElementCondition& cond : conditions ) {
+		cond.Check( context, patternReference );
+	}
+}
 
 string CPatternDefinition::Check(
 	const Configuration::CConfiguration& configuration,
@@ -85,7 +192,7 @@ string CPatternDefinition::Check(
 						== Configuration::WST_Main )
 				{
 					errorProcessor.AddError( CError( *( extendedName.second ),
-						"main word sign is not for predefined words" ) );
+						"main word sign is not allowed for predefined words" ) );
 				}
 			}
 			if( !found ) {
@@ -232,12 +339,12 @@ bool CPatternParser::readElementCondition( CElementCondition& elementCondition )
 			|| tokens.CheckType( TT_ExclamationPointEqualSign, 1 /* offset */ ) ) )
 	{
 		elementCondition.Name = tokens.TokenPtr();
-		elementCondition.Sign = tokens.TokenPtr( 1 /* offset */ );
+		elementCondition.EqualSign = tokens.TokenPtr( 1 /* offset */ );
 		tokens.Next( 2 );
 	} else if( tokens.CheckType( TT_EqualSign )
 		|| tokens.CheckType( TT_ExclamationPointEqualSign ) )
 	{
-		elementCondition.Sign = tokens.TokenPtr();
+		elementCondition.EqualSign = tokens.TokenPtr();
 		tokens.Next();
 	}
 
@@ -288,7 +395,7 @@ bool CPatternParser::readElement( unique_ptr<CBasePatternNode>& element )
 			{
 				unique_ptr<CElementNode> tmpElement( new CElementNode( tokens.TokenPtr() ) );
 				tokens.Next();
-				if( !readElementConditions( *tmpElement ) ) {
+				if( !readElementConditions( tmpElement->Conditions() ) ) {
 					return false;
 				}
 				element = move( tmpElement );
