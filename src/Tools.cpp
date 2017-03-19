@@ -1,7 +1,8 @@
 #include <common.h>
 #include <Tools.h>
 
-namespace LsplTools {
+namespace Lspl {
+namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -70,4 +71,5 @@ string::size_type IsValidText( const string& text )
 
 ///////////////////////////////////////////////////////////////////////////////
 
-} // end of LsplTools namespace
+} // end of Parser namespace
+} // end of Lspl namespace

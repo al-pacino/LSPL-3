@@ -3,7 +3,8 @@
 #include <ErrorProcessor.h>
 #include <Tools.h>
 
-namespace LsplParser {
+namespace Lspl {
+namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -86,7 +87,7 @@ void CToken::Print( ostream& out ) const
 
 inline bool IsIdentifierCharacter( char c )
 {
-	return !LsplTools::IsByteAsciiSymbol( c )
+	return !IsByteAsciiSymbol( c )
 		|| ( isalnum( c, locale::classic() ) || c == '-' || c == '_' );
 }
 
@@ -372,4 +373,5 @@ void CTokenizer::exclamationSignState( char c )
 
 ///////////////////////////////////////////////////////////////////////////////
 
+} // end of Parser namespace
 } // end of Lspl namespace

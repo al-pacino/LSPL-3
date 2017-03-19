@@ -1,38 +1,57 @@
 #include <common.h>
-
 #include <Parser.h>
 #include <Tokenizer.h>
+#include <Configuration.h>
 #include <ErrorProcessor.h>
 #include <PatternsFileProcessor.h>
 
-using namespace LsplParser;
+using namespace Lspl::Parser;
+using namespace Lspl::Configuration;
+
+void ReadPatternDefinitions( const char* filename,
+	CErrorProcessor& errorProcessor,
+	/* out */ vector<CPatternDefinitionPtr>& patternDefs )
+{
+	patternDefs.clear();
+	CPatternsFileProcessor reader( errorProcessor, filename );
+	CTokens tokens;
+	CPatternParser parser( errorProcessor );
+	while( reader.IsOpen() && !errorProcessor.HasCriticalErrors() ) {
+		reader.ReadPattern( tokens );
+		patternDefs.push_back( parser.Parse( tokens ) );
+		if( !static_cast<bool>( patternDefs.back() ) ) {
+			patternDefs.pop_back();
+		}
+	}
+}
 
 int main( int argc, const char* argv[] )
 {
 	try {
-		if( argc != 2 ) {
-			cerr << "Usage: lspl2 FILE" << endl;
+		if( argc != 4 ) {
+			cerr << "Usage: lspl2 CONFIGURATION PATTERNS TEXT" << endl;
+			return 1;
+		}
+
+		CConfigurationPtr configuration =
+			LoadConfigurationFromFile( argv[1], cerr, cout );
+
+		if( !static_cast<bool>( configuration ) ) {
 			return 1;
 		}
 
 		CErrorProcessor errorProcessor;
-		CPatternsFileProcessor reader( errorProcessor, argv[1] );
 
-		CTokens tokens;
-		CPatternParser parser( errorProcessor );
-		while( reader.IsOpen() && !errorProcessor.HasCriticalErrors() ) {
-			reader.ReadPattern( tokens );
-			tokens.Print( cout );
-			cout << endl;
+		vector<CPatternDefinitionPtr> patternDefs;
+		ReadPatternDefinitions( argv[2], errorProcessor, patternDefs );
+		if( !errorProcessor.HasCriticalErrors() ) {
 
-			parser.Parse( tokens );
 		}
 
 		if( errorProcessor.HasAnyErrors() ) {
 			errorProcessor.PrintErrors( cerr, argv[1] );
 			return 1;
 		}
-		// todo:
 	} catch( exception& e ) {
 		cerr << e.what() << endl;
 		return 1;

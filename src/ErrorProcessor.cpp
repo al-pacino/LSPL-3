@@ -2,7 +2,8 @@
 #include <ErrorProcessor.h>
 #include <Tools.h>
 
-namespace LsplParser {
+namespace Lspl {
+namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -50,7 +51,7 @@ string CError::highlightSymbols() const
 	string highlights;
 	highlights.reserve( lashHighlightedSymbolOffset + 1 );
 	for( size_t i = 0; i < lashHighlightedSymbolOffset; i++ ) {
-		if( LsplTools::IsByteFirstInUtf8Symbol( Line->Line[i] ) ) {
+		if( IsByteFirstInUtf8Symbol( Line->Line[i] ) ) {
 			if( superHighlightsMask[i] ) {
 				highlights += '^';
 			} else if( highlightsMask[i] ) {
@@ -121,4 +122,5 @@ void CErrorProcessor::PrintErrors( ostream& out, const string& filename ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+} // end of Parser namespace
 } // end of Lspl namespace

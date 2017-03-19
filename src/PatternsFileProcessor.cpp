@@ -3,7 +3,8 @@
 #include <ErrorProcessor.h>
 #include <Tools.h>
 
-namespace LsplParser {
+namespace Lspl {
+namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -116,12 +117,12 @@ void CPatternsFileProcessor::readLine()
 		line.pop_back();
 	}
 
-	const string::size_type invalidByteOffset = LsplTools::IsValidUtf8( line );
+	const string::size_type invalidByteOffset = IsValidUtf8( line );
 	if( invalidByteOffset == string::npos ) {
 		// not so effective...
-		LsplTools::ReplaceTabsWithSpacesInSignleLine( line );
+		ReplaceTabsWithSpacesInSignleLine( line );
 
-		const string::size_type invalidCharOffset = LsplTools::IsValidText( line );
+		const string::size_type invalidCharOffset = IsValidText( line );
 		if( invalidCharOffset != string::npos ) {
 			errorProcessor.AddError( CError(
 				CLineSegment( invalidCharOffset ),
@@ -164,4 +165,5 @@ bool CPatternsFileProcessor::lineStartsWithSpace() const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+} // end of Parser namespace
 } // end of Lspl namespace

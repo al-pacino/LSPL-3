@@ -3,7 +3,18 @@
 #include <Tokenizer.h>
 #include <ErrorProcessor.h>
 
-namespace LsplParser {
+namespace Lspl {
+namespace Parser {
+
+///////////////////////////////////////////////////////////////////////////////
+
+void CPatternDefinition::Check(
+	const Configuration::CConfiguration& configuration,
+	CErrorProcessor& errorProcessor,
+	vector<CTokenPtr>& references ) const
+{
+
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -546,4 +557,5 @@ bool CPatternParser::readTextExtractionElement( const bool required )
 
 ///////////////////////////////////////////////////////////////////////////////
 
-} // end of LsplParser namespace
+} // end of Parser namespace
+} // end of Lspl namespace

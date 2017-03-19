@@ -1,8 +1,10 @@
 #pragma once
 
 #include <Tokenizer.h>
+#include <Configuration.h>
 
-namespace LsplParser {
+namespace Lspl {
+namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -528,6 +530,10 @@ struct CPatternDefinition {
 	CTokenPtr Name;
 	CExtendedNames Arguments;
 	unique_ptr<CAlternativesNode> Alternatives;
+
+	void Check( const Configuration::CConfiguration& configuration,
+		CErrorProcessor& errorProcessor,
+		vector<CTokenPtr>& references ) const;
 };
 
 typedef unique_ptr<CPatternDefinition> CPatternDefinitionPtr;
@@ -578,4 +584,5 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-} // end of LsplParser namespace
+} // end of Parser namespace
+} // end of Lspl namespace
