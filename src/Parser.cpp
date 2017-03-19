@@ -8,29 +8,31 @@ namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void AddTokensError( CErrorProcessor& errorProcessor,
-	const vector<CTokenPtr>& tokens, const char* message,
-	const bool merge = false )
+void CPatternDefinitionCheckContext::AddComplexError(
+	const vector<CTokenPtr>& tokens, const char* message ) const
 {
 	debug_check_logic( !tokens.empty() );
 	debug_check_logic( static_cast<bool>( tokens.front() ) );
 
-	CError error( *tokens.front(), message );
+	CError error( tokens.front()->Line, message );
+	bool afterSeparator = true;
 	for( const CTokenPtr& token : tokens ) {
-		debug_check_logic( static_cast<bool>( token ) );
-		if( token->Line != error.Line ) {
-			break;
-		}
-		if( merge ) {
-			error.LineSegments.back().Merge( *token );
+		if( static_cast<bool>( token ) ) {
+			if( token->Line != error.Line ) {
+				break;
+			}
+			if( afterSeparator ) {
+				error.LineSegments.push_back( *token );
+			} else {
+				error.LineSegments.back().Merge( *token );
+			}
+			afterSeparator = false;
 		} else {
-			error.LineSegments.push_back( *token );
+			afterSeparator = true;
 		}
 	}
-	errorProcessor.AddError( move( error ) );
+	ErrorProcessor.AddError( move( error ) );
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken,
 	const bool patternReference, size_t& index ) const
@@ -89,20 +91,13 @@ void CMatchingCondition::Check( CPatternDefinitionCheckContext& context ) const
 	}
 
 	if( !wellFormed ) {
-		CError error( *Elements.front().first, "inconsistent condition" );
+		vector<CTokenPtr> tokens;
 		for( const CExtendedName& extendedName : Elements ) {
-			if( error.Line != extendedName.first->Line ) {
-				break;
-			}
-			error.LineSegments.push_back( *extendedName.first );
-			if( static_cast<bool>( extendedName.second ) ) {
-				if( error.Line != extendedName.second->Line ) {
-					break;
-				}
-				error.LineSegments.back().Merge( *extendedName.second );
-			}
+			tokens.push_back( extendedName.first );
+			tokens.push_back( extendedName.second );
+			tokens.push_back( nullptr );
 		}
-		context.ErrorProcessor.AddError( move( error ) );
+		context.AddComplexError( tokens, "inconsistent condition" );
 	}
 }
 
@@ -140,7 +135,7 @@ void CAlternativeNode::Check( CPatternDefinitionCheckContext& context ) const
 void CRepeatingNode::Check( CPatternDefinitionCheckContext& context ) const
 {
 	if( min != nullptr && max != nullptr && max->Number < min->Number ) {
-		AddTokensError( context.ErrorProcessor, { min, max },
+		context.AddComplexError( { min, nullptr, max },
 			"inconsistent min/max repeating value" );
 	}
 
@@ -168,8 +163,8 @@ void CElementCondition::Check( CPatternDefinitionCheckContext& context,
 			tokens.push_back( EqualSign );
 		}
 		tokens.insert( tokens.end(), Values.cbegin(), Values.cend() );
-		AddTokensError( context.ErrorProcessor, tokens,
-			"there is no default word sign in configuration", true /* merge */ );
+		context.AddComplexError( tokens,
+			"there is no default word sign in configuration" );
 		return;
 	}
 

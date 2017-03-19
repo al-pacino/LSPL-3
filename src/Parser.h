@@ -66,6 +66,10 @@ struct CPatternDefinitionCheckContext {
 	{
 	}
 
+	// nullptr used to seperate line segments
+	void AddComplexError( const vector<CTokenPtr>& tokens,
+		const char* message ) const;
+
 	bool CheckSubName( const CTokenPtr& subNameToken,
 		const bool patternReference, size_t& index ) const;
 	string CheckExtendedName( const CExtendedName& extendedName ) const;
