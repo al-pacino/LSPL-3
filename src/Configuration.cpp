@@ -62,6 +62,11 @@ CWordSigns::SizeType CWordSigns::Size() const
 	return wordSigns.size();
 }
 
+const CWordSign& CWordSigns::MainWordSign() const
+{
+	return wordSigns.front();
+}
+
 const CWordSign& CWordSigns::operator[]( SizeType& index ) const
 {
 	debug_check_logic( index < wordSigns.size() );

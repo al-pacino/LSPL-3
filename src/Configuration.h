@@ -29,6 +29,7 @@ public:
 		return values[index];
 	}
 	bool Add( const ValueType& value );
+	bool Has( const ValueType& value ) const;
 	bool Find( const ValueType& value, SizeType& index ) const;
 	void Print( ostream& out, const char* const delimiter ) const;
 
@@ -45,6 +46,12 @@ bool COrderedList<VALUE_TYPE>::Add( const ValueType& value )
 	}
 	values.insert( i, value );
 	return true;
+}
+
+template<typename VALUE_TYPE>
+bool COrderedList<VALUE_TYPE>::Has( const ValueType& value ) const
+{
+	return binary_search( values.cbegin(), values.cend(), value );
 }
 
 template<typename VALUE_TYPE>
@@ -109,6 +116,7 @@ public:
 	CWordSigns();
 	bool IsEmpty() const;
 	SizeType Size() const;
+	const CWordSign& MainWordSign() const;
 	const CWordSign& operator[]( SizeType& index ) const;
 	bool Find( const string& name, SizeType& index ) const;
 	void Print( ostream& out ) const;
