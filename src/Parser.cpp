@@ -8,12 +8,40 @@ namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void CPatternDefinition::Check(
+static bool ParseName( /* in, out */ string& name, /* out */ size_t& index )
+{
+	const size_t pos = name.find_last_not_of( "0123456789" );
+	debug_check_logic( pos != string::npos );
+	if( pos < name.length() - 1 ) {
+		index = stoul( name.substr( pos + 1 ) );
+		name = name.substr( 0, pos + 1 );
+		return true;
+	}
+	index = 0;
+	return false;
+}
+
+string CPatternDefinition::Check(
 	const Configuration::CConfiguration& configuration,
 	CErrorProcessor& errorProcessor,
 	vector<CTokenPtr>& references ) const
 {
+	debug_check_logic( Name->Type == TT_Identifier );
 
+	string name = Name->Text;
+	size_t unused;
+	if( ParseName( name, unused ) ) {
+		errorProcessor.AddError( CError( *Name, Name->Line,
+			"pattern name CANNOT ends with index" ) );
+	}
+
+	if( configuration.WordSigns().MainWordSign().Values.Has( name ) ) {
+		errorProcessor.AddError( CError( *Name, Name->Line,
+			"pattern name CANNOT be equal to predefined name" ) );
+		name.clear();
+	}
+
+	return name;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

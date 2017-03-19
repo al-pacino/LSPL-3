@@ -531,7 +531,7 @@ struct CPatternDefinition {
 	CExtendedNames Arguments;
 	unique_ptr<CAlternativesNode> Alternatives;
 
-	void Check( const Configuration::CConfiguration& configuration,
+	string Check( const Configuration::CConfiguration& configuration,
 		CErrorProcessor& errorProcessor,
 		vector<CTokenPtr>& references ) const;
 };

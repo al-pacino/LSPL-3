@@ -41,16 +41,38 @@ int main( int argc, const char* argv[] )
 		}
 
 		CErrorProcessor errorProcessor;
+		unordered_map<string, CPatternDefinitionPtr> namePatternDefs;
 
 		vector<CPatternDefinitionPtr> patternDefs;
 		ReadPatternDefinitions( argv[2], errorProcessor, patternDefs );
 		if( !errorProcessor.HasCriticalErrors() ) {
-
+			vector<CTokenPtr> references;
+			for( CPatternDefinitionPtr& patternDef : patternDefs ) {
+				const string patternName = patternDef->Check( *configuration,
+					errorProcessor, references );
+				if( errorProcessor.HasCriticalErrors() ) {
+					break;
+				}
+				if( patternName.empty() ) {
+					continue;
+				}
+				const CTokenPtr nameToken = patternDef->Name;
+				auto pair = namePatternDefs.insert(
+					make_pair( patternName, move( patternDef ) ) );
+				if( !pair.second ) {
+					errorProcessor.AddError( CError( *nameToken, nameToken->Line,
+						"pattern with such name was already defined" ) );
+				}
+			}
 		}
 
 		if( errorProcessor.HasAnyErrors() ) {
-			errorProcessor.PrintErrors( cerr, argv[1] );
+			errorProcessor.PrintErrors( cerr, argv[2] );
 			return 1;
+		} else {
+			for( const auto& pattern : namePatternDefs ) {
+				cout << pattern.first << endl;
+			}
 		}
 	} catch( exception& e ) {
 		cerr << e.what() << endl;
