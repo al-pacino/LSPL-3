@@ -40,6 +40,11 @@ struct CLineSegment {
 		Length( length )
 	{
 	}
+
+	size_t EndOffset() const
+	{
+		return ( Offset + Length );
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
