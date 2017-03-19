@@ -7,6 +7,8 @@ namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+struct CToken;
+
 enum TErrorSeverity {
 	ES_CriticalError,
 	ES_Error
@@ -26,6 +28,9 @@ struct CError {
 	{
 		LineSegments.push_back( lineSegments );
 	}
+
+	CError( const CToken& token, const string& message = "",
+		TErrorSeverity severity = ES_Error );
 
 	CError( CSharedFileLine line, const string& message,
 			TErrorSeverity severity = ES_Error ) :

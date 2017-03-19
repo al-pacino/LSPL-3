@@ -1,11 +1,21 @@
 #include <common.h>
 #include <ErrorProcessor.h>
+#include <Tokenizer.h>
 #include <Tools.h>
 
 namespace Lspl {
 namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
+
+CError::CError( const CToken& token, const string& message,
+		TErrorSeverity severity ) :
+	Severity( severity ),
+	Line( token.Line ),
+	Message( message )
+{
+	LineSegments.push_back( token );
+}
 
 void CError::Print( ostream& out ) const
 {
