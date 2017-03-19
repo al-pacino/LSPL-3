@@ -12,21 +12,25 @@ CPatternParser::CPatternParser( CErrorProcessor& _errorProcessor ) :
 {
 }
 
-void CPatternParser::Parse( const CTokens& _tokens )
+CPatternDefinitionPtr CPatternParser::Parse( const CTokens& _tokens )
 {
 	tokens = CTokensList( _tokens );
 
-	if( !readPattern() ) {
-		return;
+	CPatternDefinitionPtr patternDef( new CPatternDefinition );
+	if( !readPattern( *patternDef ) ) {
+		return CPatternDefinitionPtr();
 	}
 
 	if( !readTextExtractionPatterns() ) {
-		return;
+		return CPatternDefinitionPtr();
 	}
 
 	if( tokens.Has() ) {
 		addError( "end of template definition expected" );
+		return CPatternDefinitionPtr();
 	}
+
+	return patternDef;
 }
 
 void CPatternParser::addError( const string& text )
@@ -70,22 +74,26 @@ bool CPatternParser::readExtendedName( CExtendedName& name )
 	return true;
 }
 
-bool CPatternParser::readPatternName()
+bool CPatternParser::readPatternName( CPatternDefinition& patternDef )
 {
+	debug_check_logic( !static_cast<bool>( patternDef.Name ) );
+
 	if( !tokens.CheckType( TT_Identifier ) ) {
 		addError( "pattern name expected" );
 		return false;
 	}
 
-	//..
+	patternDef.Name = tokens.TokenPtr();
 	tokens.Next();
 	return true;
 }
 
-bool CPatternParser::readPatternArguments()
+bool CPatternParser::readPatternArguments( CPatternDefinition& patternDef )
 {
+	debug_check_logic( patternDef.Arguments.empty() );
+
 	if( tokens.MatchType( TT_OpeningParenthesis ) ) {
-		CExtendedNames arguments;
+		CExtendedNames& arguments = patternDef.Arguments;
 		do {
 			arguments.emplace_back();
 			if( !readExtendedName( arguments.back() ) ) {
@@ -101,28 +109,22 @@ bool CPatternParser::readPatternArguments()
 	return true;
 }
 
-bool CPatternParser::readPattern()
+bool CPatternParser::readPattern( CPatternDefinition& patternDef )
 {
-	if( !readPatternName() || !readPatternArguments() ) {
+	if( !readPatternName( patternDef ) ) {
+		return false;
+	}
+	if( !readPatternArguments( patternDef ) ) {
 		return false;
 	}
 	if( !tokens.MatchType( TT_EqualSign ) ) {
 		addError( "equal sign `=` expected" );
 		return false;
 	}
-	unique_ptr<CAlternativesNode> alternatives;
-	if( !readAlternatives( alternatives ) ) {
+
+	debug_check_logic( !static_cast<bool>( patternDef.Alternatives ) );
+	if( !readAlternatives( patternDef.Alternatives ) ) {
 		return false;
-	}
-
-	alternatives->Print( cout ); // TODO: temporary
-	cout << endl;
-	cout << endl;
-
-	vector<string> variants;
-	alternatives->MakeVariants( variants );
-	for( const string& variant : variants ) {
-		cout << variant << endl;
 	}
 
 	return true;

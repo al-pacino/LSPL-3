@@ -9,11 +9,6 @@ namespace LsplParser {
 typedef pair<CTokenPtr, CTokenPtr> CExtendedName;
 typedef vector<CExtendedName> CExtendedNames;
 
-struct CPatterDef {
-	CTokenPtr Name;
-	CExtendedNames Arguments;
-};
-
 ///////////////////////////////////////////////////////////////////////////////
 
 struct CMatchingCondition {
@@ -490,6 +485,16 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
+struct CPatternDefinition {
+	CTokenPtr Name;
+	CExtendedNames Arguments;
+	unique_ptr<CAlternativesNode> Alternatives;
+};
+
+typedef unique_ptr<CPatternDefinition> CPatternDefinitionPtr;
+
+///////////////////////////////////////////////////////////////////////////////
+
 class CPatternParser {
 	CPatternParser( const CPatternParser& ) = delete;
 	CPatternParser& operator=( const CPatternParser& ) = delete;
@@ -497,7 +502,7 @@ class CPatternParser {
 public:
 	explicit CPatternParser( CErrorProcessor& errorProcessor );
 
-	void Parse( const CTokens& tokens );
+	CPatternDefinitionPtr Parse( const CTokens& tokens );
 
 private:
 	CErrorProcessor& errorProcessor;
@@ -507,9 +512,9 @@ private:
 
 	bool readExtendedName( CExtendedName& name );
 
-	bool readPattern();
-	bool readPatternName();
-	bool readPatternArguments();
+	bool readPattern( CPatternDefinition& patternDef );
+	bool readPatternName( CPatternDefinition& patternDef );
+	bool readPatternArguments( CPatternDefinition& patternDef );
 
 	bool readElementCondition( CElementCondition& elementCondition );
 	bool readElementConditions( CElementConditions& elementConditions );
