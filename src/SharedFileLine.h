@@ -45,6 +45,14 @@ struct CLineSegment {
 	{
 		return ( Offset + Length );
 	}
+
+	void Merge( const CLineSegment other )
+	{
+		const size_t mergedOffset = min( Offset, other.Offset );
+		const size_t mergedEndOffset = max( EndOffset(), other.EndOffset() );
+		Offset = mergedOffset;
+		Length = mergedEndOffset - mergedOffset;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
