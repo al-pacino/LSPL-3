@@ -66,7 +66,7 @@ int main( int argc, const char* argv[] )
 			}
 			if( !errorProcessor.HasCriticalErrors() ) {
 				for( const CTokenPtr& reference : references ) {
-					const string referenceName = CIndexedName( reference ).Normalize();
+					const string referenceName = CIndexedName( reference ).Name;
 					if( namePatternDefs.find( referenceName ) == namePatternDefs.end() ) {
 						errorProcessor.AddError( CError( *reference,
 							"undefined pattern" ) );
@@ -81,6 +81,15 @@ int main( int argc, const char* argv[] )
 		} else {
 			for( const auto& pattern : namePatternDefs ) {
 				cout << pattern.first << endl;
+				vector<CPatternVariant> variants;
+				pattern.second->Alternatives->Collect( variants, 10 );
+				for( const auto& variant : variants ) {
+					for( const string& element : variant ) {
+						cout << " " << element;
+					}
+					cout << endl;
+				}
+				cout << endl;
 			}
 		}
 	} catch( exception& e ) {

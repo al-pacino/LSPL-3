@@ -8,6 +8,45 @@ namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+class CTranspositionSupport {
+	CTranspositionSupport( const CTranspositionSupport& ) = delete;
+	CTranspositionSupport& operator=( const CTranspositionSupport& ) = delete;
+
+public:
+	static const size_t MaxTranspositionSize = 9;
+
+	struct CSwap : public pair<size_t, size_t> {
+		template<typename ValueType>
+		void Apply( vector<ValueType>& vect ) const
+		{
+			debug_check_logic( first < second );
+			debug_check_logic( second < vect.size() );
+			ValueType tmp = move( vect[first] );
+			vect[first] = move( vect[second] );
+			vect[second] = move( tmp );
+		}
+	};
+	typedef vector<CSwap> CSwaps;
+
+	static const CTranspositionSupport& Instance();
+	const CSwaps& Swaps( const size_t transpositionSize ) const;
+
+private:
+	static unique_ptr<CTranspositionSupport> instance; // singleton
+	mutable unordered_map<size_t, CSwaps> allSwaps;
+
+	CTranspositionSupport(); // default constructor
+	static void fillSwaps( CSwaps& swaps, const size_t size );
+
+	typedef basic_string<unsigned char> CTransposition;
+	typedef list<CTransposition> CTranspositions;
+	static CTranspositions generate( const CTransposition& first );
+	static bool connect( const CTransposition& first,
+		const CTransposition& second, CSwaps& swaps );
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
 struct CIndexedName {
 	string Name;
 	size_t Index;
@@ -135,7 +174,7 @@ struct CMatchingCondition : public CAlternativeCondition {
 		Elements.clear();
 	}
 
-	virtual void Print( ostream& out ) const override
+	void Print( ostream& out ) const override
 	{
 		for( const CExtendedName& name : Elements ) {
 			out << "=";
@@ -150,7 +189,7 @@ struct CMatchingCondition : public CAlternativeCondition {
 		}
 	}
 
-	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
+	void Check( CPatternDefinitionCheckContext& context ) const override;
 };
 
 inline const CMatchingCondition&
@@ -177,7 +216,7 @@ struct CDictionaryCondition : public CAlternativeCondition {
 		Arguments.clear();
 	}
 
-	virtual void Print( ostream& out ) const override
+	void Print( ostream& out ) const override
 	{
 		DictionaryName->Print( out );
 		out << "(";
@@ -196,7 +235,7 @@ struct CDictionaryCondition : public CAlternativeCondition {
 		out << ")";
 	}
 
-	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
+	void Check( CPatternDefinitionCheckContext& context ) const override;
 };
 
 inline const CDictionaryCondition&
@@ -205,6 +244,29 @@ CAlternativeCondition::DictionaryCondition() const
 	check_logic( Type() == ACT_DictionaryCondition );
 	return static_cast<const CDictionaryCondition&>( *this );
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+struct CPatternVariant : public vector<string> {
+public:
+	CPatternVariant()
+	{
+	}
+
+	explicit CPatternVariant( const string& element )
+	{
+		push_back( element );
+	}
+
+	CPatternVariant& operator+=( const CPatternVariant& variant )
+	{
+		this->insert( this->cend(), variant.cbegin(), variant.cend() );
+		return *this;
+	}
+};
+
+struct CPatternVariants : public vector<CPatternVariant> {
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -222,51 +284,30 @@ public:
 	}
 
 	virtual void Print( ostream& out ) const = 0;
-	virtual void MakeVariants( vector<string>& variants ) const = 0;
 	virtual void Check( CPatternDefinitionCheckContext& context ) const = 0;
-};
 
-template<typename ChildrenType = CBasePatternNode>
-class CPatternNodesSequence : public CBasePatternNode, public vector<unique_ptr<ChildrenType>> {
-public:
-	virtual ~CPatternNodesSequence() = 0
-	{
-	}
-
-	virtual void Check( CPatternDefinitionCheckContext& context ) const override
-	{
-		for( const unique_ptr<ChildrenType>& node : *this ) {
-			node->Check( context );
-		}
-	}
+	virtual size_t MinSizePrediction() const = 0;
+	virtual void Collect( vector<CPatternVariant>& variants,
+		const size_t maxSize ) const = 0;
 
 protected:
-	void CollectAllSubVariants( vector<vector<string>>& allSubVariants ) const
-	{
-		allSubVariants.clear();
-		allSubVariants.reserve( size() );
-		for( const unique_ptr<CBasePatternNode>& childNode : *this ) {
-			vector<string> subVariants;
-			childNode->MakeVariants( subVariants );
-			allSubVariants.push_back( subVariants );
-		}
-	}
-
-	void AddVariants( const vector<vector<string>>& allSubVariants,
-		vector<string>& variants ) const
+	static void AddVariants( const vector<vector<CPatternVariant>>& allSubVariants,
+		vector<CPatternVariant>& variants, const size_t maxSize )
 	{
 		vector<size_t> indices( allSubVariants.size(), 0 );
 		do {
-			string variant;
+			CPatternVariant variant;
 			for( size_t i = 0; i < indices.size(); i++ ) {
 				variant += allSubVariants[i][indices[i]];
 			}
-			variants.push_back( variant );
+			if( variant.size() <= maxSize ) {
+				variants.push_back( variant );
+			}
 		} while( nextIndices( allSubVariants, indices ) );
 	}
 
 private:
-	static bool nextIndices( const vector<vector<string>>& allSubVariants,
+	static bool nextIndices( const vector<vector<CPatternVariant>>& allSubVariants,
 		vector<size_t>& indices )
 	{
 		for( size_t pos = indices.size(); pos > 0; pos-- ) {
@@ -282,13 +323,67 @@ private:
 	}
 };
 
+template<typename ChildrenType = CBasePatternNode>
+class CPatternNodesSequence : public CBasePatternNode, public vector<unique_ptr<ChildrenType>> {
+public:
+	virtual ~CPatternNodesSequence() = 0
+	{
+	}
+
+	void Check( CPatternDefinitionCheckContext& context ) const override
+	{
+		for( const unique_ptr<ChildrenType>& node : *this ) {
+			node->Check( context );
+		}
+	}
+
+	size_t MinSizePrediction() const override
+	{
+		size_t minSizePrediction = 0;
+		for( const unique_ptr<ChildrenType>& childNode : *this ) {
+			minSizePrediction += childNode->MinSizePrediction();
+		}
+		return minSizePrediction;
+	}
+
+protected:
+	void CollectAllSubVariants( vector<vector<CPatternVariant>>& allSubVariants,
+		const size_t maxSize ) const
+	{
+		allSubVariants.clear();
+		if( maxSize == 0 ) {
+			return;
+		}
+
+		const size_t minSize = MinSizePrediction();
+		if( minSize > maxSize ) {
+			return;
+		}
+
+		allSubVariants.reserve( size() );
+		for( const unique_ptr<ChildrenType>& childNode : *this ) {
+			const size_t emsp = childNode->MinSizePrediction();
+			const size_t mes = maxSize - minSize + emsp;
+			
+			vector<CPatternVariant> subVariants;
+			childNode->Collect( subVariants, mes );
+			if( subVariants.empty() ) {
+				allSubVariants.clear();
+				return;
+			}
+
+			allSubVariants.push_back( subVariants );
+		}
+	}
+};
+
 class CTranspositionNode : public CPatternNodesSequence<> {
 public:
 	virtual ~CTranspositionNode()
 	{
 	}
 
-	virtual void Print( ostream& out ) const override
+	void Print( ostream& out ) const override
 	{
 		bool isFirst = true;
 		for( const unique_ptr<CBasePatternNode>& childNode : *this ) {
@@ -300,13 +395,21 @@ public:
 		}
 	}
 
-	virtual void MakeVariants( vector<string>& variants ) const override
-	{
-		vector<vector<string>> allSubVariants;
-		CollectAllSubVariants( allSubVariants );
-		AddVariants( allSubVariants, variants );
+	void Check( CPatternDefinitionCheckContext& context ) const override;
 
-		check_logic( !variants.empty() );
+	void Collect( vector<CPatternVariant>& variants,
+		const size_t maxSize ) const override
+	{
+		vector<vector<CPatternVariant>> allSubVariants;
+		CollectAllSubVariants( allSubVariants, maxSize );
+		AddVariants( allSubVariants, variants, maxSize );
+
+		const CTranspositionSupport::CSwaps& swaps =
+			CTranspositionSupport::Instance().Swaps( allSubVariants.size() );
+		for( const CTranspositionSupport::CSwap& swap : swaps ) {
+			swap.Apply( allSubVariants );
+			AddVariants( allSubVariants, variants, maxSize );
+		}
 	}
 };
 
@@ -323,13 +426,12 @@ public:
 		}
 	}
 
-	virtual void MakeVariants( vector<string>& variants ) const override
+	void Collect( vector<CPatternVariant>& variants,
+		const size_t maxSize ) const override
 	{
-		vector<vector<string>> allSubVariants;
-		CollectAllSubVariants( allSubVariants );
-		AddVariants( allSubVariants, variants );
-
-		check_logic( !variants.empty() );
+		vector<vector<CPatternVariant>> allSubVariants;
+		CollectAllSubVariants( allSubVariants, maxSize );
+		AddVariants( allSubVariants, variants, maxSize );
 	}
 };
 
@@ -349,26 +451,30 @@ public:
 		return conditions;
 	}
 
-	virtual void Print( ostream& out ) const override
+	void Print( ostream& out ) const override
 	{
 		node->Print( out );
 		out << getConditions();
 	}
 
-	virtual void MakeVariants( vector<string>& variants ) const override
+	void Check( CPatternDefinitionCheckContext& context ) const override;
+
+	size_t MinSizePrediction() const override
 	{
-		node->MakeVariants( variants );
-		const string conditions = getConditions();
+		return node->MinSizePrediction();
+	}
+
+	void Collect( vector<CPatternVariant>& variants,
+		const size_t maxSize ) const override
+	{
+		node->Collect( variants, maxSize );
+		/*const string conditions = getConditions();
 		if( !conditions.empty() ) {
 			for( string& variant : variants ) {
 				variant += conditions;
 			}
-		}
-
-		check_logic( !variants.empty() );
+		}*/
 	}
-
-	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
 
 private:
 	unique_ptr<CBasePatternNode> node;
@@ -398,7 +504,7 @@ public:
 	{
 	}
 
-	virtual void Print( ostream& out ) const override
+	void Print( ostream& out ) const override
 	{
 		bool isFirst = true;
 		out << " (";
@@ -412,16 +518,24 @@ public:
 		out << ")";
 	}
 
-	virtual void MakeVariants( vector<string>& variants ) const override
+	size_t MinSizePrediction() const override
 	{
-		variants.clear();
+		check_logic( !this->empty() );
+		size_t minSizePrediction = numeric_limits<size_t>::max();
 		for( const unique_ptr<CAlternativeNode>& alternative : *this ) {
-			vector<string> subVariants;
-			alternative->MakeVariants( subVariants );
+			minSizePrediction = min( minSizePrediction, alternative->MinSizePrediction() );
+		}
+		return minSizePrediction;
+	}
+
+	void Collect( vector<CPatternVariant>& variants,
+		const size_t maxSize ) const override
+	{
+		for( const unique_ptr<CAlternativeNode>& alternative : *this ) {
+			vector<CPatternVariant> subVariants;
+			alternative->Collect( subVariants, maxSize );
 			variants.insert( variants.end(), subVariants.cbegin(), subVariants.cend() );
 		}
-
-		check_logic( !variants.empty() );
 	}
 };
 
@@ -437,81 +551,100 @@ public:
 			CTokenPtr minToken, CTokenPtr maxToken ) :
 		node( move( alternativesNode ) ),
 		optionalNode( false ),
-		min( minToken ),
-		max( maxToken )
+		minToken( minToken ),
+		maxToken( maxToken )
 	{
-		check_logic( min != nullptr || max == nullptr );
+		check_logic( minToken != nullptr || maxToken == nullptr );
 	}
 
 	virtual ~CRepeatingNode()
 	{
 	}
 
-	virtual void Print( ostream& out ) const override
+	void Print( ostream& out ) const override
 	{
 		out << " {";
 		node->Print( out );
 		out << "}";
-		if( min ) {
+		if( minToken ) {
 			out << "<";
-			min->Print( out );
-			if( max ) {
+			minToken->Print( out );
+			if( maxToken ) {
 				out << ",";
-				max->Print( out );
+				maxToken->Print( out );
 			}
 			out << ">";
 		}
 	}
 
-	virtual void MakeVariants( vector<string>& variants ) const override
-	{
-		const size_t minCount = getMinCount();
-		const size_t maxCount = getMaxCount();
+	void Check( CPatternDefinitionCheckContext& context ) const override;
 
+	size_t MinSizePrediction() const override
+	{
+		return getMinCount();
+	}
+
+	void Collect( vector<CPatternVariant>& variants,
+		const size_t maxSize ) const override
+	{
+		size_t minCount = getMinCount();
+		size_t maxCount = getMaxCount();
 		check_logic( minCount <= maxCount );
 
 		variants.clear();
-		vector<string> subVariants;
-		node->MakeVariants( subVariants );
-
-		variants.reserve( maxCount - minCount + 1 );
-		for( size_t count = minCount; count <= maxCount; count++ ) {
-			if( count == 0 ) {
-				variants.push_back( "" );
-				continue;
-			}
-			for( const string& variant : subVariants ) {
-				string tmp = "";
-				for( size_t i = 0; i < count; i++ ) {
-					tmp += variant;
-				}
-				variants.push_back( tmp );
-			}
+		if( minCount == 0 ) {
+			variants.emplace_back();
+			minCount = 1;
 		}
 
-		check_logic( !variants.empty() );
-	}
+		if( maxSize == 0 ) {
+			return;
+		}
 
-	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
+		const size_t nmsp = node->MinSizePrediction();
+		const size_t nsmsp = nmsp * minCount;
+		if( nsmsp > maxSize ) {
+			return;
+		}
+		maxCount = min( maxCount, maxSize / nmsp );
+		const size_t nodeMaxSize = maxSize - nsmsp + nmsp;
+
+		vector<CPatternVariant> subVariants;
+		node->Collect( subVariants, nodeMaxSize );
+
+		vector<vector<CPatternVariant>> allSubVariants( minCount, subVariants );
+		AddVariants( allSubVariants, variants, maxSize );
+
+		for( size_t count = minCount + 1; count <= maxCount; count++ ) {
+			const size_t variantsSize = variants.size();
+			for( size_t vi = 0; vi < variantsSize; vi++ ) {
+				const CPatternVariant& variant = variants[vi];
+				for( const CPatternVariant& subVariant : subVariants ) {
+					if( variant.size() + subVariant.size() <= maxSize ) {
+						variants.push_back( variant );
+						variants.back() += subVariant;
+					}
+				}
+			}
+		}
+	}
 
 private:
 	unique_ptr<CBasePatternNode> node;
 	const bool optionalNode;
-	CTokenPtr min;
-	CTokenPtr max;
+	CTokenPtr minToken;
+	CTokenPtr maxToken;
 
 	size_t getMinCount() const
 	{
-		return ( ( min != nullptr ) ? min->Number : 0 );
+		return ( ( minToken != nullptr ) ? minToken->Number : 0 );
 	}
 	size_t getMaxCount() const
 	{
-		if( max != nullptr ) {
-			return max->Number;
-		} else if( min != nullptr ) {
-			return getMinCount();
+		if( maxToken != nullptr ) {
+			return maxToken->Number;
 		} else {
-			return 1;
+			return ( optionalNode ? 1 : numeric_limits<size_t>::max() );
 		}
 	}
 };
@@ -527,21 +660,31 @@ public:
 	{
 	}
 
-	virtual void Print( ostream& out ) const override
+	void Print( ostream& out ) const override
 	{
 		out << " ";
 		regexp->Print( out );
 	}
 
-	virtual void MakeVariants( vector<string>& variants ) const override
+	void Check( CPatternDefinitionCheckContext& context ) const override;
+
+	size_t MinSizePrediction() const override
 	{
-		variants.clear();
-		ostringstream oss;
-		Print( oss );
-		variants.push_back( oss.str() );
+		return 1;
 	}
 
-	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
+	void Collect( vector<CPatternVariant>& variants,
+		const size_t maxSize ) const override
+	{
+		variants.clear();
+		if( maxSize == 0 ) {
+			return;
+		}
+
+		ostringstream oss;
+		Print( oss );
+		variants.emplace_back( oss.str() );
+	}
 
 private:
 	CTokenPtr regexp;
@@ -614,15 +757,25 @@ public:
 		out << ">";
 	}
 
-	virtual void MakeVariants( vector<string>& variants ) const override
+	void Check( CPatternDefinitionCheckContext& context ) const override;
+
+	size_t MinSizePrediction() const override
 	{
-		variants.clear();
-		ostringstream oss;
-		Print( oss );
-		variants.push_back( oss.str() );
+		return 1;
 	}
 
-	virtual void Check( CPatternDefinitionCheckContext& context ) const override;
+	void Collect( vector<CPatternVariant>& variants,
+		const size_t maxSize ) const override
+	{
+		variants.clear();
+		if( maxSize == 0 ) {
+			return;
+		}
+
+		ostringstream oss;
+		Print( oss );
+		variants.emplace_back( oss.str() );
+	}
 
 private:
 	CTokenPtr element;
