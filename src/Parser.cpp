@@ -150,8 +150,9 @@ bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken
 	bool found = false;
 	if( !subName.Parse( subNameToken ) || patternReference ) {
 		found = Configuration.WordSigns().Find( subName.Name, index );
-		if( found && !patternReference &&
-			Configuration.WordSigns()[index].Type == Configuration::WST_Main ) {
+		if( found && !patternReference
+			&& Configuration.WordSigns()[index].Type == Configuration::WST_Main )
+		{
 			ErrorProcessor.AddError( CError( *subNameToken,
 				"main word sign is not allowed for predefined words" ) );
 		}
@@ -332,8 +333,8 @@ void CElementNode::Build( CPatternDefinitionBuildContext& context,
 		return;
 	}
 
-	auto patternDef = context.NamePatternDefinitions.find(
-		CIndexedName( element ).Name );
+	CIndexedName name( element );
+	auto patternDef = context.NamePatternDefinitions.find( name.Name );
 	if( patternDef != context.NamePatternDefinitions.cend() ) {
 		patternDef->second->Build( context, variants, maxSize );
 	} else {

@@ -61,6 +61,7 @@ struct CIndexedName {
 		Parse( token );
 	}
 
+	// returns true if name ends with index
 	bool Parse( const CTokenPtr& token )
 	{
 		debug_check_logic( static_cast<bool>( token ) );
@@ -244,6 +245,26 @@ CAlternativeCondition::DictionaryCondition() const
 	check_logic( Type() == ACT_DictionaryCondition );
 	return static_cast<const CDictionaryCondition&>( *this );
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+class CPatternElementCondition {
+public:
+	CPatternElementCondition( const CAlternativeCondition* const prototype ) :
+		Prototype( prototype )
+	{
+	}
+
+	const CAlternativeCondition* const Prototype;
+	vector<string> DependentNames;
+};
+
+class CBasePatternNode;
+struct CPatternElement {
+	string Name;
+	const CBasePatternNode* Node; // CElementNode or CRegexNodep
+	list<CPatternElementCondition*> Conditions;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 
