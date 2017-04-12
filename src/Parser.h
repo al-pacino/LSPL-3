@@ -266,12 +266,39 @@ public:
 };
 
 struct CPatternVariants : public vector<CPatternVariant> {
+	void SortAndRemoveDuplicates()
+	{
+		struct {
+			bool operator()( const CPatternVariant& v1,
+				const CPatternVariant& v2 )
+			{
+				return ( v1.size() < v2.size() );
+			}
+		} comparator;
+		sort( this->begin(), this->end(), comparator );
+
+		auto last = unique( this->begin(), this->end() );
+		this->erase( last, this->end() );
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
-struct CPatternDefinitionBuildContext {
+struct CPatternDefinition;
+typedef unique_ptr<CPatternDefinition> CPatternDefinitionPtr;
 
+struct CPatternDefinitionBuildContext {
+	const Configuration::CConfiguration& Configuration;
+	CErrorProcessor& ErrorProcessor;
+	unordered_map<string, CPatternDefinitionPtr> NamePatternDefinitions;
+
+	CPatternDefinitionBuildContext(
+			const Configuration::CConfiguration& configuration,
+			CErrorProcessor& errorProcessor ) :
+		Configuration( configuration ),
+		ErrorProcessor( errorProcessor )
+	{
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -408,13 +435,16 @@ public:
 	{
 		vector<CPatternVariants> allSubVariants;
 		CollectAllSubVariants( context, allSubVariants, maxSize );
-		AddVariants( allSubVariants, variants, maxSize );
-
-		const CTranspositionSupport::CSwaps& swaps =
-			CTranspositionSupport::Instance().Swaps( allSubVariants.size() );
-		for( const CTranspositionSupport::CSwap& swap : swaps ) {
-			swap.Apply( allSubVariants );
+		if( !allSubVariants.empty() ) {
+			debug_check_logic( allSubVariants.size() == this->size() );
 			AddVariants( allSubVariants, variants, maxSize );
+
+			const CTranspositionSupport::CSwaps& swaps =
+				CTranspositionSupport::Instance().Swaps( allSubVariants.size() );
+			for( const CTranspositionSupport::CSwap& swap : swaps ) {
+				swap.Apply( allSubVariants );
+				AddVariants( allSubVariants, variants, maxSize );
+			}
 		}
 	}
 };
@@ -437,7 +467,10 @@ public:
 	{
 		vector<CPatternVariants> allSubVariants;
 		CollectAllSubVariants( context, allSubVariants, maxSize );
-		AddVariants( allSubVariants, variants, maxSize );
+		if( !allSubVariants.empty() ) {
+			debug_check_logic( allSubVariants.size() == this->size() );
+			AddVariants( allSubVariants, variants, maxSize );
+		}
 	}
 };
 
@@ -474,6 +507,7 @@ public:
 		CPatternVariants& variants, const size_t maxSize ) const override
 	{
 		node->Build( context, variants, maxSize );
+		variants.SortAndRemoveDuplicates();
 		/*const string conditions = getConditions();
 		if( !conditions.empty() ) {
 			for( string& variant : variants ) {
@@ -771,17 +805,7 @@ public:
 	}
 
 	void Build( CPatternDefinitionBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override
-	{
-		variants.clear();
-		if( maxSize == 0 ) {
-			return;
-		}
-
-		ostringstream oss;
-		Print( oss );
-		variants.emplace_back( oss.str() );
-	}
+		CPatternVariants& variants, const size_t maxSize ) const override;
 
 private:
 	CTokenPtr element;
@@ -798,9 +822,27 @@ struct CPatternDefinition {
 	string Check( const Configuration::CConfiguration& configuration,
 		CErrorProcessor& errorProcessor,
 		vector<CTokenPtr>& references ) const;
-};
 
-typedef unique_ptr<CPatternDefinition> CPatternDefinitionPtr;
+	void Build( CPatternDefinitionBuildContext& context,
+		CPatternVariants& variants, const size_t maxSize ) const
+	{
+		size_t correctMaxSize = maxSize;
+		if( !maxSizes.empty() ) {
+			if( correctMaxSize == maxSizes.top() ) {
+				correctMaxSize--;
+			} else {
+				debug_check_logic( correctMaxSize < maxSizes.top() );
+			}
+		}
+		maxSizes.push( correctMaxSize );
+		Alternatives->Build( context, variants, correctMaxSize );
+		debug_check_logic( maxSizes.top() == correctMaxSize );
+		maxSizes.pop();
+	}
+
+private:
+	mutable stack<size_t> maxSizes;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 

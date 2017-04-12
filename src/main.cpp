@@ -41,7 +41,7 @@ int main( int argc, const char* argv[] )
 		}
 
 		CErrorProcessor errorProcessor;
-		unordered_map<string, CPatternDefinitionPtr> namePatternDefs;
+		CPatternDefinitionBuildContext buildContext( *configuration, errorProcessor );
 
 		vector<CPatternDefinitionPtr> patternDefs;
 		ReadPatternDefinitions( argv[2], errorProcessor, patternDefs );
@@ -57,7 +57,7 @@ int main( int argc, const char* argv[] )
 					continue;
 				}
 				const CTokenPtr nameToken = patternDef->Name;
-				auto pair = namePatternDefs.insert(
+				auto pair = buildContext.NamePatternDefinitions.insert(
 					make_pair( patternName, move( patternDef ) ) );
 				if( !pair.second ) {
 					errorProcessor.AddError( CError( *nameToken,
@@ -67,7 +67,9 @@ int main( int argc, const char* argv[] )
 			if( !errorProcessor.HasCriticalErrors() ) {
 				for( const CTokenPtr& reference : references ) {
 					const string referenceName = CIndexedName( reference ).Name;
-					if( namePatternDefs.find( referenceName ) == namePatternDefs.end() ) {
+					if( buildContext.NamePatternDefinitions.find( referenceName )
+						== buildContext.NamePatternDefinitions.end() )
+					{
 						errorProcessor.AddError( CError( *reference,
 							"undefined pattern" ) );
 					}
@@ -79,11 +81,10 @@ int main( int argc, const char* argv[] )
 			errorProcessor.PrintErrors( cerr, argv[2] );
 			return 1;
 		} else {
-			for( const auto& pattern : namePatternDefs ) {
+			for( const auto& pattern : buildContext.NamePatternDefinitions ) {
 				cout << pattern.first << endl;
 				CPatternVariants variants;
-				CPatternDefinitionBuildContext context;
-				pattern.second->Alternatives->Build( context, variants, 10 );
+				pattern.second->Build( buildContext, variants, 10 );
 				for( const auto& variant : variants ) {
 					for( const string& element : variant ) {
 						cout << " " << element;

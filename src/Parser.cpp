@@ -324,6 +324,25 @@ void CElementNode::Check( CPatternDefinitionCheckContext& context ) const
 	}
 }
 
+void CElementNode::Build( CPatternDefinitionBuildContext& context,
+	CPatternVariants& variants, const size_t maxSize ) const
+{
+	variants.clear();
+	if( maxSize == 0 ) {
+		return;
+	}
+
+	auto patternDef = context.NamePatternDefinitions.find(
+		CIndexedName( element ).Name );
+	if( patternDef != context.NamePatternDefinitions.cend() ) {
+		patternDef->second->Build( context, variants, maxSize );
+	} else {
+		ostringstream oss;
+		Print( oss );
+		variants.emplace_back( oss.str() );
+	}
+}
+
 string CPatternDefinition::Check(
 	const Configuration::CConfiguration& configuration,
 	CErrorProcessor& errorProcessor,
