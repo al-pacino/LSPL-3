@@ -270,6 +270,12 @@ struct CPatternVariants : public vector<CPatternVariant> {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+struct CPatternDefinitionBuildContext {
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
 class CBasePatternNode {
 	CBasePatternNode( const CBasePatternNode& ) = delete;
 	CBasePatternNode& operator=( const CBasePatternNode& ) = delete;
@@ -287,11 +293,11 @@ public:
 	virtual void Check( CPatternDefinitionCheckContext& context ) const = 0;
 
 	virtual size_t MinSizePrediction() const = 0;
-	virtual void Collect( vector<CPatternVariant>& variants,
-		const size_t maxSize ) const = 0;
+	virtual void Build( CPatternDefinitionBuildContext& context,
+		CPatternVariants& variants, const size_t maxSize ) const = 0;
 
 protected:
-	static void AddVariants( const vector<vector<CPatternVariant>>& allSubVariants,
+	static void AddVariants( const vector<CPatternVariants>& allSubVariants,
 		vector<CPatternVariant>& variants, const size_t maxSize )
 	{
 		vector<size_t> indices( allSubVariants.size(), 0 );
@@ -307,7 +313,7 @@ protected:
 	}
 
 private:
-	static bool nextIndices( const vector<vector<CPatternVariant>>& allSubVariants,
+	static bool nextIndices( const vector<CPatternVariants>& allSubVariants,
 		vector<size_t>& indices )
 	{
 		for( size_t pos = indices.size(); pos > 0; pos-- ) {
@@ -347,8 +353,8 @@ public:
 	}
 
 protected:
-	void CollectAllSubVariants( vector<vector<CPatternVariant>>& allSubVariants,
-		const size_t maxSize ) const
+	void CollectAllSubVariants( CPatternDefinitionBuildContext& context,
+		vector<CPatternVariants>& allSubVariants, const size_t maxSize ) const
 	{
 		allSubVariants.clear();
 		if( maxSize == 0 ) {
@@ -365,8 +371,8 @@ protected:
 			const size_t emsp = childNode->MinSizePrediction();
 			const size_t mes = maxSize - minSize + emsp;
 			
-			vector<CPatternVariant> subVariants;
-			childNode->Collect( subVariants, mes );
+			CPatternVariants subVariants;
+			childNode->Build( context, subVariants, mes );
 			if( subVariants.empty() ) {
 				allSubVariants.clear();
 				return;
@@ -397,11 +403,11 @@ public:
 
 	void Check( CPatternDefinitionCheckContext& context ) const override;
 
-	void Collect( vector<CPatternVariant>& variants,
-		const size_t maxSize ) const override
+	void Build( CPatternDefinitionBuildContext& context,
+		CPatternVariants& variants, const size_t maxSize ) const override
 	{
-		vector<vector<CPatternVariant>> allSubVariants;
-		CollectAllSubVariants( allSubVariants, maxSize );
+		vector<CPatternVariants> allSubVariants;
+		CollectAllSubVariants( context, allSubVariants, maxSize );
 		AddVariants( allSubVariants, variants, maxSize );
 
 		const CTranspositionSupport::CSwaps& swaps =
@@ -426,11 +432,11 @@ public:
 		}
 	}
 
-	void Collect( vector<CPatternVariant>& variants,
-		const size_t maxSize ) const override
+	void Build( CPatternDefinitionBuildContext& context,
+		CPatternVariants& variants, const size_t maxSize ) const override
 	{
-		vector<vector<CPatternVariant>> allSubVariants;
-		CollectAllSubVariants( allSubVariants, maxSize );
+		vector<CPatternVariants> allSubVariants;
+		CollectAllSubVariants( context, allSubVariants, maxSize );
 		AddVariants( allSubVariants, variants, maxSize );
 	}
 };
@@ -464,10 +470,10 @@ public:
 		return node->MinSizePrediction();
 	}
 
-	void Collect( vector<CPatternVariant>& variants,
-		const size_t maxSize ) const override
+	void Build( CPatternDefinitionBuildContext& context,
+		CPatternVariants& variants, const size_t maxSize ) const override
 	{
-		node->Collect( variants, maxSize );
+		node->Build( context, variants, maxSize );
 		/*const string conditions = getConditions();
 		if( !conditions.empty() ) {
 			for( string& variant : variants ) {
@@ -528,12 +534,12 @@ public:
 		return minSizePrediction;
 	}
 
-	void Collect( vector<CPatternVariant>& variants,
-		const size_t maxSize ) const override
+	void Build( CPatternDefinitionBuildContext& context,
+		CPatternVariants& variants, const size_t maxSize ) const override
 	{
 		for( const unique_ptr<CAlternativeNode>& alternative : *this ) {
-			vector<CPatternVariant> subVariants;
-			alternative->Collect( subVariants, maxSize );
+			CPatternVariants subVariants;
+			alternative->Build( context, subVariants, maxSize );
 			variants.insert( variants.end(), subVariants.cbegin(), subVariants.cend() );
 		}
 	}
@@ -584,8 +590,8 @@ public:
 		return getMinCount();
 	}
 
-	void Collect( vector<CPatternVariant>& variants,
-		const size_t maxSize ) const override
+	void Build( CPatternDefinitionBuildContext& context,
+		CPatternVariants& variants, const size_t maxSize ) const override
 	{
 		size_t minCount = getMinCount();
 		size_t maxCount = getMaxCount();
@@ -609,10 +615,10 @@ public:
 		maxCount = min( maxCount, maxSize / nmsp );
 		const size_t nodeMaxSize = maxSize - nsmsp + nmsp;
 
-		vector<CPatternVariant> subVariants;
-		node->Collect( subVariants, nodeMaxSize );
+		CPatternVariants subVariants;
+		node->Build( context, subVariants, nodeMaxSize );
 
-		vector<vector<CPatternVariant>> allSubVariants( minCount, subVariants );
+		vector<CPatternVariants> allSubVariants( minCount, subVariants );
 		AddVariants( allSubVariants, variants, maxSize );
 
 		for( size_t count = minCount + 1; count <= maxCount; count++ ) {
@@ -673,8 +679,8 @@ public:
 		return 1;
 	}
 
-	void Collect( vector<CPatternVariant>& variants,
-		const size_t maxSize ) const override
+	void Build( CPatternDefinitionBuildContext& context,
+		CPatternVariants& variants, const size_t maxSize ) const override
 	{
 		variants.clear();
 		if( maxSize == 0 ) {
@@ -764,8 +770,8 @@ public:
 		return 1;
 	}
 
-	void Collect( vector<CPatternVariant>& variants,
-		const size_t maxSize ) const override
+	void Build( CPatternDefinitionBuildContext& context,
+		CPatternVariants& variants, const size_t maxSize ) const override
 	{
 		variants.clear();
 		if( maxSize == 0 ) {

@@ -81,8 +81,9 @@ int main( int argc, const char* argv[] )
 		} else {
 			for( const auto& pattern : namePatternDefs ) {
 				cout << pattern.first << endl;
-				vector<CPatternVariant> variants;
-				pattern.second->Alternatives->Collect( variants, 10 );
+				CPatternVariants variants;
+				CPatternDefinitionBuildContext context;
+				pattern.second->Alternatives->Build( context, variants, 10 );
 				for( const auto& variant : variants ) {
 					for( const string& element : variant ) {
 						cout << " " << element;
