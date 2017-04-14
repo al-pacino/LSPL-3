@@ -115,6 +115,8 @@ struct CPatternDefinitionCheckContext {
 	bool HasElement( const CTokenPtr& elementToken ) const;
 	bool CheckSubName( const CTokenPtr& subNameToken,
 		const bool patternReference, size_t& index ) const;
+	bool CheckSubName( const CTokenPtr& subNameToken,
+		const bool patternReference, string& name ) const;
 	string CheckExtendedName( const CExtendedName& extendedName ) const;
 };
 

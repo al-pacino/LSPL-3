@@ -150,14 +150,43 @@ bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken
 	bool found = false;
 	if( !subName.Parse( subNameToken ) || patternReference ) {
 		found = Configuration.WordSigns().Find( subName.Name, index );
-		if( found && !patternReference
+		if( found
 			&& Configuration.WordSigns()[index].Type == Configuration::WST_Main )
 		{
 			ErrorProcessor.AddError( CError( *subNameToken,
-				"main word sign is not allowed for predefined words" ) );
+				"main word sign is not allowed" ) );
 		}
 	}
 	if( !found ) {
+		ErrorProcessor.AddError( CError( *subNameToken,
+			"there is no such word sign in configuration" ) );
+	}
+	return found;
+}
+
+bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken,
+	const bool patternReference, string& name ) const
+{
+	debug_check_logic( static_cast<bool>( subNameToken ) );
+
+	CIndexedName subName;
+	bool found = false;
+	if( !subName.Parse( subNameToken ) || patternReference ) {
+		name = subName.Name;
+		size_t index;
+		found = Configuration.WordSigns().Find( name, index );
+		if( found
+			&& Configuration.WordSigns()[index].Type == Configuration::WST_Main )
+		{
+			ErrorProcessor.AddError( CError( *subNameToken,
+				"main word sign is not allowed" ) );
+		}
+		if( !found && patternReference ) {
+			found = Configuration.WordSigns().MainWordSign().Values.Has( name );
+		}
+	}
+	if( !found ) {
+		name.clear();
 		ErrorProcessor.AddError( CError( *subNameToken,
 			"there is no such word sign in configuration" ) );
 	}
@@ -172,12 +201,12 @@ string CPatternDefinitionCheckContext::CheckExtendedName(
 	const Configuration::COrderedStrings& mainValues =
 		Configuration.WordSigns().MainWordSign().Values;
 
-	CIndexedName name( extendedName.first );
+	const CIndexedName name( extendedName.first );
 	const bool patternReference = !mainValues.Has( name.Name );
 	if( static_cast<bool>( extendedName.second ) ) {
-		size_t unused;
-		if( CheckSubName( extendedName.second, patternReference, unused ) ) {
-			return CIndexedName( extendedName.second ).Name;
+		string name;
+		if( CheckSubName( extendedName.second, patternReference, name ) ) {
+			return name;
 		}
 	}
 	return "";
