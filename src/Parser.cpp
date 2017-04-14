@@ -206,6 +206,8 @@ void CMatchingCondition::Check( CPatternsBuilder& context ) const
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 void CDictionaryCondition::Check( CPatternsBuilder& context ) const
 {
 	// STUB:
@@ -226,6 +228,13 @@ void CDictionaryCondition::Check( CPatternsBuilder& context ) const
 	// TODO: add dicitionary Condition
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+void CTranspositionNode::Print( ostream& out ) const
+{
+	PrintAll( out, " ~ " );
+}
+
 void CTranspositionNode::Check( CPatternsBuilder& context ) const
 {
 	if( this->size() > CTranspositionSupport::MaxTranspositionSize ) {
@@ -237,12 +246,54 @@ void CTranspositionNode::Check( CPatternsBuilder& context ) const
 	CPatternNodesSequence<>::Check( context );
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+void CElementsNode::Print( ostream& out ) const
+{
+	PrintAll( out, " " );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void CAlternativeNode::Print( ostream& out ) const
+{
+	node->Print( out );
+	out << getConditions();
+}
+
 void CAlternativeNode::Check( CPatternsBuilder& context ) const
 {
 	node->Check( context );
 
 	for( const unique_ptr<CAlternativeCondition>& condition : conditions ) {
 		condition->Check( context );
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void CAlternativesNode::Print( ostream& out ) const
+{
+	out << "( ";
+	PrintAll( out, " | " );
+	out << " )";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void CRepeatingNode::Print( ostream& out ) const
+{
+	out << "{ ";
+	node->Print( out );
+	out << " }";
+	if( minToken ) {
+		out << "<";
+		minToken->Print( out );
+		if( maxToken ) {
+			out << ",";
+			maxToken->Print( out );
+		}
+		out << ">";
 	}
 }
 
@@ -258,10 +309,19 @@ void CRepeatingNode::Check( CPatternsBuilder& context ) const
 	node->Check( context );
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+void CRegexpNode::Print( ostream& out ) const
+{
+	regexp->Print( out );
+}
+
 void CRegexpNode::Check( CPatternsBuilder& context ) const
 {
 	// TODO: check regex syntax!
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 void CElementCondition::Check( CPatternsBuilder& context,
 	const CTokenPtr& element ) const
@@ -303,6 +363,39 @@ void CElementCondition::Check( CPatternsBuilder& context,
 			}
 		}
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void CElementNode::Print( ostream& out ) const
+{
+	element->Print( out );
+	if( conditions.empty() ) {
+		return;
+	}
+	out << "<";
+	bool isFirst = true;
+	for( const CElementCondition& cond : conditions ) {
+		if( !isFirst ) {
+			out << ",";
+		}
+		isFirst = false;
+		if( cond.Name ) {
+			cond.Name->Print( out );
+		}
+		if( cond.EqualSign ) {
+			cond.EqualSign->Print( out );
+		}
+		bool isInternalFirst = true;
+		for( CTokenPtr value : cond.Values ) {
+			if( !isInternalFirst ) {
+				out << "|";
+			}
+			isInternalFirst = false;
+			value->Print( out );
+		}
+	}
+	out << ">";
 }
 
 void CElementNode::Check( CPatternsBuilder& context ) const

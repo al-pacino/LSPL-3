@@ -191,67 +191,68 @@ class CBasePatternNode {
 	CBasePatternNode& operator=( const CBasePatternNode& ) = delete;
 
 public:
-	CBasePatternNode()
-	{
-	}
+	CBasePatternNode() {}
+	virtual ~CBasePatternNode() = 0 {}
 
-	virtual ~CBasePatternNode() = 0
-	{
-	}
-
+	// CBasePatternNode
 	virtual void Print( ostream& out ) const = 0;
 	virtual void Check( CPatternsBuilder& context ) const = 0;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+
 template<typename ChildrenType = CBasePatternNode>
 class CPatternNodesSequence : public CBasePatternNode, public vector<unique_ptr<ChildrenType>> {
 public:
-	virtual ~CPatternNodesSequence() = 0
-	{
-	}
+	~CPatternNodesSequence() override = 0 {}
 
+	// CBasePatternNode
 	void Check( CPatternsBuilder& context ) const override
 	{
 		for( const unique_ptr<ChildrenType>& node : *this ) {
 			node->Check( context );
 		}
 	}
-};
 
-class CTranspositionNode : public CPatternNodesSequence<> {
-public:
-	virtual ~CTranspositionNode()
+protected:
+	void PrintAll( ostream& out, const char* delimiter ) const
 	{
-	}
-
-	void Print( ostream& out ) const override
-	{
+		if( delimiter == 0 ) {
+			delimiter = "";
+		}
 		bool isFirst = true;
-		for( const unique_ptr<CBasePatternNode>& childNode : *this ) {
+		for( const unique_ptr<ChildrenType>& childNode : *this ) {
 			if( !isFirst ) {
-				out << " ~";
+				out << delimiter;
 			}
 			isFirst = false;
 			childNode->Print( out );
 		}
 	}
+};
 
+///////////////////////////////////////////////////////////////////////////////
+
+class CTranspositionNode : public CPatternNodesSequence<> {
+public:
+	~CTranspositionNode() override {}
+
+	// CBasePatternNode
+	void Print( ostream& out ) const override;
 	void Check( CPatternsBuilder& context ) const override;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+
 class CElementsNode : public CPatternNodesSequence<> {
 public:
-	virtual ~CElementsNode()
-	{
-	}
+	~CElementsNode() override {}
 
-	virtual void Print( ostream& out ) const override
-	{
-		for( const unique_ptr<CBasePatternNode>& childNode : *this ) {
-			childNode->Print( out );
-		}
-	}
+	// CBasePatternNode
+	void Print( ostream& out ) const override;
 };
+
+///////////////////////////////////////////////////////////////////////////////
 
 class CAlternativeNode : public CBasePatternNode {
 public:
@@ -259,22 +260,12 @@ public:
 		node( move( childNode ) )
 	{
 	}
+	~CAlternativeNode() override {}
 
-	virtual ~CAlternativeNode()
-	{
-	}
+	CAlternativeConditions& Conditions() { return conditions; }
 
-	CAlternativeConditions& Conditions()
-	{
-		return conditions;
-	}
-
-	void Print( ostream& out ) const override
-	{
-		node->Print( out );
-		out << getConditions();
-	}
-
+	// CBasePatternNode
+	void Print( ostream& out ) const override;
 	void Check( CPatternsBuilder& context ) const override;
 
 private:
@@ -299,26 +290,17 @@ private:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+
 class CAlternativesNode : public CPatternNodesSequence<CAlternativeNode> {
 public:
-	virtual ~CAlternativesNode()
-	{
-	}
+	~CAlternativesNode() override {}
 
-	void Print( ostream& out ) const override
-	{
-		bool isFirst = true;
-		out << " (";
-		for( const unique_ptr<CAlternativeNode>& alternative : *this ) {
-			if( !isFirst ) {
-				out << " |";
-			}
-			isFirst = false;
-			alternative->Print( out );
-		}
-		out << ")";
-	}
+	// CBasePatternNode
+	void Print( ostream& out ) const override;
 };
+
+///////////////////////////////////////////////////////////////////////////////
 
 class CRepeatingNode : public CBasePatternNode {
 public:
@@ -338,26 +320,10 @@ public:
 		check_logic( minToken != nullptr || maxToken == nullptr );
 	}
 
-	virtual ~CRepeatingNode()
-	{
-	}
+	~CRepeatingNode() override {}
 
-	void Print( ostream& out ) const override
-	{
-		out << " {";
-		node->Print( out );
-		out << "}";
-		if( minToken ) {
-			out << "<";
-			minToken->Print( out );
-			if( maxToken ) {
-				out << ",";
-				maxToken->Print( out );
-			}
-			out << ">";
-		}
-	}
-
+	// CBasePatternNode
+	void Print( ostream& out ) const override;
 	void Check( CPatternsBuilder& context ) const override;
 
 private:
@@ -380,23 +346,19 @@ private:
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+
 class CRegexpNode : public CBasePatternNode {
 public:
 	CRegexpNode( CTokenPtr regexpToken ) :
 		regexp( regexpToken )
 	{
+		debug_check_logic( static_cast<bool>( regexp ) );
 	}
+	~CRegexpNode() override {}
 
-	virtual ~CRegexpNode()
-	{
-	}
-
-	void Print( ostream& out ) const override
-	{
-		out << " ";
-		regexp->Print( out );
-	}
-
+	// CBasePatternNode
+	void Print( ostream& out ) const override;
 	void Check( CPatternsBuilder& context ) const override;
 
 private:
@@ -429,46 +391,14 @@ public:
 	CElementNode( CTokenPtr elementToken ) :
 		element( elementToken )
 	{
+		debug_check_logic( static_cast<bool>( element ) );
 	}
+	~CElementNode() override {}
 
-	virtual ~CElementNode()
-	{
-	}
+	CElementConditions& Conditions() { return conditions; }
 
-	CElementConditions& Conditions()
-	{
-		return conditions;
-	}
-
-	void Print( ostream& out ) const override
-	{
-		out << " ";
-		element->Print( out );
-		out << "<";
-		bool isFirst = true;
-		for( const CElementCondition& cond : conditions ) {
-			if( !isFirst ) {
-				out << ",";
-			}
-			isFirst = false;
-			if( cond.Name ) {
-				cond.Name->Print( out );
-			}
-			if( cond.EqualSign ) {
-				cond.EqualSign->Print( out );
-			}
-			bool isInternalFirst = true;
-			for( CTokenPtr value : cond.Values ) {
-				if( !isInternalFirst ) {
-					out << "|";
-				}
-				isInternalFirst = false;
-				value->Print( out );
-			}
-		}
-		out << ">";
-	}
-
+	// CBasePatternNode
+	void Print( ostream& out ) const override;
 	void Check( CPatternsBuilder& context ) const override;
 
 private:
