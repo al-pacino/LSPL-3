@@ -49,12 +49,16 @@ void CPatternsBuilder::Check()
 		return;
 	}
 
+	Patterns.reserve( PatternDefs.size() );
 	for( const CPatternDefinitionPtr& patternDef : PatternDefs ) {
-		patternDef->Check( *this );
+		CPatternBasePtr pattern = patternDef->Check( *this );
+		CPattern* rawPattern = dynamic_cast<CPattern*>( pattern.get() );
+		check_logic( rawPattern != nullptr );
+		Patterns.emplace_back( move( *rawPattern ) );
 	}
 }
 
-Pattern::CPatterns&& CPatternsBuilder::Save()
+Pattern::CPatterns CPatternsBuilder::Save()
 {
 	check_logic( !ErrorProcessor.HasAnyErrors() );
 	return move( *this );
@@ -106,7 +110,7 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 		index += name.Index * main.Values.Size(); // correct element index
 		if( static_cast<bool>( extendedName.second ) ) {
 			CIndexedName subName;
-			Configuration::CWordSigns::SizeType subIndex;
+			CWordSigns::SizeType subIndex;
 			const bool found = !subName.Parse( extendedName.second )
 				&& signs.Find( subName.Name, subIndex );
 
@@ -137,7 +141,7 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 					return arg;
 				}
 			} else {
-				Configuration::CWordSigns::SizeType subIndex;
+				CWordSigns::SizeType subIndex;
 				if( signs.Find( subName.Name, subIndex )
 					&& signs[subIndex].Type != Configuration::WST_Main )
 				{
@@ -175,9 +179,42 @@ bool CPatternsBuilder::IsPatternReference( const CTokenPtr& reference ) const
 		CIndexedName( reference ).Name );
 }
 
+CPatternBasePtr CPatternsBuilder::BuildElement( const CTokenPtr& reference,
+	CSignRestrictions&& signRestrictions ) const
+{
+	const CWordSign& main = Configuration().WordSigns().MainWordSign();
+
+	CIndexedName name( reference );
+	CWordSigns::SizeType index;
+	if( main.Values.Find( name.Name, index ) ) {
+		index += name.Index * main.Values.Size();
+		return CPatternBasePtr(
+			new CPatternElement( index, move( signRestrictions ) ) );
+	} else {
+		auto pi = Names.find( name.Name );
+		if( pi != Names.cend() ) {
+			index = pi->second + name.Index * Names.size();
+		} else {
+			index = numeric_limits<CWordSigns::SizeType>::max();
+		}
+		return CPatternBasePtr(
+			new CPatternReference( index, move( signRestrictions ) ) );
+	}
+}
+
+CSignValues::ValueType CPatternsBuilder::StringIndex( const string& str )
+{
+	auto pair = StringIndices.insert( make_pair( str, Strings.size() ) );
+	if( pair.second ) {
+		Strings.push_back( str );
+	}
+	return pair.first->second;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
-void CMatchingCondition::Check( CPatternsBuilder& context ) const
+void CMatchingCondition::Check( CPatternsBuilder& context,
+	Pattern::CPatternConditions& conditions ) const
 {
 	debug_check_logic( Elements.size() >= 2 );
 	auto element = Elements.cbegin();
@@ -194,7 +231,7 @@ void CMatchingCondition::Check( CPatternsBuilder& context ) const
 	}
 
 	if( wellFormed ) {
-		Condition.reset( new CPatternCondition( Strong, move( arguments ) ) );
+		conditions.emplace_back( Strong, move( arguments ) );
 	} else {
 		vector<CTokenPtr> tokens;
 		for( const CExtendedName& extendedName : Elements ) {
@@ -208,7 +245,8 @@ void CMatchingCondition::Check( CPatternsBuilder& context ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void CDictionaryCondition::Check( CPatternsBuilder& context ) const
+void CDictionaryCondition::Check( CPatternsBuilder& context,
+	Pattern::CPatternConditions& /*conditions*/ ) const
 {
 	// STUB:
 	context.ErrorProcessor.AddError( CError( *DictionaryName,
@@ -235,7 +273,7 @@ void CTranspositionNode::Print( ostream& out ) const
 	PrintAll( out, " ~ " );
 }
 
-void CTranspositionNode::Check( CPatternsBuilder& context ) const
+CPatternBasePtr CTranspositionNode::Check( CPatternsBuilder& context ) const
 {
 	if( this->size() > CTranspositionSupport::MaxTranspositionSize ) {
 		context.ErrorProcessor.AddError(
@@ -243,7 +281,10 @@ void CTranspositionNode::Check( CPatternsBuilder& context ) const
 			+ to_string( CTranspositionSupport::MaxTranspositionSize )
 			+ " elements" ) );
 	}
-	CPatternNodesSequence<>::Check( context );
+
+	return CPatternBasePtr( new CPatternSequence(
+		CPatternNodesSequence<>::CheckAll( context ),
+		true /* transposition */ ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -251,6 +292,12 @@ void CTranspositionNode::Check( CPatternsBuilder& context ) const
 void CElementsNode::Print( ostream& out ) const
 {
 	PrintAll( out, " " );
+}
+
+CPatternBasePtr CElementsNode::Check( CPatternsBuilder& context ) const
+{
+	return CPatternBasePtr( new CPatternSequence(
+		CPatternNodesSequence<>::CheckAll( context ) ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -261,13 +308,17 @@ void CAlternativeNode::Print( ostream& out ) const
 	out << getConditions();
 }
 
-void CAlternativeNode::Check( CPatternsBuilder& context ) const
+CPatternBasePtr CAlternativeNode::Check( CPatternsBuilder& context ) const
 {
-	node->Check( context );
+	CPatternBasePtr element = node->Check( context );
 
+	CPatternConditions patternConditions;
 	for( const unique_ptr<CAlternativeCondition>& condition : conditions ) {
-		condition->Check( context );
+		condition->Check( context, patternConditions );
 	}
+
+	return CPatternBasePtr(
+		new CPatternAlternative( move( element ), move( patternConditions ) ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -277,6 +328,12 @@ void CAlternativesNode::Print( ostream& out ) const
 	out << "( ";
 	PrintAll( out, " | " );
 	out << " )";
+}
+
+CPatternBasePtr CAlternativesNode::Check( CPatternsBuilder& context ) const
+{
+	return CPatternBasePtr( new CPatternAlternatives(
+		CPatternNodesSequence<CAlternativeNode>::CheckAll( context ) ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -297,7 +354,7 @@ void CRepeatingNode::Print( ostream& out ) const
 	}
 }
 
-void CRepeatingNode::Check( CPatternsBuilder& context ) const
+CPatternBasePtr CRepeatingNode::Check( CPatternsBuilder& context ) const
 {
 	if( minToken != nullptr && maxToken != nullptr
 		&& maxToken->Number < minToken->Number )
@@ -306,7 +363,15 @@ void CRepeatingNode::Check( CPatternsBuilder& context ) const
 			"inconsistent min/max repeating value" );
 	}
 
-	node->Check( context );
+	size_t mic = getMinCount();
+	size_t mac = getMaxCount();
+	if( mac < mic ) {
+		mic = 0;
+		mac = 1;
+	}
+
+	return CPatternBasePtr(
+		new CPatternRepeating( node->Check( context ), mic, mac ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -316,15 +381,17 @@ void CRegexpNode::Print( ostream& out ) const
 	regexp->Print( out );
 }
 
-void CRegexpNode::Check( CPatternsBuilder& context ) const
+CPatternBasePtr CRegexpNode::Check( CPatternsBuilder& context ) const
 {
 	// TODO: check regex syntax!
+	debug_check_logic( regexp->Type == TT_Regexp );
+	return CPatternBasePtr( new CPatternRegexp( regexp->Text ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void CElementCondition::Check( CPatternsBuilder& context,
-	const CTokenPtr& element ) const
+	const CTokenPtr& element, CSignRestrictions& signRestrictions ) const
 {
 	const CWordSigns& wordSigns = context.Configuration().WordSigns();
 
@@ -346,22 +413,34 @@ void CElementCondition::Check( CPatternsBuilder& context,
 			"there is no default word sign in configuration" );
 	}
 
+	CSignValues signValues;
 	const CWordSign& wordSign = wordSigns[arg.Sign];
 	if( wordSign.Type == Configuration::WST_String ) {
-		/*for( const CTokenPtr& tokenPtr : Values ) {
-			if( tokenPtr->Type != TT_Regexp ) {
+		for( const CTokenPtr& value : Values ) {
+			debug_check_logic( value->Type == TT_Identifier || value->Type == TT_Regexp );
+			/*if( tokenPtr->Type != TT_Regexp ) {
 				context.ErrorProcessor.AddError( CError( *tokenPtr,
 					"string constant expected" ) );
-			}
-		}*/
+			}*/
+			signValues.Add( context.StringIndex( value->Text ) );
+		}
 	} else {
 		for( const CTokenPtr& value : Values ) {
 			debug_check_logic( value->Type == TT_Identifier || value->Type == TT_Regexp );
-			if( !wordSign.Values.Has( value->Text ) ) {
+			CSignValues::ValueType signValue;
+			if( wordSign.Values.Find( value->Text, signValue ) ) {
+				signValues.Add( signValue );
+			} else {
 				context.ErrorProcessor.AddError( CError( *value,
 					"there is no such word sign value for this word sign in configuration" ) );
 			}
 		}
+	}
+
+	if( arg.Type != PAT_None && !signValues.IsEmpty() ) {
+		const bool exclude = static_cast<bool>( EqualSign )
+			&& ( EqualSign->Type == TT_ExclamationPointEqualSign );
+		signRestrictions.emplace_back( arg.Sign, move( signValues ), exclude );
 	}
 }
 
@@ -398,15 +477,20 @@ void CElementNode::Print( ostream& out ) const
 	out << ">";
 }
 
-void CElementNode::Check( CPatternsBuilder& context ) const
+CPatternBasePtr CElementNode::Check( CPatternsBuilder& context ) const
 {
 	context.Elements.insert( CIndexedName( element ).Normalize() );
+
 	if( context.IsPatternReference( element ) ) {
 		context.CheckPatternExists( element );
 	}
+
+	CSignRestrictions signRestrictions;
 	for( const CElementCondition& cond : conditions ) {
-		cond.Check( context, element );
+		cond.Check( context, element, signRestrictions );
 	}
+
+	return context.BuildElement( element, move( signRestrictions ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -429,7 +513,7 @@ CPatternArgument CPatternDefinition::Argument( const size_t argIndex,
 			if( static_cast<bool>( extendedName.second ) ) {
 				CIndexedName subName;
 				
-				Configuration::CWordSigns::SizeType subIndex;
+				CWordSigns::SizeType subIndex;
 				if( !subName.Parse( extendedName.second ) // name without index
 					&& signs.Find( subName.Name, subIndex ) // sign existst
 					&& signs[subIndex].Type != Configuration::WST_Main ) // sign isn't main
@@ -452,9 +536,10 @@ void CPatternDefinition::Print( ostream& out ) const
 	out << endl;
 }
 
-void CPatternDefinition::Check( CPatternsBuilder& context ) const
+CPatternBasePtr CPatternDefinition::Check( CPatternsBuilder& context ) const
 {
-	if( CIndexedName().Parse( Name ) ) {
+	CIndexedName name;
+	if( name.Parse( Name ) ) {
 		context.ErrorProcessor.AddError(
 			CError( *Name, "pattern name CANNOT ends with index" ) );
 	}
@@ -462,7 +547,7 @@ void CPatternDefinition::Check( CPatternsBuilder& context ) const
 	context.Elements.clear();
 	context.ConditionElements.clear();
 
-	Alternatives->Check( context );
+	CPatternBasePtr root = Alternatives->Check( context );
 
 	// check ConditionElements
 	for( const CTokenPtr& conditionElement : context.ConditionElements ) {
@@ -473,6 +558,7 @@ void CPatternDefinition::Check( CPatternsBuilder& context ) const
 	}
 
 	// check Arguments
+	CPatternArguments patternArguments;
 	for( const CExtendedName& extendedName : Arguments ) {
 		if( !context.HasElement( extendedName.first ) ) {
 			context.ErrorProcessor.AddError( CError( *extendedName.first,
@@ -482,8 +568,13 @@ void CPatternDefinition::Check( CPatternsBuilder& context ) const
 		if( arg.HasReference() ) {
 			context.ErrorProcessor.AddError( CError( *extendedName.first,
 				"pattern cannot be used as argument" ) );
+		} else {
+			patternArguments.push_back( arg );
 		}
 	}
+
+	return CPatternBasePtr(
+		new CPattern( name.Name, move( root ), patternArguments ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -66,28 +66,22 @@ struct CDictionaryCondition;
 
 class CAlternativeCondition {
 public:
-	virtual ~CAlternativeCondition()
-	{
-	}
+	virtual ~CAlternativeCondition() {}
 
-	TAlternativeConditionType Type() const
-	{
-		return type;
-	}
+	TAlternativeConditionType Type() const { return type; }
 
 	const CMatchingCondition& MatchingCondition() const;
 	const CDictionaryCondition& DictionaryCondition() const;
 
 	virtual void Print( ostream& out ) const = 0;
-	virtual void Check( CPatternsBuilder& context ) const = 0;
+	virtual void Check( CPatternsBuilder& context,
+		Pattern::CPatternConditions& conditions ) const = 0;
 
 protected:
 	CAlternativeCondition( const TAlternativeConditionType conditionType ) :
 		type( conditionType )
 	{
 	}
-
-	mutable unique_ptr<Pattern::CPatternCondition> Condition;
 
 private:
 	TAlternativeConditionType type;
@@ -106,6 +100,7 @@ struct CMatchingCondition : public CAlternativeCondition {
 		Strong( false )
 	{
 	}
+	~CMatchingCondition() override {}
 
 	void Clear()
 	{
@@ -128,7 +123,8 @@ struct CMatchingCondition : public CAlternativeCondition {
 		}
 	}
 
-	void Check( CPatternsBuilder& context ) const override;
+	void Check( CPatternsBuilder& context,
+		Pattern::CPatternConditions& conditions ) const override;
 };
 
 inline const CMatchingCondition&
@@ -148,6 +144,7 @@ struct CDictionaryCondition : public CAlternativeCondition {
 		CAlternativeCondition( ACT_DictionaryCondition )
 	{
 	}
+	~CDictionaryCondition() override {}
 
 	void Clear()
 	{
@@ -174,7 +171,8 @@ struct CDictionaryCondition : public CAlternativeCondition {
 		out << ")";
 	}
 
-	void Check( CPatternsBuilder& context ) const override;
+	void Check( CPatternsBuilder& context,
+		Pattern::CPatternConditions& conditions ) const override;
 };
 
 inline const CDictionaryCondition&
@@ -196,7 +194,8 @@ public:
 
 	// CBasePatternNode
 	virtual void Print( ostream& out ) const = 0;
-	virtual void Check( CPatternsBuilder& context ) const = 0;
+	virtual Pattern::CPatternBasePtr
+		Check( CPatternsBuilder& context ) const = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -205,14 +204,6 @@ template<typename ChildrenType = CBasePatternNode>
 class CPatternNodesSequence : public CBasePatternNode, public vector<unique_ptr<ChildrenType>> {
 public:
 	~CPatternNodesSequence() override = 0 {}
-
-	// CBasePatternNode
-	void Check( CPatternsBuilder& context ) const override
-	{
-		for( const unique_ptr<ChildrenType>& node : *this ) {
-			node->Check( context );
-		}
-	}
 
 protected:
 	void PrintAll( ostream& out, const char* delimiter ) const
@@ -229,6 +220,15 @@ protected:
 			childNode->Print( out );
 		}
 	}
+
+	Pattern::CPatternBasePtrs CheckAll( CPatternsBuilder& context ) const
+	{
+		Pattern::CPatternBasePtrs all;
+		for( const unique_ptr<ChildrenType>& node : *this ) {
+			all.emplace_back( move( node->Check( context ) ) );
+		}
+		return move( all );
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -239,7 +239,7 @@ public:
 
 	// CBasePatternNode
 	void Print( ostream& out ) const override;
-	void Check( CPatternsBuilder& context ) const override;
+	Pattern::CPatternBasePtr Check( CPatternsBuilder& context ) const override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -250,6 +250,7 @@ public:
 
 	// CBasePatternNode
 	void Print( ostream& out ) const override;
+	Pattern::CPatternBasePtr Check( CPatternsBuilder& context ) const override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -266,7 +267,7 @@ public:
 
 	// CBasePatternNode
 	void Print( ostream& out ) const override;
-	void Check( CPatternsBuilder& context ) const override;
+	Pattern::CPatternBasePtr Check( CPatternsBuilder& context ) const override;
 
 private:
 	unique_ptr<CBasePatternNode> node;
@@ -298,6 +299,7 @@ public:
 
 	// CBasePatternNode
 	void Print( ostream& out ) const override;
+	Pattern::CPatternBasePtr Check( CPatternsBuilder& context ) const override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -324,7 +326,7 @@ public:
 
 	// CBasePatternNode
 	void Print( ostream& out ) const override;
-	void Check( CPatternsBuilder& context ) const override;
+	Pattern::CPatternBasePtr Check( CPatternsBuilder& context ) const override;
 
 private:
 	unique_ptr<CBasePatternNode> node;
@@ -359,7 +361,7 @@ public:
 
 	// CBasePatternNode
 	void Print( ostream& out ) const override;
-	void Check( CPatternsBuilder& context ) const override;
+	Pattern::CPatternBasePtr Check( CPatternsBuilder& context ) const override;
 
 private:
 	CTokenPtr regexp;
@@ -379,7 +381,8 @@ struct CElementCondition {
 		Values.clear();
 	}
 
-	void Check( CPatternsBuilder& context, const CTokenPtr& element ) const;
+	void Check( CPatternsBuilder& context, const CTokenPtr& element,
+		Pattern::CSignRestrictions& signRestrictions ) const;
 };
 
 typedef vector<CElementCondition> CElementConditions;
@@ -399,7 +402,7 @@ public:
 
 	// CBasePatternNode
 	void Print( ostream& out ) const override;
-	void Check( CPatternsBuilder& context ) const override;
+	Pattern::CPatternBasePtr Check( CPatternsBuilder& context ) const override;
 
 private:
 	CTokenPtr element;
@@ -419,7 +422,7 @@ public:
 
 	// CBasePatternNode
 	void Print( ostream& out ) const override;
-	void Check( CPatternsBuilder& context ) const override;
+	Pattern::CPatternBasePtr Check( CPatternsBuilder& context ) const override;
 
 #if 0
 	void Build( CPatternDefinitionBuildContext& context,
@@ -456,7 +459,7 @@ public:
 
 	void Read( const char* filename );
 	void Check();
-	Pattern::CPatterns&& Save();
+	Pattern::CPatterns Save();
 
 	// nullptr used to seperate line segments
 	void AddComplexError( const vector<CTokenPtr>& tokens,
@@ -467,6 +470,9 @@ public:
 		const CExtendedName& extendedName ) const;
 	void CheckPatternExists( const CTokenPtr& reference ) const;
 	bool IsPatternReference( const CTokenPtr& reference ) const;
+	Pattern::CPatternBasePtr BuildElement( const CTokenPtr& reference,
+		Pattern::CSignRestrictions&& signRestrictions ) const;
+	Pattern::CSignValues::ValueType StringIndex( const string& str );
 
 ////////
 
