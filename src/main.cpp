@@ -6,24 +6,8 @@
 #include <PatternsFileProcessor.h>
 
 using namespace Lspl::Parser;
+using namespace Lspl::Pattern;
 using namespace Lspl::Configuration;
-
-void ReadPatternDefinitions( const char* filename,
-	CErrorProcessor& errorProcessor,
-	/* out */ vector<CPatternDefinitionPtr>& patternDefs )
-{
-	patternDefs.clear();
-	CPatternsFileProcessor reader( errorProcessor, filename );
-	CTokens tokens;
-	CPatternParser parser( errorProcessor );
-	while( reader.IsOpen() && !errorProcessor.HasCriticalErrors() ) {
-		reader.ReadPattern( tokens );
-		patternDefs.push_back( parser.Parse( tokens ) );
-		if( !static_cast<bool>( patternDefs.back() ) ) {
-			patternDefs.pop_back();
-		}
-	}
-}
 
 int main( int argc, const char* argv[] )
 {
@@ -33,67 +17,23 @@ int main( int argc, const char* argv[] )
 			return 1;
 		}
 
-		CConfigurationPtr configuration =
-			LoadConfigurationFromFile( argv[1], cerr, cout );
+		CConfigurationPtr conf = LoadConfigurationFromFile( argv[1], cerr, cout );
 
-		if( !static_cast<bool>( configuration ) ) {
+		if( !static_cast<bool>( conf ) ) {
 			return 1;
 		}
 
 		CErrorProcessor errorProcessor;
-		CPatternDefinitionBuildContext buildContext( *configuration, errorProcessor );
-
-		vector<CPatternDefinitionPtr> patternDefs;
-		ReadPatternDefinitions( argv[2], errorProcessor, patternDefs );
-		if( !errorProcessor.HasCriticalErrors() ) {
-			vector<CTokenPtr> references;
-			for( CPatternDefinitionPtr& patternDef : patternDefs ) {
-				const string patternName = patternDef->Check( *configuration,
-					errorProcessor, references );
-				if( errorProcessor.HasCriticalErrors() ) {
-					break;
-				}
-				if( patternName.empty() ) {
-					continue;
-				}
-				const CTokenPtr nameToken = patternDef->Name;
-				auto pair = buildContext.NamePatternDefinitions.insert(
-					make_pair( patternName, move( patternDef ) ) );
-				if( !pair.second ) {
-					errorProcessor.AddError( CError( *nameToken,
-						"redefinition of pattern" ) );
-				}
-			}
-			if( !errorProcessor.HasCriticalErrors() ) {
-				for( const CTokenPtr& reference : references ) {
-					const string referenceName = CIndexedName( reference ).Name;
-					if( buildContext.NamePatternDefinitions.find( referenceName )
-						== buildContext.NamePatternDefinitions.end() )
-					{
-						errorProcessor.AddError( CError( *reference,
-							"undefined pattern" ) );
-					}
-				}
-			}
-		}
+		CPatternsBuilder patternsBuilder( conf, errorProcessor );
+		patternsBuilder.Read( argv[2] );
+		patternsBuilder.Check();
 
 		if( errorProcessor.HasAnyErrors() ) {
 			errorProcessor.PrintErrors( cerr, argv[2] );
 			return 1;
-		} else {
-			for( const auto& pattern : buildContext.NamePatternDefinitions ) {
-				cout << pattern.first << endl;
-				CPatternVariants variants;
-				pattern.second->Build( buildContext, variants, 10 );
-				for( const auto& variant : variants ) {
-					for( const string& element : variant ) {
-						cout << " " << element;
-					}
-					cout << endl;
-				}
-				cout << endl;
-			}
 		}
+
+		CPatterns patterns( patternsBuilder.Save() );
 	} catch( exception& e ) {
 		cerr << e.what() << endl;
 		return 1;

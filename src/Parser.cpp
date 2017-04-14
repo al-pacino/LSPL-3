@@ -1,116 +1,64 @@
 #include <common.h>
 #include <Parser.h>
-#include <Tokenizer.h>
 #include <ErrorProcessor.h>
+#include <TranspositionSupport.h>
+#include <PatternsFileProcessor.h>
 
 namespace Lspl {
 namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-unique_ptr<CTranspositionSupport> CTranspositionSupport::instance;
-
-CTranspositionSupport::CTranspositionSupport()
+void CPatternsBuilder::Read( const char* filename )
 {
+	check_logic( !ErrorProcessor.HasAnyErrors() );
+
+	CPatternsFileProcessor reader( ErrorProcessor, filename );
+	CPatternParser parser( ErrorProcessor );
+
+	CTokens tokens;
+	while( reader.IsOpen() && !ErrorProcessor.HasCriticalErrors() ) {
+		reader.ReadPattern( tokens );
+		CPatternDefinitionPtr patternDef = parser.Parse( tokens );
+		if( static_cast<bool>( patternDef ) ) {
+			if( IsPatternReference( patternDef->Name ) ) {
+				auto pair = Names.insert( make_pair(
+					CIndexedName( patternDef->Name ).Name,
+					PatternDefs.size() ) );
+
+				if( pair.second ) {
+					PatternDefs.emplace_back( move( patternDef ) );
+				} else {
+					ErrorProcessor.AddError(
+						CError( *patternDef->Name, "redefinition of pattern" ) );
+				}
+			} else {
+				ErrorProcessor.AddError( CError( *patternDef->Name,
+					"pattern name cannot be equal to predefined word" ) );
+			}
+		}
+	}
 }
 
-const CTranspositionSupport& CTranspositionSupport::Instance()
+void CPatternsBuilder::Check()
 {
-	if( !static_cast<bool>( instance ) ) {
-		instance.reset( new CTranspositionSupport );
-	}
-	return *instance;
-}
-
-const CTranspositionSupport::CSwaps&
-CTranspositionSupport::Swaps( const size_t size ) const
-{
-	check_logic( size <= MaxTranspositionSize );
-
-	auto p = allSwaps.insert( make_pair( size, CSwaps() ) );
-	if( p.second ) {
-		fillSwaps( p.first->second, size );
-	}
-	return p.first->second;
-}
-
-void CTranspositionSupport::fillSwaps( CSwaps& swaps, const size_t size )
-{
-	debug_check_logic( swaps.empty() );
-
-	CTransposition first( size, 0 );
-	for( CTransposition::value_type i = 0; i < size; i++ ) {
-		first[i] = i;
-	}
-
-	CTranspositions transpositions = generate( first );
-	if( transpositions.empty() ) {
+	if( ErrorProcessor.HasAnyErrors() ) {
 		return;
 	}
 
-	CTransposition current = transpositions.front();
-	transpositions.pop_front();
-	while( !transpositions.empty() ) {
-		for( auto i = transpositions.cbegin(); i != transpositions.cend(); ++i ) {
-			if( connect( *i, current, swaps ) ) {
-				current = *i;
-				transpositions.erase( i );
-				break;
-			}
-		}
+	for( const CPatternDefinitionPtr& patternDef : PatternDefs ) {
+		patternDef->Check( *this );
 	}
 }
 
-CTranspositionSupport::CTranspositions
-CTranspositionSupport::generate( const CTransposition& first )
+Pattern::CPatterns&& CPatternsBuilder::Save()
 {
-	CTranspositions transpositions;
-	if( first.length() == 1 ) {
-		transpositions.push_back( first );
-	} else if( !first.empty() ) {
-		CTranspositions rest = generate( first.substr( 1 ) );
-		for( const CTransposition& sub : rest ) {
-			transpositions.push_back( first.substr( 0, 1 ) + sub );
-		}
-		for( const CTransposition& sub : rest ) {
-			transpositions.push_back( sub + first.substr( 0, 1 ) );
-		}
-	}
-	return transpositions;
+	check_logic( !ErrorProcessor.HasAnyErrors() );
+	return move( *this );
 }
 
-bool CTranspositionSupport::connect( const CTransposition& first,
-	const CTransposition& second, CSwaps& swaps )
-{
-	debug_check_logic( first.length() == second.length() );
-
-	size_t difference = 0;
-	CSwap swap;
-	for( size_t i = 0; i < first.length(); i++ ) {
-		if( first[i] != second[i] ) {
-			difference++;
-			if( difference > 2 ) {
-				return false;
-			} else if( difference == 2 ) {
-				swap.second = i;
-			} else if( difference == 1 ) {
-				swap.first = i;
-			}
-		}
-	}
-
-	debug_check_logic( difference == 2 );
-	debug_check_logic( first[swap.first] == second[swap.second] );
-	debug_check_logic( first[swap.second] == second[swap.first] );
-
-	swaps.push_back( swap );
-	return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-void CPatternDefinitionCheckContext::AddComplexError(
-	const vector<CTokenPtr>& tokens, const char* message ) const
+void CPatternsBuilder::AddComplexError( const vector<CTokenPtr>& tokens,
+	const char* message ) const
 {
 	debug_check_logic( !tokens.empty() );
 	debug_check_logic( static_cast<bool>( tokens.front() ) );
@@ -135,13 +83,13 @@ void CPatternDefinitionCheckContext::AddComplexError(
 	ErrorProcessor.AddError( move( error ) );
 }
 
-bool CPatternDefinitionCheckContext::HasElement(
-	const CTokenPtr& elementToken ) const
+bool CPatternsBuilder::HasElement( const CTokenPtr& elementToken ) const
 {
-	return ( Elements.find( CIndexedName( elementToken ).Normalize() ) != Elements.cend() );
+	return ( Elements.find(
+		CIndexedName( elementToken ).Normalize() ) != Elements.cend() );
 }
 
-bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken,
+bool CPatternsBuilder::CheckSubName( const CTokenPtr& subNameToken,
 	const bool patternReference, size_t& index ) const
 {
 	debug_check_logic( static_cast<bool>( subNameToken ) );
@@ -149,9 +97,9 @@ bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken
 	CIndexedName subName;
 	bool found = false;
 	if( !subName.Parse( subNameToken ) || patternReference ) {
-		found = Configuration.WordSigns().Find( subName.Name, index );
+		found = Configuration().WordSigns().Find( subName.Name, index );
 		if( found
-			&& Configuration.WordSigns()[index].Type == Configuration::WST_Main )
+			&& Configuration().WordSigns()[index].Type == Configuration::WST_Main )
 		{
 			ErrorProcessor.AddError( CError( *subNameToken,
 				"main word sign is not allowed" ) );
@@ -164,7 +112,7 @@ bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken
 	return found;
 }
 
-bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken,
+bool CPatternsBuilder::CheckSubName( const CTokenPtr& subNameToken,
 	const bool patternReference, string& name ) const
 {
 	debug_check_logic( static_cast<bool>( subNameToken ) );
@@ -174,15 +122,15 @@ bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken
 	if( !subName.Parse( subNameToken ) || patternReference ) {
 		name = subName.Name;
 		size_t index;
-		found = Configuration.WordSigns().Find( name, index );
+		found = Configuration().WordSigns().Find( name, index );
 		if( found
-			&& Configuration.WordSigns()[index].Type == Configuration::WST_Main )
+			&& Configuration().WordSigns()[index].Type == Configuration::WST_Main )
 		{
 			ErrorProcessor.AddError( CError( *subNameToken,
 				"main word sign is not allowed" ) );
 		}
 		if( !found && patternReference ) {
-			found = Configuration.WordSigns().MainWordSign().Values.Has( name );
+			found = Configuration().WordSigns().MainWordSign().Values.Has( name );
 		}
 	}
 	if( !found ) {
@@ -193,28 +141,37 @@ bool CPatternDefinitionCheckContext::CheckSubName( const CTokenPtr& subNameToken
 	return found;
 }
 
-string CPatternDefinitionCheckContext::CheckExtendedName(
+string CPatternsBuilder::CheckExtendedName(
 	const CExtendedName& extendedName ) const
 {
 	debug_check_logic( static_cast<bool>( extendedName.first ) );
-
-	const Configuration::COrderedStrings& mainValues =
-		Configuration.WordSigns().MainWordSign().Values;
-
-	const CIndexedName name( extendedName.first );
-	const bool patternReference = !mainValues.Has( name.Name );
 	if( static_cast<bool>( extendedName.second ) ) {
 		string name;
-		if( CheckSubName( extendedName.second, patternReference, name ) ) {
+		if( CheckSubName( extendedName.second,
+				IsPatternReference( extendedName.first ), name ) )
+		{
 			return name;
 		}
 	}
 	return "";
 }
 
+void CPatternsBuilder::CheckPatternExists( const CTokenPtr& reference ) const
+{
+	if( Names.find( CIndexedName( reference ).Name ) == Names.end() ) {
+		ErrorProcessor.AddError( CError( *reference, "undefined pattern" ) );
+	}
+}
+
+bool CPatternsBuilder::IsPatternReference( const CTokenPtr& reference ) const
+{
+	return !Configuration().WordSigns().MainWordSign().Values.Has(
+		CIndexedName( reference ).Name );
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
-void CMatchingCondition::Check( CPatternDefinitionCheckContext& context ) const
+void CMatchingCondition::Check( CPatternsBuilder& context ) const
 {
 	debug_check_logic( Elements.size() >= 2 );
 	auto element = Elements.cbegin();
@@ -240,7 +197,7 @@ void CMatchingCondition::Check( CPatternDefinitionCheckContext& context ) const
 	}
 }
 
-void CDictionaryCondition::Check( CPatternDefinitionCheckContext& context ) const
+void CDictionaryCondition::Check( CPatternsBuilder& context ) const
 {
 	// STUB:
 	context.ErrorProcessor.AddError( CError( *DictionaryName,
@@ -248,23 +205,17 @@ void CDictionaryCondition::Check( CPatternDefinitionCheckContext& context ) cons
 
 	// TODO: check dictionary name
 	// TODO: check number of arguments
-	const Configuration::COrderedStrings& mainValues =
-		context.Configuration.WordSigns().MainWordSign().Values;
-
 	for( const auto& argument : Arguments ) {
 		for( const CTokenPtr& token : argument ) {
-			CIndexedName name( token );
-			if( mainValues.Has( name.Name ) ) {
-				context.ConditionElements.push_back( token );
-			} else {
+			if( context.IsPatternReference( token ) ) {
 				context.ErrorProcessor.AddError( CError( *token,
-					"pattern is not allowed in dictionary conditions" ) );
+					"patterns is not allowed in dictionary conditions" ) );
 			}
 		}
 	}
 }
 
-void CTranspositionNode::Check( CPatternDefinitionCheckContext& context ) const
+void CTranspositionNode::Check( CPatternsBuilder& context ) const
 {
 	if( this->size() > CTranspositionSupport::MaxTranspositionSize ) {
 		context.ErrorProcessor.AddError(
@@ -275,7 +226,7 @@ void CTranspositionNode::Check( CPatternDefinitionCheckContext& context ) const
 	CPatternNodesSequence<>::Check( context );
 }
 
-void CAlternativeNode::Check( CPatternDefinitionCheckContext& context ) const
+void CAlternativeNode::Check( CPatternsBuilder& context ) const
 {
 	node->Check( context );
 
@@ -284,7 +235,7 @@ void CAlternativeNode::Check( CPatternDefinitionCheckContext& context ) const
 	}
 }
 
-void CRepeatingNode::Check( CPatternDefinitionCheckContext& context ) const
+void CRepeatingNode::Check( CPatternsBuilder& context ) const
 {
 	if( minToken != nullptr && maxToken != nullptr
 		&& maxToken->Number < minToken->Number )
@@ -296,15 +247,15 @@ void CRepeatingNode::Check( CPatternDefinitionCheckContext& context ) const
 	node->Check( context );
 }
 
-void CRegexpNode::Check( CPatternDefinitionCheckContext& context ) const
+void CRegexpNode::Check( CPatternsBuilder& context ) const
 {
 	// TODO: check regex syntax!
 }
 
-void CElementCondition::Check( CPatternDefinitionCheckContext& context,
+void CElementCondition::Check( CPatternsBuilder& context,
 	const bool patternReference ) const
 {
-	const Configuration::CWordSigns& wordSigns = context.Configuration.WordSigns();
+	const Configuration::CWordSigns& wordSigns = context.Configuration().WordSigns();
 	debug_check_logic( !Values.empty() );
 	size_t index;
 	if( static_cast<bool>( Name ) ) {
@@ -340,66 +291,36 @@ void CElementCondition::Check( CPatternDefinitionCheckContext& context,
 	}
 }
 
-void CElementNode::Check( CPatternDefinitionCheckContext& context ) const
+void CElementNode::Check( CPatternsBuilder& context ) const
 {
 	CIndexedName name( element );
 	context.Elements.insert( name.Normalize() );
-	const bool patternReference = !context.Configuration.WordSigns()
+	const bool patternReference = !context.Configuration().WordSigns()
 		.MainWordSign().Values.Has( name.Name );
 	if( patternReference ) {
-		context.PatternReferences.push_back( element );
+		context.CheckPatternExists( element );
 	}
 	for( const CElementCondition& cond : conditions ) {
 		cond.Check( context, patternReference );
 	}
 }
 
-void CElementNode::Build( CPatternDefinitionBuildContext& context,
-	CPatternVariants& variants, const size_t maxSize ) const
+void CPatternDefinition::Check( CPatternsBuilder& context ) const
 {
-	variants.clear();
-	if( maxSize == 0 ) {
-		return;
+	if( CIndexedName().Parse( Name ) ) {
+		context.ErrorProcessor.AddError(
+			CError( *Name, "pattern name CANNOT ends with index" ) );
 	}
 
-	CIndexedName name( element );
-	auto patternDef = context.NamePatternDefinitions.find( name.Name );
-	if( patternDef != context.NamePatternDefinitions.cend() ) {
-		patternDef->second->Build( context, variants, maxSize );
-	} else {
-		ostringstream oss;
-		Print( oss );
-		variants.emplace_back( oss.str() );
-	}
-}
+	context.Elements.clear();
+	context.ConditionElements.clear();
 
-string CPatternDefinition::Check(
-	const Configuration::CConfiguration& configuration,
-	CErrorProcessor& errorProcessor,
-	vector<CTokenPtr>& references ) const
-{
-	CIndexedName IndexedName;
-	if( IndexedName.Parse( Name ) ) {
-		errorProcessor.AddError( CError( *Name,
-			"pattern name CANNOT ends with index" ) );
-	}
-
-	const Configuration::COrderedStrings& mainValues
-		= configuration.WordSigns().MainWordSign().Values;
-
-	if( mainValues.Has( IndexedName.Name ) ) {
-		errorProcessor.AddError( CError( *Name,
-			"pattern name CANNOT be equal to predefined word" ) );
-		IndexedName.Name.clear();
-	}
-
-	CPatternDefinitionCheckContext context( configuration, errorProcessor, references );
 	Alternatives->Check( context );
 
 	// check ConditionElements
 	for( const CTokenPtr& conditionElement : context.ConditionElements ) {
 		if( !context.HasElement( conditionElement ) ) {
-			errorProcessor.AddError( CError( *conditionElement,
+			context.ErrorProcessor.AddError( CError( *conditionElement,
 				"there is no such word in pattern definition" ) );
 		}
 	}
@@ -407,13 +328,11 @@ string CPatternDefinition::Check(
 	// check Arguments
 	for( const CExtendedName& extendedName : Arguments ) {
 		if( !context.HasElement( extendedName.first ) ) {
-			errorProcessor.AddError( CError( *extendedName.first,
+			context.ErrorProcessor.AddError( CError( *extendedName.first,
 				"there is no such word in pattern definition" ) );
 		}
 		context.CheckExtendedName( extendedName );
 	}
-
-	return IndexedName.Name;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

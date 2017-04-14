@@ -382,16 +382,14 @@ CPattern::CPattern( const string& _name, const CPatternArguments& _arguments,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CPatterns::CPatterns( vector<CPattern>&& _patterns ) :
-	patterns( move( _patterns ) )
+CPatterns::CPatterns( Configuration::CConfigurationPtr _configuration ) :
+	configuration( _configuration )
 {
-	for( TPatternIndex i = 0; i < patterns.size(); i++ ) {
-		auto p = names.insert( make_pair( patterns[i].Name(), i ) );
-		debug_check_logic( p.second );
-	}
+	check_logic( static_cast<bool>( configuration ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
 
 } // end of Pattern namespace
 } // end of Lspl namespace

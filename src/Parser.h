@@ -1,49 +1,10 @@
 #pragma once
 
 #include <Tokenizer.h>
-#include <Configuration.h>
+#include <Pattern.h>
 
 namespace Lspl {
 namespace Parser {
-
-///////////////////////////////////////////////////////////////////////////////
-
-class CTranspositionSupport {
-	CTranspositionSupport( const CTranspositionSupport& ) = delete;
-	CTranspositionSupport& operator=( const CTranspositionSupport& ) = delete;
-
-public:
-	static const size_t MaxTranspositionSize = 9;
-
-	struct CSwap : public pair<size_t, size_t> {
-		template<typename ValueType>
-		void Apply( vector<ValueType>& vect ) const
-		{
-			debug_check_logic( first < second );
-			debug_check_logic( second < vect.size() );
-			ValueType tmp = move( vect[first] );
-			vect[first] = move( vect[second] );
-			vect[second] = move( tmp );
-		}
-	};
-	typedef vector<CSwap> CSwaps;
-
-	static const CTranspositionSupport& Instance();
-	const CSwaps& Swaps( const size_t transpositionSize ) const;
-
-private:
-	static unique_ptr<CTranspositionSupport> instance; // singleton
-	mutable unordered_map<size_t, CSwaps> allSwaps;
-
-	CTranspositionSupport(); // default constructor
-	static void fillSwaps( CSwaps& swaps, const size_t size );
-
-	typedef basic_string<unsigned char> CTransposition;
-	typedef list<CTransposition> CTranspositions;
-	static CTranspositions generate( const CTransposition& first );
-	static bool connect( const CTransposition& first,
-		const CTransposition& second, CSwaps& swaps );
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -91,34 +52,9 @@ typedef vector<CExtendedName> CExtendedNames;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-struct CPatternDefinitionCheckContext {
-	const Configuration::CConfiguration& Configuration;
-	CErrorProcessor& ErrorProcessor;
-	vector<CTokenPtr>& PatternReferences;
-	unordered_set<string> Elements;
-	vector<CTokenPtr> ConditionElements;
-
-	CPatternDefinitionCheckContext(
-			const Configuration::CConfiguration& configuration,
-			CErrorProcessor& errorProcessor,
-			vector<CTokenPtr>& patternReferences ) :
-		Configuration( configuration ),
-		ErrorProcessor( errorProcessor ),
-		PatternReferences( patternReferences )
-	{
-	}
-
-	// nullptr used to seperate line segments
-	void AddComplexError( const vector<CTokenPtr>& tokens,
-		const char* message ) const;
-
-	bool HasElement( const CTokenPtr& elementToken ) const;
-	bool CheckSubName( const CTokenPtr& subNameToken,
-		const bool patternReference, size_t& index ) const;
-	bool CheckSubName( const CTokenPtr& subNameToken,
-		const bool patternReference, string& name ) const;
-	string CheckExtendedName( const CExtendedName& extendedName ) const;
-};
+class CPatternsBuilder;
+class CPatternDefinition;
+typedef unique_ptr<CPatternDefinition> CPatternDefinitionPtr;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -145,7 +81,7 @@ public:
 	const CDictionaryCondition& DictionaryCondition() const;
 
 	virtual void Print( ostream& out ) const = 0;
-	virtual void Check( CPatternDefinitionCheckContext& context ) const = 0;
+	virtual void Check( CPatternsBuilder& context ) const = 0;
 
 protected:
 	CAlternativeCondition( const TAlternativeConditionType conditionType ) :
@@ -192,7 +128,7 @@ struct CMatchingCondition : public CAlternativeCondition {
 		}
 	}
 
-	void Check( CPatternDefinitionCheckContext& context ) const override;
+	void Check( CPatternsBuilder& context ) const override;
 };
 
 inline const CMatchingCondition&
@@ -238,7 +174,7 @@ struct CDictionaryCondition : public CAlternativeCondition {
 		out << ")";
 	}
 
-	void Check( CPatternDefinitionCheckContext& context ) const override;
+	void Check( CPatternsBuilder& context ) const override;
 };
 
 inline const CDictionaryCondition&
@@ -307,25 +243,6 @@ struct CPatternVariants : public vector<CPatternVariant> {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-struct CPatternDefinition;
-typedef unique_ptr<CPatternDefinition> CPatternDefinitionPtr;
-
-struct CPatternDefinitionBuildContext {
-	const Configuration::CConfiguration& Configuration;
-	CErrorProcessor& ErrorProcessor;
-	unordered_map<string, CPatternDefinitionPtr> NamePatternDefinitions;
-
-	CPatternDefinitionBuildContext(
-			const Configuration::CConfiguration& configuration,
-			CErrorProcessor& errorProcessor ) :
-		Configuration( configuration ),
-		ErrorProcessor( errorProcessor )
-	{
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-
 class CBasePatternNode {
 	CBasePatternNode( const CBasePatternNode& ) = delete;
 	CBasePatternNode& operator=( const CBasePatternNode& ) = delete;
@@ -340,43 +257,7 @@ public:
 	}
 
 	virtual void Print( ostream& out ) const = 0;
-	virtual void Check( CPatternDefinitionCheckContext& context ) const = 0;
-
-	virtual size_t MinSizePrediction() const = 0;
-	virtual void Build( CPatternDefinitionBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const = 0;
-
-protected:
-	static void AddVariants( const vector<CPatternVariants>& allSubVariants,
-		vector<CPatternVariant>& variants, const size_t maxSize )
-	{
-		vector<size_t> indices( allSubVariants.size(), 0 );
-		do {
-			CPatternVariant variant;
-			for( size_t i = 0; i < indices.size(); i++ ) {
-				variant += allSubVariants[i][indices[i]];
-			}
-			if( variant.size() <= maxSize ) {
-				variants.push_back( variant );
-			}
-		} while( nextIndices( allSubVariants, indices ) );
-	}
-
-private:
-	static bool nextIndices( const vector<CPatternVariants>& allSubVariants,
-		vector<size_t>& indices )
-	{
-		for( size_t pos = indices.size(); pos > 0; pos-- ) {
-			const size_t realPos = pos - 1;
-			if( indices[realPos] < allSubVariants[realPos].size() - 1 ) {
-				indices[realPos]++;
-				return true;
-			} else {
-				indices[realPos] = 0;
-			}
-		}
-		return false;
-	}
+	virtual void Check( CPatternsBuilder& context ) const = 0;
 };
 
 template<typename ChildrenType = CBasePatternNode>
@@ -386,49 +267,10 @@ public:
 	{
 	}
 
-	void Check( CPatternDefinitionCheckContext& context ) const override
+	void Check( CPatternsBuilder& context ) const override
 	{
 		for( const unique_ptr<ChildrenType>& node : *this ) {
 			node->Check( context );
-		}
-	}
-
-	size_t MinSizePrediction() const override
-	{
-		size_t minSizePrediction = 0;
-		for( const unique_ptr<ChildrenType>& childNode : *this ) {
-			minSizePrediction += childNode->MinSizePrediction();
-		}
-		return minSizePrediction;
-	}
-
-protected:
-	void CollectAllSubVariants( CPatternDefinitionBuildContext& context,
-		vector<CPatternVariants>& allSubVariants, const size_t maxSize ) const
-	{
-		allSubVariants.clear();
-		if( maxSize == 0 ) {
-			return;
-		}
-
-		const size_t minSize = MinSizePrediction();
-		if( minSize > maxSize ) {
-			return;
-		}
-
-		allSubVariants.reserve( size() );
-		for( const unique_ptr<ChildrenType>& childNode : *this ) {
-			const size_t emsp = childNode->MinSizePrediction();
-			const size_t mes = maxSize - minSize + emsp;
-			
-			CPatternVariants subVariants;
-			childNode->Build( context, subVariants, mes );
-			if( subVariants.empty() ) {
-				allSubVariants.clear();
-				return;
-			}
-
-			allSubVariants.push_back( subVariants );
 		}
 	}
 };
@@ -451,25 +293,7 @@ public:
 		}
 	}
 
-	void Check( CPatternDefinitionCheckContext& context ) const override;
-
-	void Build( CPatternDefinitionBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override
-	{
-		vector<CPatternVariants> allSubVariants;
-		CollectAllSubVariants( context, allSubVariants, maxSize );
-		if( !allSubVariants.empty() ) {
-			debug_check_logic( allSubVariants.size() == this->size() );
-			AddVariants( allSubVariants, variants, maxSize );
-
-			const CTranspositionSupport::CSwaps& swaps =
-				CTranspositionSupport::Instance().Swaps( allSubVariants.size() );
-			for( const CTranspositionSupport::CSwap& swap : swaps ) {
-				swap.Apply( allSubVariants );
-				AddVariants( allSubVariants, variants, maxSize );
-			}
-		}
-	}
+	void Check( CPatternsBuilder& context ) const override;
 };
 
 class CElementsNode : public CPatternNodesSequence<> {
@@ -482,17 +306,6 @@ public:
 	{
 		for( const unique_ptr<CBasePatternNode>& childNode : *this ) {
 			childNode->Print( out );
-		}
-	}
-
-	void Build( CPatternDefinitionBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override
-	{
-		vector<CPatternVariants> allSubVariants;
-		CollectAllSubVariants( context, allSubVariants, maxSize );
-		if( !allSubVariants.empty() ) {
-			debug_check_logic( allSubVariants.size() == this->size() );
-			AddVariants( allSubVariants, variants, maxSize );
 		}
 	}
 };
@@ -519,25 +332,7 @@ public:
 		out << getConditions();
 	}
 
-	void Check( CPatternDefinitionCheckContext& context ) const override;
-
-	size_t MinSizePrediction() const override
-	{
-		return node->MinSizePrediction();
-	}
-
-	void Build( CPatternDefinitionBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override
-	{
-		node->Build( context, variants, maxSize );
-		variants.SortAndRemoveDuplicates();
-		/*const string conditions = getConditions();
-		if( !conditions.empty() ) {
-			for( string& variant : variants ) {
-				variant += conditions;
-			}
-		}*/
-	}
+	void Check( CPatternsBuilder& context ) const override;
 
 private:
 	unique_ptr<CBasePatternNode> node;
@@ -580,26 +375,6 @@ public:
 		}
 		out << ")";
 	}
-
-	size_t MinSizePrediction() const override
-	{
-		check_logic( !this->empty() );
-		size_t minSizePrediction = numeric_limits<size_t>::max();
-		for( const unique_ptr<CAlternativeNode>& alternative : *this ) {
-			minSizePrediction = min( minSizePrediction, alternative->MinSizePrediction() );
-		}
-		return minSizePrediction;
-	}
-
-	void Build( CPatternDefinitionBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override
-	{
-		for( const unique_ptr<CAlternativeNode>& alternative : *this ) {
-			CPatternVariants subVariants;
-			alternative->Build( context, subVariants, maxSize );
-			variants.insert( variants.end(), subVariants.cbegin(), subVariants.cend() );
-		}
-	}
 };
 
 class CRepeatingNode : public CBasePatternNode {
@@ -640,57 +415,7 @@ public:
 		}
 	}
 
-	void Check( CPatternDefinitionCheckContext& context ) const override;
-
-	size_t MinSizePrediction() const override
-	{
-		return getMinCount();
-	}
-
-	void Build( CPatternDefinitionBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override
-	{
-		size_t minCount = getMinCount();
-		size_t maxCount = getMaxCount();
-		check_logic( minCount <= maxCount );
-
-		variants.clear();
-		if( minCount == 0 ) {
-			variants.emplace_back();
-			minCount = 1;
-		}
-
-		if( maxSize == 0 ) {
-			return;
-		}
-
-		const size_t nmsp = node->MinSizePrediction();
-		const size_t nsmsp = nmsp * minCount;
-		if( nsmsp > maxSize ) {
-			return;
-		}
-		maxCount = min( maxCount, maxSize / nmsp );
-		const size_t nodeMaxSize = maxSize - nsmsp + nmsp;
-
-		CPatternVariants subVariants;
-		node->Build( context, subVariants, nodeMaxSize );
-
-		vector<CPatternVariants> allSubVariants( minCount, subVariants );
-		AddVariants( allSubVariants, variants, maxSize );
-
-		for( size_t count = minCount + 1; count <= maxCount; count++ ) {
-			const size_t variantsSize = variants.size();
-			for( size_t vi = 0; vi < variantsSize; vi++ ) {
-				const CPatternVariant& variant = variants[vi];
-				for( const CPatternVariant& subVariant : subVariants ) {
-					if( variant.size() + subVariant.size() <= maxSize ) {
-						variants.push_back( variant );
-						variants.back() += subVariant;
-					}
-				}
-			}
-		}
-	}
+	void Check( CPatternsBuilder& context ) const override;
 
 private:
 	unique_ptr<CBasePatternNode> node;
@@ -729,25 +454,7 @@ public:
 		regexp->Print( out );
 	}
 
-	void Check( CPatternDefinitionCheckContext& context ) const override;
-
-	size_t MinSizePrediction() const override
-	{
-		return 1;
-	}
-
-	void Build( CPatternDefinitionBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override
-	{
-		variants.clear();
-		if( maxSize == 0 ) {
-			return;
-		}
-
-		ostringstream oss;
-		Print( oss );
-		variants.emplace_back( oss.str() );
-	}
+	void Check( CPatternsBuilder& context ) const override;
 
 private:
 	CTokenPtr regexp;
@@ -767,8 +474,7 @@ struct CElementCondition {
 		Values.clear();
 	}
 
-	void Check( CPatternDefinitionCheckContext& context,
-		const bool patternReference ) const;
+	void Check( CPatternsBuilder& context, const bool patternReference ) const;
 };
 
 typedef vector<CElementCondition> CElementConditions;
@@ -820,15 +526,7 @@ public:
 		out << ">";
 	}
 
-	void Check( CPatternDefinitionCheckContext& context ) const override;
-
-	size_t MinSizePrediction() const override
-	{
-		return 1;
-	}
-
-	void Build( CPatternDefinitionBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override;
+	void Check( CPatternsBuilder& context ) const override;
 
 private:
 	CTokenPtr element;
@@ -837,15 +535,21 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-struct CPatternDefinition {
+class CPatternDefinition : public CBasePatternNode {
+public:
 	CTokenPtr Name;
 	CExtendedNames Arguments;
 	unique_ptr<CAlternativesNode> Alternatives;
 
-	string Check( const Configuration::CConfiguration& configuration,
-		CErrorProcessor& errorProcessor,
-		vector<CTokenPtr>& references ) const;
+	void Print( ostream& out ) const override
+	{
+		Alternatives->Print( out );
+		out << endl;
+	}
 
+	void Check( CPatternsBuilder& context ) const override;
+
+#if 0
 	void Build( CPatternDefinitionBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const
 	{
@@ -858,13 +562,51 @@ struct CPatternDefinition {
 			}
 		}
 		maxSizes.push( correctMaxSize );
-		Alternatives->Build( context, variants, correctMaxSize );
+		//Alternatives->Build( context, variants, correctMaxSize );
 		debug_check_logic( maxSizes.top() == correctMaxSize );
 		maxSizes.pop();
 	}
 
-private:
 	mutable stack<size_t> maxSizes;
+#endif
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+class CPatternsBuilder : public Pattern::CPatterns {
+public:
+	CPatternsBuilder( Configuration::CConfigurationPtr configuration,
+		CErrorProcessor& errorProcessor ) :
+		Pattern::CPatterns( configuration ),
+		ErrorProcessor( errorProcessor )
+	{
+	}
+
+	void Read( const char* filename );
+	void Check();
+	Pattern::CPatterns&& Save();
+
+	// nullptr used to seperate line segments
+	void AddComplexError( const vector<CTokenPtr>& tokens,
+		const char* message ) const;
+
+	bool HasElement( const CTokenPtr& elementToken ) const;
+	bool CheckSubName( const CTokenPtr& subNameToken,
+		const bool patternReference, size_t& index ) const;
+	bool CheckSubName( const CTokenPtr& subNameToken,
+		const bool patternReference, string& name ) const;
+	string CheckExtendedName( const CExtendedName& extendedName ) const;
+
+	void CheckPatternExists( const CTokenPtr& reference ) const;
+	bool IsPatternReference( const CTokenPtr& reference ) const;
+
+////////
+
+	CErrorProcessor& ErrorProcessor;
+	vector<CPatternDefinitionPtr> PatternDefs;
+
+	unordered_set<string> Elements;
+	vector<CTokenPtr> ConditionElements;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -283,13 +283,27 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 class CPatterns {
+	CPatterns( const CPatterns& ) = delete;
+	CPatterns& operator=( const CPatterns& ) = delete;
+
 public:
-	explicit CPatterns( vector<CPattern>&& patterns );
+	CPatterns( CPatterns&& ) = default;
+
+	const Configuration::CConfiguration& Configuration() const
+	{
+		return *configuration;
+	}
+
+protected:
+	vector<CPattern> Patterns;
+	typedef vector<CPattern>::size_type TPatternIndex;
+	unordered_map<string, TPatternIndex> Names;
+	// string consts
+
+	explicit CPatterns( Configuration::CConfigurationPtr configuration );
 
 private:
-	vector<CPattern> patterns;
-	typedef vector<CPattern>::size_type TPatternIndex;
-	unordered_map<string, TPatternIndex> names;
+	const Configuration::CConfigurationPtr configuration;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

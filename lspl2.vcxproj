@@ -167,6 +167,7 @@
     <ClInclude Include="src\SharedFileLine.h" />
     <ClInclude Include="src\Tokenizer.h" />
     <ClInclude Include="src\Tools.h" />
+    <ClInclude Include="src\TranspositionSupport.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Configuration.cpp" />
@@ -178,6 +179,7 @@
     <ClCompile Include="src\Pattern.cpp" />
     <ClCompile Include="src\Tokenizer.cpp" />
     <ClCompile Include="src\Tools.cpp" />
+    <ClCompile Include="src\TranspositionSupport.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
