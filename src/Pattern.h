@@ -265,6 +265,7 @@ struct CPatternArgument {
 	}
 
 	bool HasSign() const;
+	bool HasReference() const;
 	bool Inconsistent( const CPatternArgument& arg ) const;
 	void Print( const CPatterns& patterns, ostream& out ) const;
 };

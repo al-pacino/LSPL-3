@@ -379,7 +379,11 @@ void CPatternDefinition::Check( CPatternsBuilder& context ) const
 			context.ErrorProcessor.AddError( CError( *extendedName.first,
 				"there is no such word in pattern definition" ) );
 		}
-		context.CheckExtendedName( extendedName );
+		const CPatternArgument arg = context.CheckExtendedName( extendedName );
+		if( arg.HasReference() ) {
+			context.ErrorProcessor.AddError( CError( *extendedName.first,
+				"pattern cannot be used as argument" ) );
+		}
 	}
 }
 
