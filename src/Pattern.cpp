@@ -364,6 +364,22 @@ void CPatternReference::Build( CPatternBuildContext& context,
 
 ///////////////////////////////////////////////////////////////////////////////
 
+bool CPatternArgument::HasSign() const
+{
+	return ( Type == PAT_ElementSign || Type == PAT_ReferenceElementSign );
+}
+
+bool CPatternArgument::Inconsistent( const CPatternArgument& arg ) const
+{
+	if( Type == PAT_None || arg.Type == PAT_None ) {
+		return false;
+	}
+	if( HasSign() != arg.HasSign() ) {
+		return true;
+	}
+	return ( Sign != arg.Sign );
+}
+
 void CPatternArgument::Print( const CPatterns& patterns, ostream& out ) const
 {
 }

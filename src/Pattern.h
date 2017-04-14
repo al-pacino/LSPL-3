@@ -14,7 +14,39 @@ class CPatterns;
 struct CPatternBuildContext {
 };
 
-struct CPatternVariants {
+struct CPatternVariant : public vector<string> {
+public:
+	CPatternVariant()
+	{
+	}
+
+	explicit CPatternVariant( const string& element )
+	{
+		push_back( element );
+	}
+
+	CPatternVariant& operator+=( const CPatternVariant& variant )
+	{
+		this->insert( this->cend(), variant.cbegin(), variant.cend() );
+		return *this;
+	}
+};
+
+struct CPatternVariants : public vector<CPatternVariant> {
+	void SortAndRemoveDuplicates()
+	{
+		struct {
+			bool operator()( const CPatternVariant& v1,
+				const CPatternVariant& v2 )
+			{
+				return ( v1.size() < v2.size() );
+			}
+		} comparator;
+		sort( this->begin(), this->end(), comparator );
+
+		auto last = unique( this->begin(), this->end() );
+		this->erase( last, this->end() );
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -207,34 +239,34 @@ enum TPatternArgumentType {
 	PAT_ReferenceElementSign	// SubSub.c
 };
 
-class CPatternArgument {
-public:
+struct CPatternArgument {
+	TPatternArgumentType Type;
+	CPatternElement::TElement Element;
+	CPatternReference::TReference Reference;
+	Configuration::CWordSigns::SizeType Sign;
+
 	CPatternArgument() :
-		type( PAT_None ),
-		element( 0 ),
-		reference( 0 ),
-		sign( 0 )
+		Type( PAT_None ),
+		Element( 0 ),
+		Reference( 0 ),
+		Sign( 0 )
 	{
 	}
 
 	explicit CPatternArgument( CPatternElement::TElement element,
 			const TPatternArgumentType type = PAT_Element,
-			const CPatternReference::TReference reference = 0,
-			const Configuration::CWordSigns::SizeType sign = 0 ) :
-		type( type ),
-		element( element ),
-		reference( reference ),
-		sign( sign )
+			const Configuration::CWordSigns::SizeType sign = 0,
+			const CPatternReference::TReference reference = 0 ) :
+		Type( type ),
+		Element( element ),
+		Reference( reference ),
+		Sign( sign )
 	{
 	}
 
+	bool HasSign() const;
+	bool Inconsistent( const CPatternArgument& arg ) const;
 	void Print( const CPatterns& patterns, ostream& out ) const;
-
-private:
-	const TPatternArgumentType type;
-	const CPatternElement::TElement element;
-	const CPatternReference::TReference reference;
-	const Configuration::CWordSigns::SizeType sign;
 };
 
 typedef vector<CPatternArgument> CPatternArguments;
