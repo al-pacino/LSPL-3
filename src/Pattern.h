@@ -57,6 +57,7 @@ class IPatternBase {
 
 public:
 	IPatternBase() {}
+	IPatternBase( IPatternBase&& ) = default;
 	virtual ~IPatternBase() = 0 {}
 
 	virtual void Print( const CPatterns& patterns, ostream& out ) const = 0;
@@ -76,6 +77,7 @@ public:
 		const bool transposition = false );
 	~CPatternSequence() override {}
 
+	// IPatternBase
 	void Print( const CPatterns& patterns, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
@@ -98,6 +100,7 @@ public:
 		CPatternConditions&& conditions );
 	~CPatternAlternative() override {}
 
+	// IPatternBase
 	void Print( const CPatterns& patterns, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
@@ -115,35 +118,35 @@ typedef vector<CPatternAlternativePtr> CPatternAlternativePtrs;
 
 class CPatternAlternatives : public IPatternBase {
 public:
-	explicit CPatternAlternatives( CPatternAlternativePtrs&& alternatives );
+	explicit CPatternAlternatives( CPatternBasePtrs&& alternatives );
 	~CPatternAlternatives() override {}
 
+	// IPatternBase
 	void Print( const CPatterns& patterns, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const override;
 
 private:
-	const CPatternAlternativePtrs alternatives;
+	const CPatternBasePtrs alternatives;
 };
-
-typedef unique_ptr<CPatternAlternatives> CPatternAlternativesPtr;
 
 ///////////////////////////////////////////////////////////////////////////////
 
 class CPatternRepeating : public IPatternBase {
 public:
-	explicit CPatternRepeating( CPatternAlternativePtr&& element,
+	explicit CPatternRepeating( CPatternBasePtr&& element,
 		const size_t minCount = 0, const size_t maxCount = 1 );
 	~CPatternRepeating() override {}
 
+	// IPatternBase
 	void Print( const CPatterns& patterns, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const override;
 
 private:
-	const CPatternAlternativePtr element;
+	const CPatternBasePtr element;
 	const size_t minCount;
 	const size_t maxCount;
 };
@@ -155,6 +158,7 @@ public:
 	explicit CPatternRegexp( const string& regexp );
 	~CPatternRegexp() override {}
 
+	// IPatternBase
 	void Print( const CPatterns& patterns, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
@@ -177,6 +181,7 @@ struct CSignRestriction {
 		Exclude( exclude ),
 		Values( move( values ) )
 	{
+		debug_check_logic( !Values.IsEmpty() );
 	}
 
 	const TSign Sign;
@@ -196,6 +201,7 @@ public:
 	CPatternElement( const TElement element, CSignRestrictions&& signs );
 	~CPatternElement() override {}
 
+	// IPatternBase
 	void Print( const CPatterns& patterns, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
@@ -216,6 +222,7 @@ public:
 	CPatternReference( const TReference reference, CSignRestrictions&& signs );
 	~CPatternReference() override {}
 
+	// IPatternBase
 	void Print( const CPatterns& patterns, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
@@ -299,18 +306,25 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CPattern {
+class CPattern : public IPatternBase {
 public:
-	CPattern( const string& name, const CPatternArguments& arguments,
-		CPatternAlternativesPtr&& alternatives );
+	CPattern( const string& name, CPatternBasePtr&& root,
+		const CPatternArguments& arguments );
+	CPattern( CPattern&& ) = default;
 
 	const string& Name() const { return name; }
 	const CPatternArguments& Arguments() const { return arguments; }
 
+	// IPatternBase
+	void Print( const CPatterns& patterns, ostream& out ) const override;
+	size_t MinSizePrediction() const override;
+	void Build( CPatternBuildContext& context,
+		CPatternVariants& variants, const size_t maxSize ) const override;
+
 private:
-	const string name;
-	const CPatternArguments arguments;
-	const CPatternAlternativesPtr alternatives;
+	string name;
+	CPatternBasePtr root;
+	CPatternArguments arguments;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -331,7 +345,9 @@ protected:
 	vector<CPattern> Patterns;
 	typedef vector<CPattern>::size_type TPatternIndex;
 	unordered_map<string, TPatternIndex> Names;
-	// string consts
+
+	vector<string> Strings;
+	unordered_map<string, CSignValues::ValueType> StringIndices;
 
 	explicit CPatterns( Configuration::CConfigurationPtr configuration );
 

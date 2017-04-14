@@ -131,7 +131,6 @@ CPatternAlternative::CPatternAlternative( CPatternBasePtr&& _element,
 	conditions( _conditions )
 {
 	debug_check_logic( static_cast<bool>( element ) );
-	debug_check_logic( !conditions.empty() );
 }
 
 void CPatternAlternative::Print( const CPatterns& patterns, ostream& out ) const
@@ -160,7 +159,7 @@ void CPatternAlternative::Build( CPatternBuildContext& context,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CPatternAlternatives::CPatternAlternatives( CPatternAlternativePtrs&& _alternatives ) :
+CPatternAlternatives::CPatternAlternatives( CPatternBasePtrs&& _alternatives ) :
 	alternatives( move( _alternatives ) )
 {
 	debug_check_logic( !alternatives.empty() );
@@ -174,7 +173,7 @@ size_t CPatternAlternatives::MinSizePrediction() const
 {
 	check_logic( !alternatives.empty() );
 	size_t minSizePrediction = numeric_limits<size_t>::max();
-	for( const CPatternAlternativePtr& alternative : alternatives ) {
+	for( const CPatternBasePtr& alternative : alternatives ) {
 		minSizePrediction = min( minSizePrediction, alternative->MinSizePrediction() );
 	}
 	return minSizePrediction;
@@ -194,7 +193,7 @@ void CPatternAlternatives::Build( CPatternBuildContext& context,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CPatternRepeating::CPatternRepeating( CPatternAlternativePtr&& _element,
+CPatternRepeating::CPatternRepeating( CPatternBasePtr&& _element,
 		const size_t _minCount, const size_t _maxCount ) :
 	element( move( _element ) ),
 	minCount( _minCount ),
@@ -202,6 +201,7 @@ CPatternRepeating::CPatternRepeating( CPatternAlternativePtr&& _element,
 {
 	debug_check_logic( static_cast<bool>( element ) );
 	debug_check_logic( minCount <= maxCount );
+	debug_check_logic( maxCount > 0 );
 }
 
 void CPatternRepeating::Print( const CPatterns& patterns, ostream& out ) const
@@ -304,7 +304,6 @@ CPatternElement::CPatternElement( const TElement _element,
 	element( _element ),
 	signs( move( _signs ) )
 {
-	debug_check_logic( !signs.empty() );
 }
 
 void CPatternElement::Print( const CPatterns& patterns, ostream& out ) const
@@ -339,7 +338,6 @@ CPatternReference::CPatternReference( const TReference _reference,
 	reference( _reference ),
 	signs( move( _signs ) )
 {
-	debug_check_logic( !signs.empty() );
 }
 
 void CPatternReference::Print( const CPatterns& patterns, ostream& out ) const
@@ -391,14 +389,31 @@ void CPatternArgument::Print( const CPatterns& patterns, ostream& out ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CPattern::CPattern( const string& _name, const CPatternArguments& _arguments,
-		CPatternAlternativesPtr&& _alternatives ) :
+CPattern::CPattern( const string& _name, CPatternBasePtr&& _root,
+		const CPatternArguments& _arguments ) :
 	name( _name ),
-	arguments( _arguments ),
-	alternatives( move( _alternatives ) )
+	root( move( _root ) ),
+	arguments( _arguments )
 {
 	debug_check_logic( !name.empty() );
-	debug_check_logic( static_cast<bool>( alternatives ) );
+	debug_check_logic( static_cast<bool>( root ) );
+}
+
+void CPattern::Print( const CPatterns& patterns, ostream& out ) const
+{
+	// todo:
+	root->Print( patterns, out );
+}
+
+size_t CPattern::MinSizePrediction() const
+{
+	return root->MinSizePrediction();
+}
+
+void CPattern::Build( CPatternBuildContext& context,
+	CPatternVariants& variants, const size_t maxSize ) const
+{
+	root->Build( context, variants, maxSize );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
