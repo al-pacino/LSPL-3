@@ -182,6 +182,7 @@ void CMatchingCondition::Check( CPatternsBuilder& context ) const
 	debug_check_logic( Elements.size() >= 2 );
 	auto element = Elements.cbegin();
 	const CPatternArgument first = context.CheckExtendedName( *element );
+	CPatternArguments arguments( 1, first );
 	bool wellFormed = true;
 	for( ++element; element != Elements.cend(); ++element ) {
 		context.ConditionElements.push_back( element->first );
@@ -189,9 +190,12 @@ void CMatchingCondition::Check( CPatternsBuilder& context ) const
 		if( wellFormed && first.Inconsistent( current ) ) {
 			wellFormed = false;
 		}
+		arguments.push_back( current );
 	}
 
-	if( !wellFormed ) {
+	if( wellFormed ) {
+		Condition.reset( new CPatternCondition( Strong, move( arguments ) ) );
+	} else {
 		vector<CTokenPtr> tokens;
 		for( const CExtendedName& extendedName : Elements ) {
 			tokens.push_back( extendedName.first );
@@ -218,6 +222,8 @@ void CDictionaryCondition::Check( CPatternsBuilder& context ) const
 			}
 		}
 	}
+
+	// TODO: add dicitionary Condition
 }
 
 void CTranspositionNode::Check( CPatternsBuilder& context ) const

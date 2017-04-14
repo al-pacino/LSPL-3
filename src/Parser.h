@@ -87,6 +87,8 @@ protected:
 	{
 	}
 
+	mutable unique_ptr<Pattern::CPatternCondition> Condition;
+
 private:
 	TAlternativeConditionType type;
 };
