@@ -50,8 +50,6 @@ struct CIndexedName {
 typedef pair<CTokenPtr, CTokenPtr> CExtendedName;
 typedef vector<CExtendedName> CExtendedNames;
 
-///////////////////////////////////////////////////////////////////////////////
-
 class CPatternsBuilder;
 class CPatternDefinition;
 typedef unique_ptr<CPatternDefinition> CPatternDefinitionPtr;
@@ -183,63 +181,6 @@ CAlternativeCondition::DictionaryCondition() const
 	check_logic( Type() == ACT_DictionaryCondition );
 	return static_cast<const CDictionaryCondition&>( *this );
 }
-
-///////////////////////////////////////////////////////////////////////////////
-
-class CPatternElementCondition {
-public:
-	CPatternElementCondition( const CAlternativeCondition* const prototype ) :
-		Prototype( prototype )
-	{
-	}
-
-	const CAlternativeCondition* const Prototype;
-	vector<string> DependentNames;
-};
-
-class CBasePatternNode;
-struct CPatternElement {
-	string Name;
-	const CBasePatternNode* Node; // CElementNode or CRegexNodep
-	list<CPatternElementCondition*> Conditions;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-
-struct CPatternVariant : public vector<string> {
-public:
-	CPatternVariant()
-	{
-	}
-
-	explicit CPatternVariant( const string& element )
-	{
-		push_back( element );
-	}
-
-	CPatternVariant& operator+=( const CPatternVariant& variant )
-	{
-		this->insert( this->cend(), variant.cbegin(), variant.cend() );
-		return *this;
-	}
-};
-
-struct CPatternVariants : public vector<CPatternVariant> {
-	void SortAndRemoveDuplicates()
-	{
-		struct {
-			bool operator()( const CPatternVariant& v1,
-				const CPatternVariant& v2 )
-			{
-				return ( v1.size() < v2.size() );
-			}
-		} comparator;
-		sort( this->begin(), this->end(), comparator );
-
-		auto last = unique( this->begin(), this->end() );
-		this->erase( last, this->end() );
-	}
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -474,7 +415,7 @@ struct CElementCondition {
 		Values.clear();
 	}
 
-	void Check( CPatternsBuilder& context, const bool patternReference ) const;
+	void Check( CPatternsBuilder& context, const CTokenPtr& element ) const;
 };
 
 typedef vector<CElementCondition> CElementConditions;
@@ -541,12 +482,11 @@ public:
 	CExtendedNames Arguments;
 	unique_ptr<CAlternativesNode> Alternatives;
 
-	void Print( ostream& out ) const override
-	{
-		Alternatives->Print( out );
-		out << endl;
-	}
+	Pattern::CPatternArgument Argument( const size_t index,
+		const CPatternsBuilder& context ) const;
 
+	// CBasePatternNode
+	void Print( ostream& out ) const override;
 	void Check( CPatternsBuilder& context ) const override;
 
 #if 0
@@ -591,12 +531,8 @@ public:
 		const char* message ) const;
 
 	bool HasElement( const CTokenPtr& elementToken ) const;
-	bool CheckSubName( const CTokenPtr& subNameToken,
-		const bool patternReference, size_t& index ) const;
-	bool CheckSubName( const CTokenPtr& subNameToken,
-		const bool patternReference, string& name ) const;
-	string CheckExtendedName( const CExtendedName& extendedName ) const;
-
+	Pattern::CPatternArgument CheckExtendedName(
+		const CExtendedName& extendedName ) const;
 	void CheckPatternExists( const CTokenPtr& reference ) const;
 	bool IsPatternReference( const CTokenPtr& reference ) const;
 
