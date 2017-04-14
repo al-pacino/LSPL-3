@@ -72,7 +72,7 @@ const CWordSign& CWordSigns::MainWordSign() const
 	return wordSigns[MainWordSignIndex()];
 }
 
-const CWordSign& CWordSigns::operator[]( SizeType& index ) const
+const CWordSign& CWordSigns::operator[]( SizeType index ) const
 {
 	debug_check_logic( index < wordSigns.size() );
 	return wordSigns[index];
