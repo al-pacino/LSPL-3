@@ -1,6 +1,11 @@
 #include <common.h>
 #include <Pattern.h>
 
+#include <Parser.h>
+
+using namespace Lspl::Configuration;
+using Lspl::Parser::CIndexedName;
+
 namespace Lspl {
 namespace Pattern {
 
@@ -15,15 +20,16 @@ CPatternSequence::CPatternSequence( CPatternBasePtrs&& _elements,
 }
 
 
-void CPatternSequence::Print( const CPatterns& patterns, ostream& out ) const
+void CPatternSequence::Print( const CPatterns& context, ostream& out ) const
 {
-	bool isFirst = true;
+	bool first = true;
 	for( const CPatternBasePtr& childNode : elements ) {
-		if( !isFirst ) {
-			out << " ~";
+		if( first ) {
+			first = false;
+		} else {
+			out << ( transposition ? " ~ " : " " );
 		}
-		isFirst = false;
-		childNode->Print( patterns, out );
+		childNode->Print( context, out );
 	}
 }
 
@@ -119,6 +125,27 @@ bool CPatternSequence::nextIndices( const vector<CPatternVariants>& allSubVarian
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void CPatternConditions::Print( const CPatterns& context, ostream& out ) const
+{
+	if( this->empty() ) {
+		return;
+	}
+
+	out << "<<";
+	bool first = true;
+	for( const CPatternCondition& condition : *this ) {
+		if( first ) {
+			first = false;
+		} else {
+			out << ",";
+		}
+		condition.Print( context, out );
+	}
+	out << ">>";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 CPatternAlternative::CPatternAlternative( CPatternBasePtr&& _element ) :
 	element( move( _element ) )
 {
@@ -133,8 +160,10 @@ CPatternAlternative::CPatternAlternative( CPatternBasePtr&& _element,
 	debug_check_logic( static_cast<bool>( element ) );
 }
 
-void CPatternAlternative::Print( const CPatterns& patterns, ostream& out ) const
+void CPatternAlternative::Print( const CPatterns& context, ostream& out ) const
 {
+	element->Print( context, out );
+	conditions.Print( context, out );
 }
 
 size_t CPatternAlternative::MinSizePrediction() const
@@ -165,8 +194,17 @@ CPatternAlternatives::CPatternAlternatives( CPatternBasePtrs&& _alternatives ) :
 	debug_check_logic( !alternatives.empty() );
 }
 
-void CPatternAlternatives::Print( const CPatterns& patterns, ostream& out ) const
+void CPatternAlternatives::Print( const CPatterns& context, ostream& out ) const
 {
+	bool first = true;
+	for( const CPatternBasePtr& alternative : alternatives ) {
+		if( first ) {
+			first = false;
+		} else {
+			out << " | ";
+		}
+		alternative->Print( context, out );
+	}
 }
 
 size_t CPatternAlternatives::MinSizePrediction() const
@@ -204,11 +242,11 @@ CPatternRepeating::CPatternRepeating( CPatternBasePtr&& _element,
 	debug_check_logic( maxCount > 0 );
 }
 
-void CPatternRepeating::Print( const CPatterns& patterns, ostream& out ) const
+void CPatternRepeating::Print( const CPatterns& context, ostream& out ) const
 {
-	out << "{";
-	element->Print( patterns, out );
-	out << "}<" << minCount << "," << maxCount << ">";
+	out << "{ ";
+	element->Print( context, out );
+	out << " }<" << minCount << "," << maxCount << ">";
 }
 
 size_t CPatternRepeating::MinSizePrediction() const
@@ -271,7 +309,7 @@ CPatternRegexp::CPatternRegexp( const string& _regexp ) :
 	debug_check_logic( !regexp.empty() );
 }
 
-void CPatternRegexp::Print( const CPatterns& patterns, ostream& out ) const
+void CPatternRegexp::Print( const CPatterns& /*context*/, ostream& out ) const
 {
 	out << '"' << regexp << '"';
 }
@@ -294,6 +332,48 @@ void CPatternRegexp::Build( CPatternBuildContext& context,
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CSignRestriction::CSignRestriction( const TSign _sign, CSignValues&& _values,
+		const bool _exclude ) :
+	sign( _sign ),
+	exclude( _exclude ),
+	values( move( _values ) )
+{
+	debug_check_logic( !values.IsEmpty() );
+}
+
+void CSignRestriction::Print( const CPatterns& context, ostream& out ) const
+{
+	out << context.SignName( sign );
+	out << ( exclude ? "!=" : "=" );
+	for( CSignValues::SizeType i = 0; i < values.Size(); i++ ) {
+		if( i > 0 ) {
+			out << "|";
+		}
+		out << context.SignValue( sign, values.Value( i ) );
+	}
+}
+
+void CSignRestrictions::Print( const CPatterns& context, ostream& out ) const
+{
+	if( this->empty() ) {
+		return;
+	}
+
+	out << "<";
+	bool first = true;
+	for( const CSignRestriction& signRestriction : *this ) {
+		if( first ) {
+			first = false;
+		} else {
+			out << ",";
+		}
+		signRestriction.Print( context, out );
+	}
+	out << ">";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 CPatternElement::CPatternElement( const TElement _element ) :
 	element( _element )
 {
@@ -306,8 +386,10 @@ CPatternElement::CPatternElement( const TElement _element,
 {
 }
 
-void CPatternElement::Print( const CPatterns& patterns, ostream& out ) const
+void CPatternElement::Print( const CPatterns& context, ostream& out ) const
 {
+	out << context.Element( element );
+	signs.Print( context, out );
 }
 
 size_t CPatternElement::MinSizePrediction() const
@@ -340,8 +422,10 @@ CPatternReference::CPatternReference( const TReference _reference,
 {
 }
 
-void CPatternReference::Print( const CPatterns& patterns, ostream& out ) const
+void CPatternReference::Print( const CPatterns& context, ostream& out ) const
 {
+	out << context.Reference( reference );
+	signs.Print( context, out );
 }
 
 size_t CPatternReference::MinSizePrediction() const
@@ -383,8 +467,68 @@ bool CPatternArgument::Inconsistent( const CPatternArgument& arg ) const
 	return ( Sign != arg.Sign );
 }
 
-void CPatternArgument::Print( const CPatterns& patterns, ostream& out ) const
+void CPatternArgument::Print( const CPatterns& context, ostream& out ) const
 {
+	debug_check_logic( Type != PAT_None );
+	if( HasReference() ) {
+		out << context.Reference( Reference ) << ".";
+	}
+	out << context.Element( Element );
+	if( HasSign() ) {
+		out << "." << context.SignName( Sign );
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+CPatternCondition::CPatternCondition( const bool _strong,
+		CPatternArguments&& _arguments ) :
+	strong( _strong ),
+	arguments( move( _arguments ) )
+{
+	debug_check_logic( arguments.size() >= 2 );
+}
+
+CPatternCondition::CPatternCondition( const string& _dictionary,
+		CPatternArguments&& _arguments ) :
+	strong( false ),
+	dictionary( _dictionary ),
+	arguments( move( _arguments ) )
+{
+	debug_check_logic( !dictionary.empty() );
+	debug_check_logic( !arguments.empty() );
+}
+
+void CPatternCondition::Print( const CPatterns& context, ostream& out ) const
+{
+	if( dictionary.empty() ) {
+		bool first = true;
+		for( const CPatternArgument& arg : arguments ) {
+			if( first ) {
+				first = false;
+			} else {
+				out << ( strong ? "==" : "=" );
+			}
+			arg.Print( context, out );
+		}
+	} else {
+		out << dictionary << "(";
+		bool first = true;
+		for( const CPatternArgument& arg : arguments ) {
+			if( arg.Type == PAT_None ) {
+				out << ", ";
+				first = true;
+			} else {
+				if( first ) {
+					first = false;
+				} else {
+					out << " ";
+				}
+				arg.Print( context, out );
+			}
+		}
+		out << ")";
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -399,10 +543,25 @@ CPattern::CPattern( const string& _name, CPatternBasePtr&& _root,
 	debug_check_logic( static_cast<bool>( root ) );
 }
 
-void CPattern::Print( const CPatterns& patterns, ostream& out ) const
+void CPattern::Print( const CPatterns& context, ostream& out ) const
 {
-	// todo:
-	root->Print( patterns, out );
+	out << name;
+	if( !arguments.empty() ) {
+		out << "( ";
+		bool first = true;
+		for( const CPatternArgument& arg : arguments ) {
+			if( first ) {
+				first = false;
+			} else {
+				out << ", ";
+			}
+			arg.Print( context, out );
+		}
+		out << " )";
+	}
+	out << " = ";
+	root->Print( context, out );
+	out << endl;
 }
 
 size_t CPattern::MinSizePrediction() const
@@ -424,8 +583,60 @@ CPatterns::CPatterns( Configuration::CConfigurationPtr _configuration ) :
 	check_logic( static_cast<bool>( configuration ) );
 }
 
-///////////////////////////////////////////////////////////////////////////////
+void CPatterns::Print( ostream& out ) const
+{
+	for( const CPattern& pattern : Patterns ) {
+		pattern.Print( *this, out );
+	}
+}
 
+string CPatterns::Element( const CPatternElement::TElement element ) const
+{
+	const COrderedStrings& values
+		= Configuration().WordSigns().MainWordSign().Values;
+	CIndexedName name;
+	name.Index = element / values.Size();
+	name.Name = values.Value( element % values.Size() );
+	return name.Normalize();
+}
+
+string CPatterns::Reference( const CPatternReference::TReference reference ) const
+{
+	CIndexedName refName;
+	refName.Index = reference / Patterns.size();
+	refName.Name = Patterns[reference % Patterns.size()].Name();
+	return refName.Normalize();
+}
+
+string CPatterns::SignName( const CSignRestriction::TSign sign ) const
+{
+	const CWordSigns& signs = Configuration().WordSigns();
+	debug_check_logic( sign < signs.Size() );
+	return signs[sign].Names.Value( 0 );
+}
+
+string CPatterns::SignValue( const CSignRestriction::TSign signIndex,
+	const CSignValues::ValueType value ) const
+{
+	const CWordSigns& signs = Configuration().WordSigns();
+	debug_check_logic( signIndex < signs.Size() );
+	const CWordSign& sign = signs[signIndex];
+	if( sign.Type == WST_String ) {
+		return String( value );
+	} else {
+		debug_check_logic( sign.Type == WST_Main || sign.Type == WST_Enum );
+		debug_check_logic( value < sign.Values.Size() );
+		return sign.Values.Value( value );
+	}
+}
+
+string CPatterns::String( const CSignValues::ValueType index ) const
+{
+	debug_check_logic( index < Strings.size() );
+	return Strings[index];
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 } // end of Pattern namespace
 } // end of Lspl namespace

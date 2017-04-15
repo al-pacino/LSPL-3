@@ -60,7 +60,7 @@ public:
 	IPatternBase( IPatternBase&& ) = default;
 	virtual ~IPatternBase() = 0 {}
 
-	virtual void Print( const CPatterns& patterns, ostream& out ) const = 0;
+	virtual void Print( const CPatterns& context, ostream& out ) const = 0;
 	virtual size_t MinSizePrediction() const = 0;
 	virtual void Build( CPatternBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const = 0;
@@ -78,7 +78,7 @@ public:
 	~CPatternSequence() override {}
 
 	// IPatternBase
-	void Print( const CPatterns& patterns, ostream& out ) const override;
+	void Print( const CPatterns& context, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const override;
@@ -91,7 +91,12 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 class CPatternCondition;
-typedef list<CPatternCondition> CPatternConditions;
+class CPatternConditions : public list<CPatternCondition> {
+public:
+	void Print( const CPatterns& context, ostream& out ) const;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 
 class CPatternAlternative : public IPatternBase {
 public:
@@ -101,7 +106,7 @@ public:
 	~CPatternAlternative() override {}
 
 	// IPatternBase
-	void Print( const CPatterns& patterns, ostream& out ) const override;
+	void Print( const CPatterns& context, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const override;
@@ -122,7 +127,7 @@ public:
 	~CPatternAlternatives() override {}
 
 	// IPatternBase
-	void Print( const CPatterns& patterns, ostream& out ) const override;
+	void Print( const CPatterns& context, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const override;
@@ -140,7 +145,7 @@ public:
 	~CPatternRepeating() override {}
 
 	// IPatternBase
-	void Print( const CPatterns& patterns, ostream& out ) const override;
+	void Print( const CPatterns& context, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const override;
@@ -159,7 +164,7 @@ public:
 	~CPatternRegexp() override {}
 
 	// IPatternBase
-	void Print( const CPatterns& patterns, ostream& out ) const override;
+	void Print( const CPatterns& context, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const override;
@@ -172,24 +177,24 @@ private:
 
 typedef Configuration::COrderedList<size_t> CSignValues;
 
-struct CSignRestriction {
+class CSignRestriction {
+public:
 	typedef size_t TSign;
 
 	CSignRestriction( const TSign sign, CSignValues&& values,
-			const bool exclude = false ) :
-		Sign( sign ),
-		Exclude( exclude ),
-		Values( move( values ) )
-	{
-		debug_check_logic( !Values.IsEmpty() );
-	}
+		const bool exclude = false );
+	void Print( const CPatterns& context, ostream& out ) const;
 
-	const TSign Sign;
-	const bool Exclude;
-	const CSignValues Values;
+private:
+	const TSign sign;
+	const bool exclude;
+	const CSignValues values;
 };
 
-typedef vector<CSignRestriction> CSignRestrictions;
+class CSignRestrictions : public vector<CSignRestriction> {
+public:
+	void Print( const CPatterns& context, ostream& out ) const;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -202,7 +207,7 @@ public:
 	~CPatternElement() override {}
 
 	// IPatternBase
-	void Print( const CPatterns& patterns, ostream& out ) const override;
+	void Print( const CPatterns& context, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const override;
@@ -223,7 +228,7 @@ public:
 	~CPatternReference() override {}
 
 	// IPatternBase
-	void Print( const CPatterns& patterns, ostream& out ) const override;
+	void Print( const CPatterns& context, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const override;
@@ -260,7 +265,7 @@ struct CPatternArgument {
 	{
 	}
 
-	explicit CPatternArgument( CPatternElement::TElement element,
+	explicit CPatternArgument( const CPatternElement::TElement element,
 			const TPatternArgumentType type = PAT_Element,
 			const Configuration::CWordSigns::SizeType sign = 0,
 			const CPatternReference::TReference reference = 0 ) :
@@ -274,7 +279,7 @@ struct CPatternArgument {
 	bool HasSign() const;
 	bool HasReference() const;
 	bool Inconsistent( const CPatternArgument& arg ) const;
-	void Print( const CPatterns& patterns, ostream& out ) const;
+	void Print( const CPatterns& context, ostream& out ) const;
 };
 
 typedef vector<CPatternArgument> CPatternArguments;
@@ -283,25 +288,14 @@ typedef vector<CPatternArgument> CPatternArguments;
 
 class CPatternCondition {
 public:
-	CPatternCondition( const bool strong, CPatternArguments&& arguments ) :
-		Strong( strong ),
-		Arguments( move( arguments ) )
-	{
-		debug_check_logic( Arguments.size() >= 2 );
-	}
+	CPatternCondition( const bool strong, CPatternArguments&& arguments );
+	CPatternCondition( const string& dictionary, CPatternArguments&& arguments );
+	void Print( const CPatterns& context, ostream& out ) const;
 
-	CPatternCondition( const string& dictionary, CPatternArguments&& arguments ) :
-		Strong( false ),
-		Dictionary( dictionary ),
-		Arguments( move( arguments ) )
-	{
-		debug_check_logic( !Dictionary.empty() );
-		debug_check_logic( !Arguments.empty() );
-	}
-
-	const bool Strong;
-	const string Dictionary;
-	const CPatternArguments Arguments;
+private:
+	const bool strong;
+	const string dictionary;
+	const CPatternArguments arguments;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -316,7 +310,7 @@ public:
 	const CPatternArguments& Arguments() const { return arguments; }
 
 	// IPatternBase
-	void Print( const CPatterns& patterns, ostream& out ) const override;
+	void Print( const CPatterns& context, ostream& out ) const override;
 	size_t MinSizePrediction() const override;
 	void Build( CPatternBuildContext& context,
 		CPatternVariants& variants, const size_t maxSize ) const override;
@@ -340,6 +334,14 @@ public:
 	{
 		return *configuration;
 	}
+
+	void Print( ostream& out ) const;
+	string Element( const CPatternElement::TElement element ) const;
+	string Reference( const CPatternReference::TReference reference ) const;
+	string SignName( const CSignRestriction::TSign sign ) const;
+	string SignValue( const CSignRestriction::TSign sign,
+		const CSignValues::ValueType value ) const;
+	string String( const CSignValues::ValueType index ) const;
 
 protected:
 	vector<CPattern> Patterns;
