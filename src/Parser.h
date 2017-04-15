@@ -423,27 +423,6 @@ public:
 	// CBasePatternNode
 	void Print( ostream& out ) const override;
 	Pattern::CPatternBasePtr Check( CPatternsBuilder& context ) const override;
-
-#if 0
-	void Build( CPatternDefinitionBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const
-	{
-		size_t correctMaxSize = maxSize;
-		if( !maxSizes.empty() ) {
-			if( correctMaxSize == maxSizes.top() ) {
-				correctMaxSize--;
-			} else {
-				debug_check_logic( correctMaxSize < maxSizes.top() );
-			}
-		}
-		maxSizes.push( correctMaxSize );
-		//Alternatives->Build( context, variants, correctMaxSize );
-		debug_check_logic( maxSizes.top() == correctMaxSize );
-		maxSizes.pop();
-	}
-
-	mutable stack<size_t> maxSizes;
-#endif
 };
 
 ///////////////////////////////////////////////////////////////////////////////
