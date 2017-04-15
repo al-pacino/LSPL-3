@@ -191,14 +191,8 @@ CPatternBasePtr CPatternsBuilder::BuildElement( const CTokenPtr& reference,
 		return CPatternBasePtr(
 			new CPatternElement( index, move( signRestrictions ) ) );
 	} else {
-		auto pi = Names.find( name.Name );
-		if( pi != Names.cend() ) {
-			index = pi->second + name.Index * Names.size();
-		} else {
-			index = numeric_limits<CWordSigns::SizeType>::max();
-		}
-		return CPatternBasePtr(
-			new CPatternReference( index, move( signRestrictions ) ) );
+		return CPatternBasePtr( new CPatternReference(
+			GetReference( reference ), move( signRestrictions ) ) );
 	}
 }
 
@@ -209,6 +203,17 @@ CSignValues::ValueType CPatternsBuilder::StringIndex( const string& str )
 		Strings.push_back( str );
 	}
 	return pair.first->second;
+}
+
+CPatternReference::TReference CPatternsBuilder::GetReference(
+	const CTokenPtr& reference ) const
+{
+	const CIndexedName name( reference );
+	auto pi = Names.find( name.Name );
+	if( pi == Names.cend() ) {
+		return numeric_limits<CWordSigns::SizeType>::max();
+	}
+	return ( pi->second + name.Index * Names.size() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -512,16 +517,18 @@ CPatternArgument CPatternDefinition::Argument( const size_t argIndex,
 		if( valid ) {
 			if( static_cast<bool>( extendedName.second ) ) {
 				CIndexedName subName;
-				
+
 				CWordSigns::SizeType subIndex;
 				if( !subName.Parse( extendedName.second ) // name without index
 					&& signs.Find( subName.Name, subIndex ) // sign existst
 					&& signs[subIndex].Type != Configuration::WST_Main ) // sign isn't main
 				{
-					return CPatternArgument( index, PAT_ReferenceElementSign, subIndex );
+					return CPatternArgument( index, PAT_ReferenceElementSign,
+						subIndex, context.GetReference( Name ) );
 				}
 			} else {
-				return CPatternArgument( index, PAT_ReferenceElement );
+				return CPatternArgument( index, PAT_ReferenceElement, 0,
+					context.GetReference( Name ) );
 			}
 		}
 	}

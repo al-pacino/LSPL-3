@@ -473,6 +473,8 @@ public:
 	Pattern::CPatternBasePtr BuildElement( const CTokenPtr& reference,
 		Pattern::CSignRestrictions&& signRestrictions ) const;
 	Pattern::CSignValues::ValueType StringIndex( const string& str );
+	Pattern::CPatternReference::TReference
+		GetReference( const CTokenPtr& reference ) const;
 
 ////////
 
