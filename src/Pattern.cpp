@@ -1,6 +1,6 @@
 #include <common.h>
 #include <Pattern.h>
-
+#include <TranspositionSupport.h>
 #include <Parser.h>
 
 using namespace Lspl::Configuration;
@@ -45,24 +45,28 @@ size_t CPatternSequence::MinSizePrediction() const
 void CPatternSequence::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
-#if 0
 	vector<CPatternVariants> allSubVariants;
 	collectAllSubVariants( context, allSubVariants, maxSize );
-	if( !allSubVariants.empty() ) {
-		debug_check_logic( allSubVariants.size() == elements.size() );
-		addVariants( allSubVariants, variants, maxSize );
 
-		const CTranspositionSupport::CSwaps& swaps =
-			CTranspositionSupport::Instance().Swaps( allSubVariants.size() );
-		for( const CTranspositionSupport::CSwap& swap : swaps ) {
-			swap.Apply( allSubVariants );
-			addVariants( allSubVariants, variants, maxSize );
-		}
+	if( allSubVariants.empty() ) {
+		return;
 	}
-#endif
+
+	debug_check_logic( allSubVariants.size() == elements.size() );
+	context.AddVariants( allSubVariants, variants, maxSize );
+
+	if( !transposition ) {
+		return;
+	}
+
+	const CTranspositionSupport::CSwaps& swaps =
+		CTranspositionSupport::Instance().Swaps( allSubVariants.size() );
+	for( const CTranspositionSupport::CSwap& swap : swaps ) {
+		swap.Apply( allSubVariants );
+		context.AddVariants( allSubVariants, variants, maxSize );
+	}
 }
 
-#if 0
 void CPatternSequence::collectAllSubVariants( CPatternBuildContext& context,
 	vector<CPatternVariants>& allSubVariants, const size_t maxSize ) const
 {
@@ -91,37 +95,6 @@ void CPatternSequence::collectAllSubVariants( CPatternBuildContext& context,
 		allSubVariants.push_back( subVariants );
 	}
 }
-
-void CPatternSequence::addVariants( const vector<CPatternVariants>& allSubVariants,
-	vector<CPatternVariant>& variants, const size_t maxSize )
-{
-	vector<size_t> indices( allSubVariants.size(), 0 );
-	do {
-		CPatternVariant variant;
-		for( size_t i = 0; i < indices.size(); i++ ) {
-			variant += allSubVariants[i][indices[i]];
-		}
-		if( variant.size() <= maxSize ) {
-			variants.push_back( variant );
-		}
-	} while( nextIndices( allSubVariants, indices ) );
-}
-
-bool CPatternSequence::nextIndices( const vector<CPatternVariants>& allSubVariants,
-	vector<size_t>& indices )
-{
-	for( size_t pos = indices.size(); pos > 0; pos-- ) {
-		const size_t realPos = pos - 1;
-		if( indices[realPos] < allSubVariants[realPos].size() - 1 ) {
-			indices[realPos]++;
-			return true;
-		} else {
-			indices[realPos] = 0;
-		}
-	}
-	return false;
-}
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -174,16 +147,14 @@ size_t CPatternAlternative::MinSizePrediction() const
 void CPatternAlternative::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
-#if 0
 	element->Build( context, variants, maxSize );
-	variants.SortAndRemoveDuplicates();
-	const string conditions = getConditions();
-	if( !conditions.empty() ) {
-	for( string& variant : variants ) {
-	variant += conditions;
-	}
-	}
-#endif
+#pragma message( "not implemented!" )
+	// TODO: not implemented
+	/*for( CPatternVariant& variant : variants ) {
+		debug_check_logic( !variant.empty() );
+		variant.back().Conditions = conditions;
+	}*/
+	variants.SortAndRemoveDuplicates( context.Patterns() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -220,13 +191,12 @@ size_t CPatternAlternatives::MinSizePrediction() const
 void CPatternAlternatives::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
-#if 0
-	for( const CPatternAlternativePtr& alternative : alternatives ) {
+	for( const CPatternBasePtr& alternative : alternatives ) {
 		CPatternVariants subVariants;
 		alternative->Build( context, subVariants, maxSize );
-		variants.insert( variants.end(), subVariants.cbegin(), subVariants.cend() );
+		variants.insert( variants.end(),
+			subVariants.cbegin(), subVariants.cend() );
 	}
-#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -257,36 +227,33 @@ size_t CPatternRepeating::MinSizePrediction() const
 void CPatternRepeating::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
-#if 0
-	size_t minCount = minCount;
-	size_t maxCount = maxCount;
-	check_logic( minCount <= maxCount );
-
 	variants.clear();
+	debug_check_logic( minCount <= maxCount );
+
 	if( minCount == 0 ) {
 		variants.emplace_back();
-		minCount = 1;
 	}
-
 	if( maxSize == 0 ) {
 		return;
 	}
 
-	const size_t nmsp = node->MinSizePrediction();
-	const size_t nsmsp = nmsp * minCount;
+	const size_t start = minCount > 0 ? minCount : 1;
+	const size_t nmsp = element->MinSizePrediction();
+	const size_t nsmsp = nmsp * start;
 	if( nsmsp > maxSize ) {
 		return;
 	}
-	maxCount = min( maxCount, maxSize / nmsp );
-	const size_t nodeMaxSize = maxSize - nsmsp + nmsp;
+
+	size_t finish = min( maxCount, maxSize / nmsp );
+	const size_t elementMaxSize = finish - nsmsp + nmsp;
 
 	CPatternVariants subVariants;
-	node->Build( context, subVariants, nodeMaxSize );
+	element->Build( context, subVariants, elementMaxSize );
 
-	vector<CPatternVariants> allSubVariants( minCount, subVariants );
-	AddVariants( allSubVariants, variants, maxSize );
+	vector<CPatternVariants> allSubVariants( start, subVariants );
+	context.AddVariants( allSubVariants, variants, maxSize );
 
-	for( size_t count = minCount + 1; count <= maxCount; count++ ) {
+	for( size_t count = start + 1; count <= finish; count++ ) {
 		const size_t variantsSize = variants.size();
 		for( size_t vi = 0; vi < variantsSize; vi++ ) {
 			const CPatternVariant& variant = variants[vi];
@@ -298,7 +265,6 @@ void CPatternRepeating::Build( CPatternBuildContext& context,
 			}
 		}
 	}
-#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -322,12 +288,12 @@ size_t CPatternRegexp::MinSizePrediction() const
 void CPatternRegexp::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
-#if 0
 	variants.clear();
-	if( maxSize == 0 ) {
-		return;
+	if( maxSize > 0 ) {
+		CPatternVariant variant;
+		variant.emplace_back( &regexp );
+		variants.push_back( variant );
 	}
-#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -400,12 +366,12 @@ size_t CPatternElement::MinSizePrediction() const
 void CPatternElement::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
-#if 0
 	variants.clear();
-	if( maxSize == 0 ) {
-		return;
+	if( maxSize > 0 ) {
+		CPatternVariant variant;
+		variant.emplace_back( CPatternArgument( element ), signs );
+		variants.push_back( variant );
 	}
-#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -436,12 +402,21 @@ size_t CPatternReference::MinSizePrediction() const
 void CPatternReference::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
-#if 0
-	variants.clear();
-	if( maxSize == 0 ) {
-		return;
+	const CPattern& pattern = context.Patterns().ResolveReference( reference );
+	pattern.Build( context, variants, maxSize );
+
+	for( CPatternVariant& variant : variants ) {
+		for( CPatternWord& word : variant ) {
+			if( word.Id.Type == PAT_ReferenceElement ) {
+				word.Id.Reference = reference;
+			} else {
+				debug_check_logic( word.Id.Type == PAT_None );
+			}
+		}
 	}
-#endif
+
+#pragma message( "not implemented!" )
+	// todo: apply SignRestrictions
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -572,7 +547,32 @@ size_t CPattern::MinSizePrediction() const
 void CPattern::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
-	root->Build( context, variants, maxSize );
+	const size_t correctMaxSize = context.PushMaxSize( name, maxSize );
+	root->Build( context, variants, correctMaxSize );
+	const size_t topMaxSize = context.PopMaxSize( name );
+	debug_check_logic( topMaxSize == correctMaxSize );
+
+	// correct ids
+	const COrderedStrings::SizeType mainSize = context.Patterns()
+		.Configuration().WordSigns().MainWordSign().Values.Size();
+	for( CPatternVariant& variant : variants ) {
+		for( CPatternWord& word : variant ) {
+			if( word.Id.Type != PAT_Element ) {
+				word.Id.Type = PAT_None;
+				continue;
+			}
+			for( CPatternArguments::size_type i = 0; i < arguments.size(); i++ ) {
+				if( word.Id.Element == arguments[i].Element ) {
+					word.Id.Type = PAT_ReferenceElement;
+					word.Id.Element = word.Id.Element % mainSize + i * mainSize;
+					break;
+				}
+			}
+			if( word.Id.Type == PAT_Element ) {
+				word.Id.Type = PAT_None;
+			}
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -587,6 +587,11 @@ void CPatterns::Print( ostream& out ) const
 {
 	for( const CPattern& pattern : Patterns ) {
 		pattern.Print( *this, out );
+		CPatternBuildContext buildContext( *this );
+		CPatternVariants variants;
+		pattern.Build( buildContext, variants, 8 );
+		variants.Print( *this, out );
+		out << endl;
 	}
 }
 
@@ -634,6 +639,148 @@ string CPatterns::String( const CSignValues::ValueType index ) const
 {
 	debug_check_logic( index < Strings.size() );
 	return Strings[index];
+}
+
+const CPattern& CPatterns::ResolveReference(
+	const CPatternReference::TReference reference ) const
+{
+	return Patterns[reference % Patterns.size()];
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void CPatternWord::Print( const CPatterns& context, ostream& out ) const
+{
+	if( Regexp != nullptr ) {
+		out << '"' << *Regexp << '"';
+	} else {
+		if( Id.Type == PAT_None ) {
+			const COrderedStrings& main = context.Configuration()
+				.WordSigns().MainWordSign().Values;
+			out << main.Value( Id.Element % main.Size() );
+		} else {
+			//debug_check_logic( Id.Type == PAT_ReferenceElement );
+			Id.Print( context, out );
+		}
+		SignRestrictions.Print( context, out );
+		Conditions.Print( context, out );
+	}
+}
+
+void CPatternVariant::Print( const CPatterns& context, ostream& out ) const
+{
+	for( const CPatternWord& word : *this ) {
+		out << " ";
+		word.Print( context, out );
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void CPatternVariants::Print( const CPatterns& context, ostream& out ) const
+{
+	for( const CPatternVariant& variant : *this ) {
+		variant.Print( context, out );
+		out << endl;
+	}
+}
+
+void CPatternVariants::SortAndRemoveDuplicates( const CPatterns& context )
+{
+#pragma message( "very inefficient" )
+	typedef pair<string, CPatternVariant> CPair;
+	vector<CPair> pairs;
+	pairs.reserve( this->size() );
+	for( CPatternVariant& variant : *this ) {
+		ostringstream oss1;
+		variant.Print( context, oss1 );
+		pairs.push_back( make_pair( oss1.str(), move( variant ) ) );
+	}
+
+	struct {
+		bool operator()( const CPair& v1, const CPair& v2 )
+		{
+			return ( v1.first < v2.first );
+		}
+	} comparatorL;
+	sort( pairs.begin(), pairs.end(), comparatorL );
+
+	struct {
+		bool operator()( const CPair& v1, const CPair& v2 )
+		{
+			return ( v1.first == v2.first );
+		}
+	} comparatorEq;
+	auto last = unique( pairs.begin(), pairs.end(), comparatorEq );
+	pairs.erase( last, pairs.end() );
+
+	this->clear();
+	for( CPair& pair : pairs ) {
+		this->emplace_back( move( pair.second ) );
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+CPatternBuildContext::CPatternBuildContext( const CPatterns& _patterns ) :
+	patterns( _patterns )
+{
+}
+
+size_t CPatternBuildContext::PushMaxSize( const string& name,
+	const size_t maxSize )
+{
+	auto pair = namedMaxSizes.insert( make_pair( name, stack<size_t>() ) );
+	stack<size_t>& maxSizes = pair.first->second;
+
+	if( maxSizes.empty() || maxSize < maxSizes.top() ) {
+		maxSizes.push( maxSize );
+	} else {
+		debug_check_logic( maxSize == maxSizes.top() );
+		maxSizes.push( maxSize - 1 );
+	}
+
+	return maxSizes.top();
+}
+
+size_t CPatternBuildContext::PopMaxSize( const string& name )
+{
+	auto si = namedMaxSizes.find( name );
+	debug_check_logic( si != namedMaxSizes.end() );
+	const size_t topMaxSize = si->second.top();
+	si->second.pop();
+	return topMaxSize;
+}
+
+void CPatternBuildContext::AddVariants(
+	const vector<CPatternVariants>& allSubVariants,
+	vector<CPatternVariant>& variants, const size_t maxSize )
+{
+	vector<size_t> indices( allSubVariants.size(), 0 );
+	do {
+		CPatternVariant variant;
+		for( size_t i = 0; i < indices.size(); i++ ) {
+			variant += allSubVariants[i][indices[i]];
+		}
+		if( variant.size() <= maxSize ) {
+			variants.push_back( variant );
+		}
+	} while( nextIndices( allSubVariants, indices ) );
+}
+
+bool CPatternBuildContext::nextIndices(
+	const vector<CPatternVariants>& allSubVariants, vector<size_t>& indices )
+{
+	for( size_t pos = indices.size(); pos > 0; pos-- ) {
+		const size_t realPos = pos - 1;
+		if( indices[realPos] < allSubVariants[realPos].size() - 1 ) {
+			indices[realPos]++;
+			return true;
+		} else {
+			indices[realPos] = 0;
+		}
+	}
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

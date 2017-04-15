@@ -8,46 +8,9 @@ namespace Pattern {
 ///////////////////////////////////////////////////////////////////////////////
 
 class CPatterns;
-
-///////////////////////////////////////////////////////////////////////////////
-
-struct CPatternBuildContext {
-};
-
-struct CPatternVariant : public vector<string> {
-public:
-	CPatternVariant()
-	{
-	}
-
-	explicit CPatternVariant( const string& element )
-	{
-		push_back( element );
-	}
-
-	CPatternVariant& operator+=( const CPatternVariant& variant )
-	{
-		this->insert( this->cend(), variant.cbegin(), variant.cend() );
-		return *this;
-	}
-};
-
-struct CPatternVariants : public vector<CPatternVariant> {
-	void SortAndRemoveDuplicates()
-	{
-		struct {
-			bool operator()( const CPatternVariant& v1,
-				const CPatternVariant& v2 )
-			{
-				return ( v1.size() < v2.size() );
-			}
-		} comparator;
-		sort( this->begin(), this->end(), comparator );
-
-		auto last = unique( this->begin(), this->end() );
-		this->erase( last, this->end() );
-	}
-};
+class CPatternVariant;
+class CPatternVariants;
+class CPatternBuildContext;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -86,6 +49,9 @@ public:
 private:
 	const bool transposition;
 	const CPatternBasePtrs elements;
+
+	void collectAllSubVariants( CPatternBuildContext& context,
+		vector<CPatternVariants>& allSubVariants, const size_t maxSize ) const;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -342,6 +308,8 @@ public:
 	string SignValue( const CSignRestriction::TSign sign,
 		const CSignValues::ValueType value ) const;
 	string String( const CSignValues::ValueType index ) const;
+	const CPattern& ResolveReference(
+		const CPatternReference::TReference reference ) const;
 
 protected:
 	vector<CPattern> Patterns;
@@ -355,6 +323,75 @@ protected:
 
 private:
 	const Configuration::CConfigurationPtr configuration;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+struct CPatternWord {
+	CPatternArgument Id;
+	const string* Regexp;
+	CSignRestrictions SignRestrictions;
+	CPatternConditions Conditions;
+
+	explicit CPatternWord( const string* const regexp ) :
+		Regexp( regexp )
+	{
+		debug_check_logic( Regexp != nullptr );
+	}
+
+	CPatternWord( const CPatternArgument id,
+			const CSignRestrictions& signRestrictions ) :
+		Id( id ),
+		Regexp( nullptr ),
+		SignRestrictions( signRestrictions )
+	{
+		debug_check_logic( Id.Type == PAT_Element );
+	}
+
+	void Print( const CPatterns& context, ostream& out ) const;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+class CPatternVariant : public vector<CPatternWord> {
+public:
+	CPatternVariant& operator+=( const CPatternVariant& variant )
+	{
+		this->insert( this->cend(), variant.cbegin(), variant.cend() );
+		return *this;
+	}
+
+	void Print( const CPatterns& context, ostream& out ) const;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+class CPatternVariants : public vector<CPatternVariant> {
+public:
+	void SortAndRemoveDuplicates( const CPatterns& context );
+	void Print( const CPatterns& context, ostream& out ) const;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+class CPatternBuildContext {
+public:
+	explicit CPatternBuildContext( const CPatterns& patterns );
+
+	const CPatterns& Patterns() const { return patterns; }
+
+	size_t PushMaxSize( const string& name, const size_t maxSize );
+	size_t PopMaxSize( const string& name );
+
+	static void AddVariants( const vector<CPatternVariants>& allSubVariants,
+		vector<CPatternVariant>& variants, const size_t maxSize );
+
+private:
+	const CPatterns& patterns;
+	unordered_map<string, stack<size_t>> namedMaxSizes;
+
+	static bool nextIndices( const vector<CPatternVariants>& allSubVariants,
+		vector<size_t>& indices );
 };
 
 ///////////////////////////////////////////////////////////////////////////////
