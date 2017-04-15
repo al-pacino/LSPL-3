@@ -33,7 +33,8 @@ int main( int argc, const char* argv[] )
 			return 1;
 		}
 
-		CPatterns patterns( patternsBuilder.Save() );
+		const CPatterns patterns = patternsBuilder.Save();
+		patterns.Print( cout );
 	} catch( exception& e ) {
 		cerr << e.what() << endl;
 		return 1;
