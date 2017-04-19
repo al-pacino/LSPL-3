@@ -223,25 +223,13 @@ struct CPatternArgument {
 	CPatternReference::TReference Reference;
 	Configuration::CWordSigns::SizeType Sign;
 
-	CPatternArgument() :
-		Type( PAT_None ),
-		Element( 0 ),
-		Reference( 0 ),
-		Sign( 0 )
-	{
-	}
-
+	CPatternArgument();
 	explicit CPatternArgument( const CPatternElement::TElement element,
-			const TPatternArgumentType type = PAT_Element,
-			const Configuration::CWordSigns::SizeType sign = 0,
-			const CPatternReference::TReference reference = 0 ) :
-		Type( type ),
-		Element( element ),
-		Reference( reference ),
-		Sign( sign )
-	{
-	}
+		const TPatternArgumentType type = PAT_Element,
+		const Configuration::CWordSigns::SizeType sign = 0,
+		const CPatternReference::TReference reference = 0 );
 
+	bool Defined() const;
 	bool HasSign() const;
 	bool HasReference() const;
 	bool Inconsistent( const CPatternArgument& arg ) const;

@@ -404,6 +404,9 @@ void CElementCondition::Check( CPatternsBuilder& context,
 	CPatternArgument arg;
 	if( static_cast<bool>( Name ) ) {
 		arg = context.CheckExtendedName( { element, Name } );
+		if( !arg.Defined() ) {
+			return;
+		}
 		if( arg.Sign == wordSigns.MainWordSignIndex() ) {
 			context.ErrorProcessor.AddError( CError( *Name,
 				"main word sign is not allowed here" ) );
@@ -416,6 +419,7 @@ void CElementCondition::Check( CPatternsBuilder& context,
 		tokens.insert( tokens.end(), Values.cbegin(), Values.cend() );
 		context.AddComplexError( tokens,
 			"there is no default word sign in configuration" );
+		return;
 	}
 
 	CSignValues signValues;
@@ -437,7 +441,7 @@ void CElementCondition::Check( CPatternsBuilder& context,
 				signValues.Add( signValue );
 			} else {
 				context.ErrorProcessor.AddError( CError( *value,
-					"there is no such word sign value for this word sign in configuration" ) );
+					"there is no such word sign value for the word sign in configuration" ) );
 			}
 		}
 	}

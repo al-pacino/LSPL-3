@@ -167,6 +167,7 @@ CPatternAlternatives::CPatternAlternatives( CPatternBasePtrs&& _alternatives ) :
 
 void CPatternAlternatives::Print( const CPatterns& context, ostream& out ) const
 {
+	out << "( ";
 	bool first = true;
 	for( const CPatternBasePtr& alternative : alternatives ) {
 		if( first ) {
@@ -176,6 +177,7 @@ void CPatternAlternatives::Print( const CPatterns& context, ostream& out ) const
 		}
 		alternative->Print( context, out );
 	}
+	out << " )";
 }
 
 size_t CPatternAlternatives::MinSizePrediction() const
@@ -421,6 +423,29 @@ void CPatternReference::Build( CPatternBuildContext& context,
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CPatternArgument::CPatternArgument() :
+	Type( PAT_None ),
+	Element( 0 ),
+	Reference( 0 ),
+	Sign( 0 )
+{
+}
+
+CPatternArgument::CPatternArgument( const CPatternElement::TElement element,
+		const TPatternArgumentType type, const CWordSigns::SizeType sign,
+		const CPatternReference::TReference reference ) :
+	Type( type ),
+	Element( element ),
+	Reference( reference ),
+	Sign( sign )
+{
+}
+
+bool CPatternArgument::Defined() const
+{
+	return ( Type != PAT_None );
+}
+
 bool CPatternArgument::HasSign() const
 {
 	return ( Type == PAT_ElementSign || Type == PAT_ReferenceElementSign );
@@ -433,7 +458,7 @@ bool CPatternArgument::HasReference() const
 
 bool CPatternArgument::Inconsistent( const CPatternArgument& arg ) const
 {
-	if( Type == PAT_None || arg.Type == PAT_None ) {
+	if( !Defined() || !arg.Defined() ) {
 		return false;
 	}
 	if( HasSign() != arg.HasSign() ) {
@@ -589,7 +614,7 @@ void CPatterns::Print( ostream& out ) const
 		pattern.Print( *this, out );
 		CPatternBuildContext buildContext( *this );
 		CPatternVariants variants;
-		pattern.Build( buildContext, variants, 8 );
+		pattern.Build( buildContext, variants, 5 );
 		variants.Print( *this, out );
 		out << endl;
 	}
@@ -655,9 +680,7 @@ void CPatternWord::Print( const CPatterns& context, ostream& out ) const
 		out << '"' << *Regexp << '"';
 	} else {
 		if( Id.Type == PAT_None ) {
-			const COrderedStrings& main = context.Configuration()
-				.WordSigns().MainWordSign().Values;
-			out << main.Value( Id.Element % main.Size() );
+			out << context.Element( Id.Element );
 		} else {
 			//debug_check_logic( Id.Type == PAT_ReferenceElement );
 			Id.Print( context, out );
