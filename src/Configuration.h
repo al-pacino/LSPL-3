@@ -11,18 +11,10 @@ public:
 	typedef VALUE_TYPE ValueType;
 	typedef typename vector<ValueType>::size_type SizeType;
 
-	COrderedList()
-	{
-	}
+	COrderedList() = default;
 
-	bool IsEmpty() const
-	{
-		return values.empty();
-	}
-	SizeType Size() const
-	{
-		return values.size();
-	}
+	bool IsEmpty() const { return values.empty(); }
+	SizeType Size() const { return values.size(); }
 	const ValueType& Value( const SizeType index ) const
 	{
 		debug_check_logic( index < Size() );
