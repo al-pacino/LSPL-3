@@ -383,6 +383,9 @@ struct CElementCondition {
 
 	void Check( CPatternsBuilder& context, const CTokenPtr& element,
 		Pattern::CSignRestrictions& signRestrictions ) const;
+
+private:
+	vector<CTokenPtr> collectTokens() const;
 };
 
 typedef vector<CElementCondition> CElementConditions;

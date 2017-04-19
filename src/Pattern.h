@@ -149,17 +149,31 @@ public:
 
 	CSignRestriction( const TSign sign, CSignValues&& values,
 		const bool exclude = false );
+
+	TSign Sign() const { return sign; }
 	void Print( const CPatterns& context, ostream& out ) const;
 
 private:
-	const TSign sign;
-	const bool exclude;
-	const CSignValues values;
+	TSign sign;
+	bool exclude;
+	CSignValues values;
 };
 
-class CSignRestrictions : public vector<CSignRestriction> {
+class CSignRestrictions {
 public:
 	void Print( const CPatterns& context, ostream& out ) const;
+	bool Add( CSignRestriction&& signRestriction );
+
+private:
+	vector<CSignRestriction> data;
+
+	struct CSignRestrictionComparator {
+		bool operator()( const CSignRestriction& signRestriction1,
+			const CSignRestriction& signRestriction2 ) const
+		{
+			return ( signRestriction1.Sign() < signRestriction2.Sign() );
+		}
+	};
 };
 
 ///////////////////////////////////////////////////////////////////////////////

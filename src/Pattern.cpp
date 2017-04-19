@@ -323,13 +323,13 @@ void CSignRestriction::Print( const CPatterns& context, ostream& out ) const
 
 void CSignRestrictions::Print( const CPatterns& context, ostream& out ) const
 {
-	if( this->empty() ) {
+	if( data.empty() ) {
 		return;
 	}
 
 	out << "<";
 	bool first = true;
-	for( const CSignRestriction& signRestriction : *this ) {
+	for( const CSignRestriction& signRestriction : data ) {
 		if( first ) {
 			first = false;
 		} else {
@@ -338,6 +338,17 @@ void CSignRestrictions::Print( const CPatterns& context, ostream& out ) const
 		signRestriction.Print( context, out );
 	}
 	out << ">";
+}
+
+bool CSignRestrictions::Add( CSignRestriction&& signRestriction )
+{
+	CSignRestrictionComparator comparator;
+	auto i = lower_bound( data.begin(), data.end(), signRestriction, comparator );
+	if( i != data.cend() && i->Sign() == signRestriction.Sign() ) {
+		return false;
+	}
+	data.insert( i, move( signRestriction ) );
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

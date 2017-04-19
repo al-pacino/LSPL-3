@@ -395,6 +395,19 @@ CPatternBasePtr CRegexpNode::Check( CPatternsBuilder& context ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+vector<CTokenPtr> CElementCondition::collectTokens() const
+{
+	vector<CTokenPtr> tokens;
+	if( static_cast<bool>( Name ) ) {
+		tokens.push_back( Name );
+	}
+	if( static_cast<bool>( EqualSign ) ) {
+		tokens.push_back( EqualSign );
+	}
+	tokens.insert( tokens.end(), Values.cbegin(), Values.cend() );
+	return tokens;
+}
+
 void CElementCondition::Check( CPatternsBuilder& context,
 	const CTokenPtr& element, CSignRestrictions& signRestrictions ) const
 {
@@ -412,12 +425,7 @@ void CElementCondition::Check( CPatternsBuilder& context,
 				"main word sign is not allowed here" ) );
 		}
 	} else {
-		vector<CTokenPtr> tokens;
-		if( static_cast<bool>( EqualSign ) ) {
-			tokens.push_back( EqualSign );
-		}
-		tokens.insert( tokens.end(), Values.cbegin(), Values.cend() );
-		context.AddComplexError( tokens,
+		context.AddComplexError( collectTokens(),
 			"there is no default word sign in configuration" );
 		return;
 	}
@@ -438,7 +446,10 @@ void CElementCondition::Check( CPatternsBuilder& context,
 			debug_check_logic( value->Type == TT_Identifier || value->Type == TT_Regexp );
 			CSignValues::ValueType signValue;
 			if( wordSign.Values.Find( value->Text, signValue ) ) {
-				signValues.Add( signValue );
+				if( !signValues.Add( signValue ) ) {
+					context.ErrorProcessor.AddError( CError( *value,
+						"duplicate word sign value" ) );
+				}
 			} else {
 				context.ErrorProcessor.AddError( CError( *value,
 					"there is no such word sign value for the word sign in configuration" ) );
@@ -449,7 +460,11 @@ void CElementCondition::Check( CPatternsBuilder& context,
 	if( arg.Type != PAT_None && !signValues.IsEmpty() ) {
 		const bool exclude = static_cast<bool>( EqualSign )
 			&& ( EqualSign->Type == TT_ExclamationPointEqualSign );
-		signRestrictions.emplace_back( arg.Sign, move( signValues ), exclude );
+		CSignRestriction restriction( arg.Sign, move( signValues ), exclude );
+		if( !signRestrictions.Add( move( restriction ) ) ) {
+			context.AddComplexError( collectTokens(),
+				"duplicate word sign" );
+		}
 	}
 }
 
