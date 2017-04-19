@@ -25,6 +25,10 @@ public:
 	bool Find( const ValueType& value, SizeType& index ) const;
 	void Print( ostream& out, const char* const delimiter ) const;
 
+	static COrderedList Union( const COrderedList&, const COrderedList& );
+	static COrderedList Difference( const COrderedList&, const COrderedList& );
+	static COrderedList Intersection( const COrderedList&, const COrderedList& );
+
 private:
 	vector<ValueType> values;
 };
@@ -69,6 +73,39 @@ void COrderedList<VALUE_TYPE>::Print( ostream& out,
 			out << delimiter << *i;
 		}
 	}
+}
+
+template<typename VALUE_TYPE>
+COrderedList<VALUE_TYPE> COrderedList<VALUE_TYPE>::Union(
+	const COrderedList& a, const COrderedList& b )
+{
+	COrderedList result;
+	set_union( a.values.cbegin(), a.values.cend(),
+		b.values.cbegin(), b.values.cend(),
+		back_inserter( result.values ) );
+	return result;
+}
+
+template<typename VALUE_TYPE>
+COrderedList<VALUE_TYPE> COrderedList<VALUE_TYPE>::Difference(
+	const COrderedList& a, const COrderedList& b )
+{
+	COrderedList result;
+	set_difference( a.values.cbegin(), a.values.cend(),
+		b.values.cbegin(), b.values.cend(),
+		back_inserter( result.values ) );
+	return result;
+}
+
+template<typename VALUE_TYPE>
+COrderedList<VALUE_TYPE> COrderedList<VALUE_TYPE>::Intersection(
+	const COrderedList& a, const COrderedList& b )
+{
+	COrderedList result;
+	set_intersection( a.values.cbegin(), a.values.cend(),
+		b.values.cbegin(), b.values.cend(),
+		back_inserter( result.values ) );
+	return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
