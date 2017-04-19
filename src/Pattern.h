@@ -12,6 +12,9 @@ class CPatternVariant;
 class CPatternVariants;
 class CPatternBuildContext;
 
+typedef size_t TElement;
+typedef size_t TReference;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 class IPatternBase {
@@ -147,41 +150,41 @@ class CSignRestriction {
 public:
 	typedef size_t TSign;
 
-	CSignRestriction( const TSign sign, CSignValues&& values,
-		const bool exclude = false );
+	CSignRestriction( const TElement element, const TSign sign,
+		CSignValues&& values, const bool exclude = false );
 
 	TSign Sign() const { return sign; }
+	TElement Element() const { return element; }
+	// returns true if an intersection is not empty
+	bool Intersection( const CSignRestriction& signRestriction );
 	void Print( const CPatterns& context, ostream& out ) const;
 
 private:
+	TElement element;
 	TSign sign;
 	bool exclude;
 	CSignValues values;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+
 class CSignRestrictions {
 public:
-	void Print( const CPatterns& context, ostream& out ) const;
+	// returns true if the sign restriction was added
 	bool Add( CSignRestriction&& signRestriction );
+	// returns true if an intersection is not empty
+	bool Intersection( const CSignRestrictions& signRestrictions,
+		const TElement element );
+	void Print( const CPatterns& context, ostream& out ) const;
 
 private:
 	vector<CSignRestriction> data;
-
-	struct CSignRestrictionComparator {
-		bool operator()( const CSignRestriction& signRestriction1,
-			const CSignRestriction& signRestriction2 ) const
-		{
-			return ( signRestriction1.Sign() < signRestriction2.Sign() );
-		}
-	};
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
 class CPatternElement : public IPatternBase {
 public:
-	typedef size_t TElement;
-
 	explicit CPatternElement( const TElement element );
 	CPatternElement( const TElement element, CSignRestrictions&& signs );
 	~CPatternElement() override {}
@@ -201,8 +204,6 @@ private:
 
 class CPatternReference : public IPatternBase {
 public:
-	typedef size_t TReference;
-
 	explicit CPatternReference( const TReference reference );
 	CPatternReference( const TReference reference, CSignRestrictions&& signs );
 	~CPatternReference() override {}
@@ -233,15 +234,15 @@ enum TPatternArgumentType {
 
 struct CPatternArgument {
 	TPatternArgumentType Type;
-	CPatternElement::TElement Element;
-	CPatternReference::TReference Reference;
+	TElement Element;
+	TReference Reference;
 	Configuration::CWordSigns::SizeType Sign;
 
 	CPatternArgument();
-	explicit CPatternArgument( const CPatternElement::TElement element,
+	explicit CPatternArgument( const TElement element,
 		const TPatternArgumentType type = PAT_Element,
 		const Configuration::CWordSigns::SizeType sign = 0,
-		const CPatternReference::TReference reference = 0 );
+		const TReference reference = 0 );
 
 	bool Defined() const;
 	bool HasSign() const;
@@ -304,14 +305,13 @@ public:
 	}
 
 	void Print( ostream& out ) const;
-	string Element( const CPatternElement::TElement element ) const;
-	string Reference( const CPatternReference::TReference reference ) const;
+	string Element( const TElement element ) const;
+	string Reference( const TReference reference ) const;
 	string SignName( const CSignRestriction::TSign sign ) const;
 	string SignValue( const CSignRestriction::TSign sign,
 		const CSignValues::ValueType value ) const;
 	string String( const CSignValues::ValueType index ) const;
-	const CPattern& ResolveReference(
-		const CPatternReference::TReference reference ) const;
+	const CPattern& ResolveReference( const TReference reference ) const;
 
 protected:
 	vector<CPattern> Patterns;

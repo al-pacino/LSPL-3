@@ -300,13 +300,30 @@ void CPatternRegexp::Build( CPatternBuildContext& context,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CSignRestriction::CSignRestriction( const TSign _sign, CSignValues&& _values,
-		const bool _exclude ) :
+CSignRestriction::CSignRestriction( const TElement _element,
+		const TSign _sign, CSignValues&& _values, const bool _exclude ) :
+	element( _element ),
 	sign( _sign ),
 	exclude( _exclude ),
 	values( move( _values ) )
 {
 	debug_check_logic( !values.IsEmpty() );
+}
+
+bool CSignRestriction::Intersection( const CSignRestriction& restriction )
+{
+	debug_check_logic( sign == restriction.Sign() );
+	if( exclude && restriction.exclude ) {
+		values = CSignValues::Union( values, restriction.values );
+	} else if( exclude && !restriction.exclude ) {
+		exclude = false;
+		values = CSignValues::Difference( restriction.values, values );
+	} else if( !exclude && restriction.exclude ) {
+		values = CSignValues::Difference( values, restriction.values );
+	} else if( !exclude && !restriction.exclude ) {
+		values = CSignValues::Intersection( values, restriction.values );
+	}
+	return !values.IsEmpty();
 }
 
 void CSignRestriction::Print( const CPatterns& context, ostream& out ) const
@@ -319,6 +336,71 @@ void CSignRestriction::Print( const CPatterns& context, ostream& out ) const
 		}
 		out << context.SignValue( sign, values.Value( i ) );
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool CSignRestrictions::Add( CSignRestriction&& restriction )
+{
+	struct {
+		bool operator()( const CSignRestriction& restriction1,
+			const CSignRestriction& restriction2 ) const
+		{
+			return ( restriction1.Element() < restriction2.Element()
+				|| ( restriction1.Element() == restriction2.Element()
+					&& restriction1.Sign() < restriction2.Sign() ) );
+		}
+	} comparator;
+
+	auto i = lower_bound( data.begin(), data.end(), restriction, comparator );
+	if( i != data.cend() && !comparator( restriction, *i ) ) { // *i == restriction
+		return false;
+	}
+	data.insert( i, move( restriction ) );
+	return true;
+}
+
+bool CSignRestrictions::Intersection( const CSignRestrictions& restrictions,
+	const TElement element )
+{
+	if( restrictions.data.empty() ) {
+		return true;
+	}
+
+	struct {
+		bool operator()( const CSignRestriction& restriction,
+			const TElement element ) const
+		{
+			return restriction.Element() < element;
+		}
+		bool operator()( const TElement element,
+			const CSignRestriction& restriction ) const
+		{
+			return element < restriction.Element();
+		}
+	} filter;
+	auto range = equal_range( restrictions.data.begin(),
+		restrictions.data.end(), element, filter );
+
+	struct {
+		bool operator()( const CSignRestriction& restriction1,
+			const CSignRestriction& restriction2 ) const
+		{
+			return restriction1.Sign() < restriction2.Sign();
+		}
+	} comparator;
+
+	for( auto i = range.first; i != range.second; ++i ) {
+		auto j = lower_bound( data.begin(), data.end(), *i, comparator );
+		if( j != data.cend() && !comparator( *j, *i ) ) { // *i == *j
+			if( !j->Intersection( *i ) ) {
+				return false;
+			}
+		} else {
+			data.insert( j, *i );
+		}
+	}
+	return true;
 }
 
 void CSignRestrictions::Print( const CPatterns& context, ostream& out ) const
@@ -338,17 +420,6 @@ void CSignRestrictions::Print( const CPatterns& context, ostream& out ) const
 		signRestriction.Print( context, out );
 	}
 	out << ">";
-}
-
-bool CSignRestrictions::Add( CSignRestriction&& signRestriction )
-{
-	CSignRestrictionComparator comparator;
-	auto i = lower_bound( data.begin(), data.end(), signRestriction, comparator );
-	if( i != data.cend() && i->Sign() == signRestriction.Sign() ) {
-		return false;
-	}
-	data.insert( i, move( signRestriction ) );
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -422,14 +493,13 @@ void CPatternReference::Build( CPatternBuildContext& context,
 		for( CPatternWord& word : variant ) {
 			if( word.Id.Type == PAT_ReferenceElement ) {
 				word.Id.Reference = reference;
+				// apply SignRestrictions
+				word.SignRestrictions.Intersection( signs, word.Id.Element );
 			} else {
 				debug_check_logic( word.Id.Type == PAT_None );
 			}
 		}
 	}
-
-#pragma message( "not implemented!" )
-	// todo: apply SignRestrictions
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -442,9 +512,9 @@ CPatternArgument::CPatternArgument() :
 {
 }
 
-CPatternArgument::CPatternArgument( const CPatternElement::TElement element,
+CPatternArgument::CPatternArgument( const TElement element,
 		const TPatternArgumentType type, const CWordSigns::SizeType sign,
-		const CPatternReference::TReference reference ) :
+		const TReference reference ) :
 	Type( type ),
 	Element( element ),
 	Reference( reference ),
@@ -631,7 +701,7 @@ void CPatterns::Print( ostream& out ) const
 	}
 }
 
-string CPatterns::Element( const CPatternElement::TElement element ) const
+string CPatterns::Element( const TElement element ) const
 {
 	const COrderedStrings& values
 		= Configuration().WordSigns().MainWordSign().Values;
@@ -641,7 +711,7 @@ string CPatterns::Element( const CPatternElement::TElement element ) const
 	return name.Normalize();
 }
 
-string CPatterns::Reference( const CPatternReference::TReference reference ) const
+string CPatterns::Reference( const TReference reference ) const
 {
 	CIndexedName refName;
 	refName.Index = reference / Patterns.size();
@@ -677,8 +747,7 @@ string CPatterns::String( const CSignValues::ValueType index ) const
 	return Strings[index];
 }
 
-const CPattern& CPatterns::ResolveReference(
-	const CPatternReference::TReference reference ) const
+const CPattern& CPatterns::ResolveReference( const TReference reference ) const
 {
 	return Patterns[reference % Patterns.size()];
 }

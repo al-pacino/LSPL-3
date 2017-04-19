@@ -205,8 +205,7 @@ CSignValues::ValueType CPatternsBuilder::StringIndex( const string& str )
 	return pair.first->second;
 }
 
-CPatternReference::TReference CPatternsBuilder::GetReference(
-	const CTokenPtr& reference ) const
+TReference CPatternsBuilder::GetReference( const CTokenPtr& reference ) const
 {
 	const CIndexedName name( reference );
 	auto pi = Names.find( name.Name );
@@ -460,8 +459,9 @@ void CElementCondition::Check( CPatternsBuilder& context,
 	if( arg.Type != PAT_None && !signValues.IsEmpty() ) {
 		const bool exclude = static_cast<bool>( EqualSign )
 			&& ( EqualSign->Type == TT_ExclamationPointEqualSign );
-		CSignRestriction restriction( arg.Sign, move( signValues ), exclude );
-		if( !signRestrictions.Add( move( restriction ) ) ) {
+		if( !signRestrictions.Add( CSignRestriction( arg.Element, arg.Sign,
+											move( signValues ), exclude ) ) )
+		{
 			context.AddComplexError( collectTokens(),
 				"duplicate word sign" );
 		}
