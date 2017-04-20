@@ -199,6 +199,7 @@ void CPatternAlternatives::Build( CPatternBuildContext& context,
 		variants.insert( variants.end(),
 			subVariants.cbegin(), subVariants.cend() );
 	}
+	variants.SortAndRemoveDuplicates( context.Patterns() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
