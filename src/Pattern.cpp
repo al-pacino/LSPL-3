@@ -694,21 +694,23 @@ void CPattern::Build( CPatternBuildContext& context,
 	// correct ids
 	const COrderedStrings::SizeType mainSize = context.Patterns()
 		.Configuration().WordSigns().MainWordSign().Values.Size();
+	const TReference patternReference = context.Patterns().PatternReference( name );
 	for( CPatternVariant& variant : variants ) {
 		for( CPatternWord& word : variant ) {
 			if( word.Id.Type != PAT_Element ) {
-				word.Id.Type = PAT_None;
+				word.Id = CPatternArgument();
 				continue;
 			}
 			for( CPatternArguments::size_type i = 0; i < arguments.size(); i++ ) {
 				if( word.Id.Element == arguments[i].Element ) {
 					word.Id.Type = PAT_ReferenceElement;
 					word.Id.Element = word.Id.Element % mainSize + i * mainSize;
+					word.Id.Reference = patternReference;
 					break;
 				}
 			}
 			if( word.Id.Type == PAT_Element ) {
-				word.Id.Type = PAT_None;
+				word.Id = CPatternArgument();
 			}
 		}
 	}
@@ -780,6 +782,16 @@ string CPatterns::String( const CSignValues::ValueType index ) const
 	return Strings[index];
 }
 
+TReference CPatterns::PatternReference( const string& name,
+	const TReference nameIndex ) const
+{
+	auto pi = Names.find( name );
+	if( pi == Names.cend() ) {
+		return numeric_limits<CWordSigns::SizeType>::max();
+	}
+	return ( pi->second + nameIndex * Names.size() );
+}
+
 const CPattern& CPatterns::ResolveReference( const TReference reference ) const
 {
 	return Patterns[reference % Patterns.size()];
@@ -792,9 +804,7 @@ void CPatternWord::Print( const CPatterns& context, ostream& out ) const
 	if( Regexp != nullptr ) {
 		out << '"' << *Regexp << '"';
 	} else {
-		if( Id.Type == PAT_None ) {
-			out << context.Element( Id.Element );
-		} else {
+		if( Id.Type != PAT_None ) {
 			//debug_check_logic( Id.Type == PAT_ReferenceElement );
 			Id.Print( context, out );
 		}

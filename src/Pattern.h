@@ -315,6 +315,8 @@ public:
 	string SignValue( const CSignRestriction::TSign sign,
 		const CSignValues::ValueType value ) const;
 	string String( const CSignValues::ValueType index ) const;
+	TReference PatternReference( const string& name,
+		const TReference nameIndex = 0 ) const;
 	const CPattern& ResolveReference( const TReference reference ) const;
 
 protected:

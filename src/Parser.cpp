@@ -187,9 +187,18 @@ CPatternBasePtr CPatternsBuilder::BuildElement( const CTokenPtr& reference,
 	CIndexedName name( reference );
 	CWordSigns::SizeType index;
 	if( main.Values.Find( name.Name, index ) ) {
-		index += name.Index * main.Values.Size();
+		const TElement element = index + name.Index * main.Values.Size();
+		{
+			CSignValues values;
+			values.Add( index );
+			CSignRestriction mainRestriction( element,
+				Configuration().WordSigns().MainWordSignIndex(),
+				move( values ) );
+			const bool added = signRestrictions.Add( move( mainRestriction ) );
+			debug_check_logic( added );
+		}
 		return CPatternBasePtr(
-			new CPatternElement( index, move( signRestrictions ) ) );
+			new CPatternElement( element, move( signRestrictions ) ) );
 	} else {
 		return CPatternBasePtr( new CPatternReference(
 			GetReference( reference ), move( signRestrictions ) ) );
@@ -208,11 +217,7 @@ CSignValues::ValueType CPatternsBuilder::StringIndex( const string& str )
 TReference CPatternsBuilder::GetReference( const CTokenPtr& reference ) const
 {
 	const CIndexedName name( reference );
-	auto pi = Names.find( name.Name );
-	if( pi == Names.cend() ) {
-		return numeric_limits<CWordSigns::SizeType>::max();
-	}
-	return ( pi->second + name.Index * Names.size() );
+	return PatternReference( name.Name, name.Index );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
