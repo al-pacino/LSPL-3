@@ -156,7 +156,9 @@ public:
 	TSign Sign() const { return sign; }
 	TElement Element() const { return element; }
 	// returns true if an intersection is not empty
-	bool Intersection( const CSignRestriction& signRestriction );
+	void Intersection( const CSignRestriction& signRestriction );
+	// returns true if there are no words matching restriction
+	bool IsEmpty( const CPatterns& context ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 
 private:
@@ -173,8 +175,10 @@ public:
 	// returns true if the sign restriction was added
 	bool Add( CSignRestriction&& signRestriction );
 	// returns true if an intersection is not empty
-	bool Intersection( const CSignRestrictions& signRestrictions,
+	void Intersection( const CSignRestrictions& signRestrictions,
 		const TElement element );
+	// returns true if all sign restrictions are empty
+	bool IsEmpty( const CPatterns& context ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 
 private:

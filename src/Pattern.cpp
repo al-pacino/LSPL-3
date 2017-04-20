@@ -310,7 +310,7 @@ CSignRestriction::CSignRestriction( const TElement _element,
 	debug_check_logic( !values.IsEmpty() );
 }
 
-bool CSignRestriction::Intersection( const CSignRestriction& restriction )
+void CSignRestriction::Intersection( const CSignRestriction& restriction )
 {
 	debug_check_logic( sign == restriction.Sign() );
 	if( exclude && restriction.exclude ) {
@@ -323,7 +323,22 @@ bool CSignRestriction::Intersection( const CSignRestriction& restriction )
 	} else if( !exclude && !restriction.exclude ) {
 		values = CSignValues::Intersection( values, restriction.values );
 	}
-	return !values.IsEmpty();
+}
+
+bool CSignRestriction::IsEmpty( const CPatterns& context ) const
+{
+	const CWordSign& wordSign = context.Configuration().WordSigns()[sign];
+	debug_check_logic( wordSign.Type != WST_None );
+	if( exclude ) {
+		if( wordSign.Type == WST_String ) {
+			// todo: check
+			return false;
+		} else {
+			return ( values.Size() == wordSign.Values.Size() );
+		}
+	} else {
+		return values.IsEmpty();
+	}
 }
 
 void CSignRestriction::Print( const CPatterns& context, ostream& out ) const
@@ -360,11 +375,11 @@ bool CSignRestrictions::Add( CSignRestriction&& restriction )
 	return true;
 }
 
-bool CSignRestrictions::Intersection( const CSignRestrictions& restrictions,
+void CSignRestrictions::Intersection( const CSignRestrictions& restrictions,
 	const TElement element )
 {
 	if( restrictions.data.empty() ) {
-		return true;
+		return;
 	}
 
 	struct {
@@ -393,14 +408,21 @@ bool CSignRestrictions::Intersection( const CSignRestrictions& restrictions,
 	for( auto i = range.first; i != range.second; ++i ) {
 		auto j = lower_bound( data.begin(), data.end(), *i, comparator );
 		if( j != data.cend() && !comparator( *j, *i ) ) { // *i == *j
-			if( !j->Intersection( *i ) ) {
-				return false;
-			}
+			j->Intersection( *i );
 		} else {
 			data.insert( j, *i );
 		}
 	}
-	return true;
+}
+
+bool CSignRestrictions::IsEmpty( const CPatterns& context ) const
+{
+	for( const CSignRestriction& signRestriction : data ) {
+		if( signRestriction.IsEmpty( context ) ) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void CSignRestrictions::Print( const CPatterns& context, ostream& out ) const
@@ -489,17 +511,28 @@ void CPatternReference::Build( CPatternBuildContext& context,
 	const CPattern& pattern = context.Patterns().ResolveReference( reference );
 	pattern.Build( context, variants, maxSize );
 
-	for( CPatternVariant& variant : variants ) {
-		for( CPatternWord& word : variant ) {
+	auto last = variants.begin();
+	for( auto variant = last; variant != variants.end(); ++variant ) {
+		bool isEmpty = false;
+		for( CPatternWord& word : *variant ) {
 			if( word.Id.Type == PAT_ReferenceElement ) {
 				word.Id.Reference = reference;
 				// apply SignRestrictions
 				word.SignRestrictions.Intersection( signs, word.Id.Element );
+				if( word.SignRestrictions.IsEmpty( context.Patterns() ) ) {
+					isEmpty = true;
+					break;
+				}
 			} else {
 				debug_check_logic( word.Id.Type == PAT_None );
 			}
 		}
+		if( !isEmpty ) {
+			*last = move( *variant );
+			++last;
+		}
 	}
+	variants.erase( last, variants.end() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

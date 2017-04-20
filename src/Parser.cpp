@@ -459,11 +459,14 @@ void CElementCondition::Check( CPatternsBuilder& context,
 	if( arg.Type != PAT_None && !signValues.IsEmpty() ) {
 		const bool exclude = static_cast<bool>( EqualSign )
 			&& ( EqualSign->Type == TT_ExclamationPointEqualSign );
-		if( !signRestrictions.Add( CSignRestriction( arg.Element, arg.Sign,
-											move( signValues ), exclude ) ) )
-		{
+		CSignRestriction restrictions( arg.Element, arg.Sign,
+			move( signValues ), exclude );
+		if( restrictions.IsEmpty( context ) ) {
 			context.AddComplexError( collectTokens(),
-				"duplicate word sign" );
+				"words matching the condition, do not exist" );
+		}
+		if( !signRestrictions.Add( move( restrictions ) ) ) {
+			context.AddComplexError( collectTokens(), "duplicate word sign" );
 		}
 	}
 }
