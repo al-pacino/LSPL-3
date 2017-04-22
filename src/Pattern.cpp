@@ -11,6 +11,80 @@ namespace Pattern {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CPatternArgument::CPatternArgument() :
+	Type( PAT_None ),
+	Element( 0 ),
+	Reference( 0 ),
+	Sign( 0 )
+{
+}
+
+CPatternArgument::CPatternArgument( const TElement element,
+		const TPatternArgumentType type, const TSign sign,
+		const TReference reference ) :
+	Type( type ),
+	Element( element ),
+	Reference( reference ),
+	Sign( sign )
+{
+}
+
+bool CPatternArgument::Defined() const
+{
+	return ( Type != PAT_None );
+}
+
+bool CPatternArgument::HasSign() const
+{
+	return ( Type == PAT_ElementSign || Type == PAT_ReferenceElementSign );
+}
+
+bool CPatternArgument::HasReference() const
+{
+	return ( Type == PAT_ReferenceElement || Type == PAT_ReferenceElementSign );
+}
+
+bool CPatternArgument::Inconsistent( const CPatternArgument& arg ) const
+{
+	if( !Defined() || !arg.Defined() ) {
+		return false;
+	}
+	if( HasSign() != arg.HasSign() ) {
+		return true;
+	}
+	return ( Sign != arg.Sign );
+}
+
+void CPatternArgument::Print( const CPatterns& context, ostream& out ) const
+{
+	debug_check_logic( Type != PAT_None );
+	if( HasReference() ) {
+		out << context.Reference( Reference ) << ".";
+	}
+	out << context.Element( Element );
+	if( HasSign() ) {
+		out << "." << context.SignName( Sign );
+	}
+}
+
+size_t CPatternArgument::Hasher::operator()(
+	const CPatternArgument& arg ) const
+{
+	return ( arg.Reference ^ ( arg.Element << 16 ) ^ ( arg.Sign << 24 )
+		^ ( static_cast<size_t>( arg.Type ) << 30 ) );
+}
+
+bool CPatternArgument::Comparator::operator()(
+	const CPatternArgument& arg1, const CPatternArgument& arg2 ) const
+{
+	return ( arg1.Type == arg2.Type
+		&& arg1.Element == arg2.Element
+		&& arg1.Reference == arg2.Reference
+		&& arg1.Sign == arg2.Sign );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 CPatternSequence::CPatternSequence( CPatternBasePtrs&& _elements,
 		const bool _transposition ) :
 	elements( move( _elements ) ),
@@ -98,15 +172,85 @@ void CPatternSequence::collectAllSubVariants( CPatternBuildContext& context,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void CPatternConditions::Print( const CPatterns& context, ostream& out ) const
+CCondition::CCondition( const bool _strong,
+		const CPatternArguments& _arguments ) :
+	strong( _strong ),
+	arguments( move( _arguments ) )
 {
-	if( this->empty() ) {
+	debug_check_logic( arguments.size() == 2 );
+	debug_check_logic( arguments[0].HasSign() == arguments[1].HasSign() );
+}
+
+CCondition::CCondition( const string& _dictionary,
+		const CPatternArguments& _arguments ) :
+	strong( false ),
+	dictionary( _dictionary ),
+	arguments( move( _arguments ) )
+{
+	debug_check_logic( !dictionary.empty() );
+	debug_check_logic( !arguments.empty() );
+}
+
+void CCondition::Print( const CPatterns& context, ostream& out ) const
+{
+	if( dictionary.empty() ) {
+		bool first = true;
+		for( const CPatternArgument& arg : arguments ) {
+			if( first ) {
+				first = false;
+			} else {
+				out << ( strong ? "==" : "=" );
+			}
+			arg.Print( context, out );
+		}
+	} else {
+		out << dictionary << "(";
+		bool first = true;
+		for( const CPatternArgument& arg : arguments ) {
+			if( arg.Type == PAT_None ) {
+				out << ", ";
+				first = true;
+			} else {
+				if( first ) {
+					first = false;
+				} else {
+					out << " ";
+				}
+				arg.Print( context, out );
+			}
+		}
+		out << ")";
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+CConditions::CConditions( vector<CCondition>&& conditions ) :
+	data( move( conditions ) )
+{
+	for( TIndex i = 0; i < data.size(); i++ ) {
+		for( const CPatternArgument& word : data[i].Arguments() ) {
+			if( !word.HasSign() ) {
+				indices.insert( make_pair( word, i ) );
+			} else {
+				CPatternArgument tmp = word;
+				tmp.Type = word.Type == PAT_ElementSign ?
+					PAT_Element : PAT_ReferenceElement;
+				indices.insert( make_pair( tmp, i ) );
+			}
+		}
+	}
+}
+
+void CConditions::Print( const CPatterns& context, ostream& out ) const
+{
+	if( data.empty() ) {
 		return;
 	}
 
 	out << "<<";
 	bool first = true;
-	for( const CPatternCondition& condition : *this ) {
+	for( const CCondition& condition : data ) {
 		if( first ) {
 			first = false;
 		} else {
@@ -119,14 +263,8 @@ void CPatternConditions::Print( const CPatterns& context, ostream& out ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CPatternAlternative::CPatternAlternative( CPatternBasePtr&& _element ) :
-	element( move( _element ) )
-{
-	debug_check_logic( static_cast<bool>( element ) );
-}
-
 CPatternAlternative::CPatternAlternative( CPatternBasePtr&& _element,
-		CPatternConditions&& _conditions ) :
+		CConditions&& _conditions ) :
 	element( move( _element ) ),
 	conditions( _conditions )
 {
@@ -538,116 +676,6 @@ void CPatternReference::Build( CPatternBuildContext& context,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CPatternArgument::CPatternArgument() :
-	Type( PAT_None ),
-	Element( 0 ),
-	Reference( 0 ),
-	Sign( 0 )
-{
-}
-
-CPatternArgument::CPatternArgument( const TElement element,
-		const TPatternArgumentType type, const CWordSigns::SizeType sign,
-		const TReference reference ) :
-	Type( type ),
-	Element( element ),
-	Reference( reference ),
-	Sign( sign )
-{
-}
-
-bool CPatternArgument::Defined() const
-{
-	return ( Type != PAT_None );
-}
-
-bool CPatternArgument::HasSign() const
-{
-	return ( Type == PAT_ElementSign || Type == PAT_ReferenceElementSign );
-}
-
-bool CPatternArgument::HasReference() const
-{
-	return ( Type == PAT_ReferenceElement || Type == PAT_ReferenceElementSign );
-}
-
-bool CPatternArgument::Inconsistent( const CPatternArgument& arg ) const
-{
-	if( !Defined() || !arg.Defined() ) {
-		return false;
-	}
-	if( HasSign() != arg.HasSign() ) {
-		return true;
-	}
-	return ( Sign != arg.Sign );
-}
-
-void CPatternArgument::Print( const CPatterns& context, ostream& out ) const
-{
-	debug_check_logic( Type != PAT_None );
-	if( HasReference() ) {
-		out << context.Reference( Reference ) << ".";
-	}
-	out << context.Element( Element );
-	if( HasSign() ) {
-		out << "." << context.SignName( Sign );
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-CPatternCondition::CPatternCondition( const bool _strong,
-		CPatternArguments&& _arguments ) :
-	strong( _strong ),
-	arguments( move( _arguments ) )
-{
-	debug_check_logic( arguments.size() >= 2 );
-}
-
-CPatternCondition::CPatternCondition( const string& _dictionary,
-		CPatternArguments&& _arguments ) :
-	strong( false ),
-	dictionary( _dictionary ),
-	arguments( move( _arguments ) )
-{
-	debug_check_logic( !dictionary.empty() );
-	debug_check_logic( !arguments.empty() );
-}
-
-void CPatternCondition::Print( const CPatterns& context, ostream& out ) const
-{
-	if( dictionary.empty() ) {
-		bool first = true;
-		for( const CPatternArgument& arg : arguments ) {
-			if( first ) {
-				first = false;
-			} else {
-				out << ( strong ? "==" : "=" );
-			}
-			arg.Print( context, out );
-		}
-	} else {
-		out << dictionary << "(";
-		bool first = true;
-		for( const CPatternArgument& arg : arguments ) {
-			if( arg.Type == PAT_None ) {
-				out << ", ";
-				first = true;
-			} else {
-				if( first ) {
-					first = false;
-				} else {
-					out << " ";
-				}
-				arg.Print( context, out );
-			}
-		}
-		out << ")";
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 CPattern::CPattern( const string& _name, CPatternBasePtr&& _root,
 		const CPatternArguments& _arguments ) :
 	name( _name ),
@@ -788,7 +816,7 @@ TReference CPatterns::PatternReference( const string& name,
 {
 	auto pi = Names.find( name );
 	if( pi == Names.cend() ) {
-		return numeric_limits<CWordSigns::SizeType>::max();
+		return numeric_limits<TSign>::max();
 	}
 	return ( pi->second + nameIndex * Names.size() );
 }
@@ -810,7 +838,6 @@ void CPatternWord::Print( const CPatterns& context, ostream& out ) const
 			Id.Print( context, out );
 		}
 		SignRestrictions.Print( context, out );
-		Conditions.Print( context, out );
 	}
 }
 

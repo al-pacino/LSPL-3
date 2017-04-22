@@ -12,8 +12,50 @@ class CPatternVariant;
 class CPatternVariants;
 class CPatternBuildContext;
 
+///////////////////////////////////////////////////////////////////////////////
+
 typedef size_t TElement;
 typedef size_t TReference;
+typedef Configuration::CWordSigns::SizeType TSign;
+
+// Sample( A7, N7.c, Sub.Pa, SubSub.c ) = A7 N7 Sub SubSub
+// Sub( Pa5 ) = Pa5
+// SubSub( Pn7 ) = Pn7
+enum TPatternArgumentType {
+	PAT_None,
+	PAT_Element,				// A7
+	PAT_ElementSign,			// N7.c
+	PAT_ReferenceElement,		// Sub.Pa
+	PAT_ReferenceElementSign	// SubSub.c
+};
+
+struct CPatternArgument {
+	TPatternArgumentType Type;
+	TElement Element;
+	TReference Reference;
+	TSign Sign;
+
+	CPatternArgument();
+	explicit CPatternArgument( const TElement element,
+		const TPatternArgumentType type = PAT_Element,
+		const TSign sign = 0, const TReference reference = 0 );
+
+	bool Defined() const;
+	bool HasSign() const;
+	bool HasReference() const;
+	bool Inconsistent( const CPatternArgument& arg ) const;
+	void Print( const CPatterns& context, ostream& out ) const;
+
+	struct Hasher {
+		size_t operator()( const CPatternArgument& arg ) const;
+	};
+	struct Comparator {
+		bool operator()( const CPatternArgument& arg1,
+			const CPatternArgument& arg2 ) const;
+	};
+};
+
+typedef vector<CPatternArgument> CPatternArguments;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -59,19 +101,38 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CPatternCondition;
-class CPatternConditions : public list<CPatternCondition> {
+class CCondition {
 public:
+	CCondition( const bool strong, const CPatternArguments& arguments );
+	CCondition( const string& dictionary, const CPatternArguments& arguments );
+	const CPatternArguments& Arguments() const { return arguments; }
 	void Print( const CPatterns& context, ostream& out ) const;
+
+private:
+	const bool strong;
+	const string dictionary;
+	const CPatternArguments arguments;
+};
+
+class CConditions {
+public:
+	explicit CConditions( vector<CCondition>&& conditions );
+
+	void Print( const CPatterns& context, ostream& out ) const;
+
+private:
+	vector<CCondition> data;
+	typedef vector<CCondition>::size_type TIndex;
+	unordered_multimap<CPatternArgument, TIndex,
+		CPatternArgument::Hasher,
+		CPatternArgument::Comparator> indices;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
 class CPatternAlternative : public IPatternBase {
 public:
-	explicit CPatternAlternative( CPatternBasePtr&& element );
-	CPatternAlternative( CPatternBasePtr&& element,
-		CPatternConditions&& conditions );
+	CPatternAlternative( CPatternBasePtr&& element, CConditions&& conditions );
 	~CPatternAlternative() override {}
 
 	// IPatternBase
@@ -82,7 +143,7 @@ public:
 
 private:
 	CPatternBasePtr element;
-	CPatternConditions conditions;
+	CConditions conditions;
 };
 
 typedef unique_ptr<CPatternAlternative> CPatternAlternativePtr;
@@ -225,54 +286,6 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// Sample( A7, N7.c, Sub.Pa, SubSub.c ) = A7 N7 Sub SubSub
-// Sub( Pa5 ) = Pa5
-// SubSub( Pn7 ) = Pn7
-enum TPatternArgumentType {
-	PAT_None,
-	PAT_Element,				// A7
-	PAT_ElementSign,			// N7.c
-	PAT_ReferenceElement,		// Sub.Pa
-	PAT_ReferenceElementSign	// SubSub.c
-};
-
-struct CPatternArgument {
-	TPatternArgumentType Type;
-	TElement Element;
-	TReference Reference;
-	Configuration::CWordSigns::SizeType Sign;
-
-	CPatternArgument();
-	explicit CPatternArgument( const TElement element,
-		const TPatternArgumentType type = PAT_Element,
-		const Configuration::CWordSigns::SizeType sign = 0,
-		const TReference reference = 0 );
-
-	bool Defined() const;
-	bool HasSign() const;
-	bool HasReference() const;
-	bool Inconsistent( const CPatternArgument& arg ) const;
-	void Print( const CPatterns& context, ostream& out ) const;
-};
-
-typedef vector<CPatternArgument> CPatternArguments;
-
-///////////////////////////////////////////////////////////////////////////////
-
-class CPatternCondition {
-public:
-	CPatternCondition( const bool strong, CPatternArguments&& arguments );
-	CPatternCondition( const string& dictionary, CPatternArguments&& arguments );
-	void Print( const CPatterns& context, ostream& out ) const;
-
-private:
-	const bool strong;
-	const string dictionary;
-	const CPatternArguments arguments;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-
 class CPattern : public IPatternBase {
 public:
 	CPattern( const string& name, CPatternBasePtr&& root,
@@ -339,7 +352,6 @@ struct CPatternWord {
 	CPatternArgument Id;
 	const string* Regexp;
 	CSignRestrictions SignRestrictions;
-	CPatternConditions Conditions;
 
 	explicit CPatternWord( const string* const regexp ) :
 		Regexp( regexp )
