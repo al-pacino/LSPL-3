@@ -12,37 +12,13 @@ struct CIndexedName {
 	string Name;
 	size_t Index;
 
-	CIndexedName() :
-		Index( 0 )
-	{
-	}
-
-	explicit CIndexedName( const CTokenPtr& token )
-	{
-		Parse( token );
-	}
+	CIndexedName();
+	explicit CIndexedName( const CTokenPtr& token );
 
 	// returns true if name ends with index
-	bool Parse( const CTokenPtr& token )
-	{
-		debug_check_logic( static_cast<bool>( token ) );
-		debug_check_logic( token->Type == TT_Identifier );
-		Name = token->Text;
-		const size_t pos = Name.find_last_not_of( "0123456789" );
-		debug_check_logic( pos != string::npos );
-		if( pos < Name.length() - 1 ) {
-			Index = stoul( Name.substr( pos + 1 ) );
-			Name.erase( pos + 1 );
-			return true;
-		}
-		Index = 0;
-		return false;
-	}
-
-	string Normalize() const
-	{
-		return ( Name + to_string( Index ) );
-	}
+	bool Parse( const CTokenPtr& token );
+	// returns concatenation of Name and Index
+	string Normalize() const;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,135 +28,45 @@ typedef vector<CExtendedName> CExtendedNames;
 
 class CPatternsBuilder;
 class CPatternDefinition;
+class CConditionsCheckContext;
 typedef unique_ptr<CPatternDefinition> CPatternDefinitionPtr;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-enum TAlternativeConditionType {
-	ACT_MatchingCondition,
-	ACT_DictionaryCondition
-};
-
-struct CMatchingCondition;
-struct CDictionaryCondition;
-
 class CAlternativeCondition {
+	CAlternativeCondition( const CAlternativeCondition& ) = delete;
+	CAlternativeCondition& operator=( const CAlternativeCondition& ) = delete;
+
 public:
-	virtual ~CAlternativeCondition() {}
+	explicit CAlternativeCondition( CExtendedNames&& names );
+	CAlternativeCondition( CTokenPtr dictionary, CExtendedNames&& names );
+	CAlternativeCondition( CAlternativeCondition&& ) = default;
 
-	TAlternativeConditionType Type() const { return type; }
-
-	const CMatchingCondition& MatchingCondition() const;
-	const CDictionaryCondition& DictionaryCondition() const;
-
-	virtual void Print( ostream& out ) const = 0;
-	virtual void Check( CPatternsBuilder& context,
-		Pattern::CPatternConditions& conditions ) const = 0;
-
-protected:
-	CAlternativeCondition( const TAlternativeConditionType conditionType ) :
-		type( conditionType )
-	{
-	}
+	void Check( CConditionsCheckContext& context ) const;
+	void Print( ostream& out ) const;
 
 private:
-	TAlternativeConditionType type;
-};
+	CTokenPtr dictionary; // Not a nullptr only for dictionary condition
+	CExtendedNames names;
+	// SampleDictionary( A1 N1, N2 ):
+	//   <A1, nullptr> <N1, nullptr> <nullptr, ,> <N2, nullptr>
+	// A1.c=A2.c==N3 (invalid, only for illustration)
+	//   <A1, c> <nullptr, => <A2, c> <nullptr, ==> <N3, nullptr>
 
-typedef vector<unique_ptr<CAlternativeCondition>> CAlternativeConditions;
+	void checkAgreement( CConditionsCheckContext& context ) const;
+	bool checkConsistency( CPatternsBuilder& context,
+		bool& strong, Pattern::CPatternArguments& words ) const;
+	bool isDoubleEqualSign( const CExtendedName& name ) const;
+	void checkDictionary( CConditionsCheckContext& context ) const;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 
-struct CMatchingCondition : public CAlternativeCondition {
-	bool Strong;
-	CExtendedNames Elements;
-
-	CMatchingCondition() :
-		CAlternativeCondition( ACT_MatchingCondition ),
-		Strong( false )
-	{
-	}
-	~CMatchingCondition() override {}
-
-	void Clear()
-	{
-		Strong = false;
-		Elements.clear();
-	}
-
-	void Print( ostream& out ) const override
-	{
-		for( const CExtendedName& name : Elements ) {
-			out << "=";
-			if( Strong ) {
-				out << "=";
-			}
-			name.first->Print( out );
-			if( name.second ) {
-				out << ".";
-				name.second->Print( out );
-			}
-		}
-	}
-
-	void Check( CPatternsBuilder& context,
-		Pattern::CPatternConditions& conditions ) const override;
+class CAlternativeConditions : public vector<CAlternativeCondition> {
+public:
+	Pattern::CConditions Check( CPatternsBuilder& context ) const;
+	void Print( ostream& out ) const;
 };
-
-inline const CMatchingCondition&
-CAlternativeCondition::MatchingCondition() const
-{
-	check_logic( Type() == ACT_MatchingCondition );
-	return static_cast<const CMatchingCondition&>( *this );
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-struct CDictionaryCondition : public CAlternativeCondition {
-	CTokenPtr DictionaryName;
-	vector<vector<CTokenPtr>> Arguments;
-
-	CDictionaryCondition() :
-		CAlternativeCondition( ACT_DictionaryCondition )
-	{
-	}
-	~CDictionaryCondition() override {}
-
-	void Clear()
-	{
-		DictionaryName = nullptr;
-		Arguments.clear();
-	}
-
-	void Print( ostream& out ) const override
-	{
-		DictionaryName->Print( out );
-		out << "(";
-		for( const vector<CTokenPtr>& argument : Arguments ) {
-			bool isFirst = true;
-			for( const CTokenPtr& token : argument ) {
-				if( isFirst ) {
-					out << ",";
-				} else {
-					out << " ";
-				}
-				isFirst = false;
-				token->Print( out );
-			}
-		}
-		out << ")";
-	}
-
-	void Check( CPatternsBuilder& context,
-		Pattern::CPatternConditions& conditions ) const override;
-};
-
-inline const CDictionaryCondition&
-CAlternativeCondition::DictionaryCondition() const
-{
-	check_logic( Type() == ACT_DictionaryCondition );
-	return static_cast<const CDictionaryCondition&>( *this );
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -257,13 +143,13 @@ public:
 
 class CAlternativeNode : public CBasePatternNode {
 public:
-	CAlternativeNode( unique_ptr<CBasePatternNode> childNode ) :
-		node( move( childNode ) )
+	CAlternativeNode( unique_ptr<CBasePatternNode> childNode,
+			CAlternativeConditions&& conditions ) :
+		node( move( childNode ) ),
+		conditions( move( conditions ) )
 	{
 	}
 	~CAlternativeNode() override {}
-
-	CAlternativeConditions& Conditions() { return conditions; }
 
 	// CBasePatternNode
 	void Print( ostream& out ) const override;
@@ -272,23 +158,6 @@ public:
 private:
 	unique_ptr<CBasePatternNode> node;
 	CAlternativeConditions conditions;
-
-	string getConditions() const
-	{
-		auto condition = conditions.cbegin();
-		if( condition != conditions.cend() ) {
-			ostringstream oss;
-			oss << "<<";
-			( *condition )->Print( oss );
-			for( ++condition; condition != conditions.cend(); ++condition ) {
-				oss << ",";
-				( *condition )->Print( oss );
-			}
-			oss << ">>";
-			return oss.str();
-		}
-		return "";
-	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -492,8 +361,8 @@ private:
 	bool readElementCondition( CElementCondition& elementCondition );
 	bool readElementConditions( CElementConditions& elementConditions );
 
-	bool readMatchingCondition( CMatchingCondition& condition );
-	bool readDictionaryCondition( CDictionaryCondition& condition );
+	bool readMatchingCondition( CExtendedNames& names );
+	bool readDictionaryCondition( CTokenPtr& dictionary, CExtendedNames& names );
 	bool readAlternativeCondition( CAlternativeConditions& conditions );
 	bool readAlternativeConditions( CAlternativeConditions& conditions );
 

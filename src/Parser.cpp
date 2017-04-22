@@ -12,6 +12,477 @@ namespace Parser {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CIndexedName::CIndexedName() :
+	Index( 0 )
+{
+}
+
+CIndexedName::CIndexedName( const CTokenPtr& token )
+{
+	Parse( token );
+}
+
+bool CIndexedName::Parse( const CTokenPtr& token )
+{
+	debug_check_logic( static_cast<bool>( token ) );
+	debug_check_logic( token->Type == TT_Identifier );
+	Name = token->Text;
+	const size_t pos = Name.find_last_not_of( "0123456789" );
+	debug_check_logic( pos != string::npos );
+	if( pos < Name.length() - 1 ) {
+		Index = stoul( Name.substr( pos + 1 ) );
+		Name.erase( pos + 1 );
+		return true;
+	}
+	Index = 0;
+	return false;
+}
+
+string CIndexedName::Normalize() const
+{
+	return ( Name + to_string( Index ) );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+class CConditionsCheckContext {
+public:
+	CPatternsBuilder& Context;
+
+	explicit CConditionsCheckContext( CPatternsBuilder& context ) :
+		Context( context )
+	{
+	}
+
+	void Add( const CExtendedName& name1, const CPatternArgument& word1,
+		const CExtendedName& name2, const CPatternArgument& word2,
+		const bool strong )
+	{
+		const CKey key( strong, name1, word1, name2, word2 );
+		auto pair = conditions.insert( make_pair( key, conditions.size() ) );
+		if( !pair.second ) {
+			addAgreementsOverlappedError( pair.first->first.Names, key.Names );
+			if( key.Include( pair.first->first ) ) {
+				const size_t index = pair.first->second;
+				conditions.erase( pair.first );
+				pair = conditions.insert( make_pair( key, index ) );
+				debug_check_logic( pair.second );
+			}
+		}
+	}
+
+	void Add( const CTokenPtr& dictionary, const CExtendedNames& names,
+		CPatternArguments&& words )
+	{
+		debug_check_logic( static_cast<bool>( dictionary ) );
+		CKey key( dictionary->Text, names, move( words ) );
+		auto pair = conditions.insert( make_pair( move( key ), conditions.size() ) );
+		if( !pair.second ) {
+			addAgreementsOverlappedError( { CExtendedName{ dictionary, nullptr } }, names );
+		}
+	}
+
+	CConditions Build() const
+	{
+		vector<CMap::const_iterator> order( conditions.size(), conditions.cend() );
+		for( CMap::const_iterator i = conditions.cbegin(); i != conditions.cend(); ++i ) {
+			debug_check_logic( order[i->second] == conditions.cend() );
+			order[i->second] = i;
+		}
+
+		vector<CCondition> result;
+		for( const CMap::const_iterator condition : order ) {
+			debug_check_logic( condition != conditions.end() );
+			const CKey& key = condition->first;
+			if( key.Dictionary.empty() ) {
+				result.emplace_back( key.Strong, key.Words );
+			} else {
+				result.emplace_back( key.Dictionary, key.Words );
+			}
+		}
+
+		return CConditions( move( result ) );
+	}
+
+private:
+	void addAgreementsOverlappedError( const CExtendedNames& names1,
+		const CExtendedNames& names2 ) const
+	{
+		vector<CTokenPtr> tokens;
+		for( const CExtendedName& name : names1 ) {
+			tokens.push_back( name.first );
+			tokens.push_back( name.second );
+			tokens.push_back( nullptr );
+		}
+		for( const CExtendedName& name : names2 ) {
+			tokens.push_back( name.first );
+			tokens.push_back( name.second );
+			tokens.push_back( nullptr );
+		}
+		Context.AddComplexError( tokens, "agreements overlapped" );
+	}
+
+	struct CKey {
+		bool Strong;
+		string Dictionary;
+		CExtendedNames Names;
+		CPatternArguments Words;
+
+		CKey( const bool strong,
+				const CExtendedName& name1, const CPatternArgument& word1,
+				const CExtendedName& name2, const CPatternArgument& word2 ) :
+			Strong( strong )
+		{
+			debug_check_logic( word1.Type != PAT_None );
+			debug_check_logic( word2.Type != PAT_None );
+			if( ComparatorLess{}( word1, word2 ) ) {
+				Names = { name1, name2 };
+				Words = { word1, word2 };
+			} else {
+				Names = { name2, name1 };
+				Words = { word2, word1 };
+			}
+		}
+
+		CKey( const string& dictionary, const CExtendedNames& names,
+				CPatternArguments&& words ) :
+			Strong( false ),
+			Dictionary( dictionary ),
+			Names( names ),
+			Words( move( words ) )
+		{
+			debug_check_logic( !dictionary.empty() );
+			debug_check_logic( Names.size() == Words.size() );
+			debug_check_logic( !Words.empty() );
+		}
+
+		struct ComparatorLess {
+			bool operator()( const CPatternArgument& arg1,
+				const CPatternArgument& arg2 ) const
+			{
+				if( arg1.Type < arg2.Type ) {
+					return true;
+				} else if( arg1.Type > arg2.Type ) {
+					return false;
+				}
+
+				if( arg1.Reference < arg2.Reference ) {
+					return true;
+				} else if( arg1.Reference > arg2.Reference ) {
+					return false;
+				}
+
+				if( arg1.Element < arg2.Element ) {
+					return true;
+				} else if( arg1.Element > arg2.Element ) {
+					return false;
+				}
+
+				if( arg1.Sign < arg2.Sign ) {
+					return true;
+				} else if( arg1.Sign > arg2.Sign ) {
+					return false;
+				}
+
+				return true;
+			}
+		};
+
+		struct ComparatorIgnoreSign {
+			bool operator()( const CPatternArgument& arg1,
+				const CPatternArgument& arg2 ) const
+			{
+				if( arg1.Element != arg2.Element ) {
+					return false;
+				}
+				if( arg1.Type == PAT_ReferenceElement
+					|| arg1.Type == PAT_ReferenceElementSign )
+				{
+					if( arg2.Type == PAT_ReferenceElement
+						|| arg2.Type == PAT_ReferenceElementSign )
+					{
+						return ( arg1.Reference == arg2.Reference );
+					}
+					return false;
+				}
+				return true;
+			}
+		};
+
+		bool Include( const CKey& key ) const
+		{
+			if( !equal( Words.cbegin(), Words.cend(), key.Words.cbegin(),
+					ComparatorIgnoreSign{} ) )
+			{
+				return false;
+			}
+			if( Words[0].HasSign() ) {
+				if( key.Words[0].HasSign()
+					&& key.Words[0].Sign == Words[0].Sign )
+				{
+					return ( Strong || !key.Strong );
+				} else {
+					return false;
+				}
+			} else {
+				return ( Strong || !key.Strong );
+			}
+		}
+
+		struct Hasher {
+			size_t operator()( const CKey& key ) const
+			{
+				size_t hashVal = hash<string>{}( key.Dictionary );
+				for( const CPatternArgument& word : key.Words ) {
+					hashVal ^= ( word.Reference << 4 ) ^ ( word.Element << 16 );
+				}
+				return hashVal;
+			}
+		};
+		struct Comparator {
+			bool operator()( const CKey& key1, const CKey& key2 ) const
+			{
+				if( key1.Dictionary != key2.Dictionary ) {
+					return false;
+				}
+				CPatternArgument::Comparator comparator;
+				if( !key1.Dictionary.empty() ) {
+					return ( key1.Words.size() == key1.Words.size() )
+						&& equal( key1.Words.begin(), key1.Words.end(),
+							key2.Words.begin(), comparator );
+				}
+				debug_check_logic( key1.Words.size() == 2 );
+				debug_check_logic( key2.Words.size() == 2 );
+				return key1.Include( key2 ) || key2.Include( key1 );
+			}
+		};
+	};
+
+	typedef unordered_map<CKey, size_t, CKey::Hasher, CKey::Comparator> CMap;
+	CMap conditions;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+CAlternativeCondition::CAlternativeCondition( CExtendedNames&& _names ) :
+	names( _names )
+{
+	debug_check_logic( !names.empty() );
+}
+
+CAlternativeCondition::CAlternativeCondition( CTokenPtr _dictionary,
+		CExtendedNames&& _names ) :
+	dictionary( _dictionary ),
+	names( _names )
+{
+	debug_check_logic( static_cast<bool>( dictionary ) );
+	debug_check_logic( !names.empty() );
+}
+
+void CAlternativeCondition::checkAgreement(
+	CConditionsCheckContext& context ) const
+{
+	debug_check_logic( !static_cast<bool>( dictionary ) );
+
+	bool strong;
+	CPatternArguments words;
+	if( checkConsistency( context.Context, strong, words ) ) {
+		for( CPatternArguments::size_type i = 0; i < words.size(); i++ ) {
+			for( CPatternArguments::size_type j = i + 1; j < words.size(); j++ ) {
+				context.Add( names[i * 2], words[i], names[j * 2], words[j], strong );
+				if( !strong ) {
+					break;
+				}
+			}
+		}
+	}
+}
+
+bool CAlternativeCondition::checkConsistency( CPatternsBuilder& context,
+	bool& strong, CPatternArguments& words ) const
+{
+	debug_check_logic( !static_cast<bool>( dictionary ) );
+	debug_check_logic( names.size() % 2 == 1 );
+
+	words.emplace_back( context.CheckExtendedName( names[0] ) );
+	if( names.size() == 1 ) {
+		context.AddComplexError( { names[0].first, names[0].second },
+			"agreement condition can not contain only one word" );
+		return false;
+	}
+
+	strong = isDoubleEqualSign( names[1] );
+
+	bool defined = words.front().Defined();
+	bool wordConsistency = true;
+	bool equalConsistency = true;
+	for( CExtendedNames::size_type i = 2; i < names.size(); i++ ) {
+		if( i % 2 == 0 ) {
+			// word
+			context.ConditionElements.push_back( names[i].first );
+			words.emplace_back( context.CheckExtendedName( names[i] ) );
+			defined &= words.back().Defined();
+			if( words.front().Inconsistent( words.back() ) ) {
+				wordConsistency = false;
+			}
+		} else {
+			// = or ==
+			if( strong != isDoubleEqualSign( names[i] ) ) {
+				equalConsistency = false;
+			}
+		}
+	}
+
+	if( !wordConsistency || !equalConsistency ) {
+		vector<CTokenPtr> words;
+		vector<CTokenPtr> equals;
+
+		for( CExtendedNames::size_type i = 0; i < names.size(); i++ ) {
+			if( i % 2 == 0 ) {
+				// word
+				words.push_back( names[i].first );
+				words.push_back( names[i].second );
+				if( static_cast<bool>( words.back() ) ) {
+					words.push_back( nullptr );
+				}
+			} else {
+				// = or ==
+				equals.push_back( names[i].second );
+				equals.push_back( nullptr );
+			}
+		}
+
+		if( !equalConsistency ) {
+			context.AddComplexError( equals,
+				"inconsistent comparison in the condition" );
+		}
+
+		if( !wordConsistency ) {
+			context.AddComplexError( words,
+				"inconsistent attributes in the condition" );
+		}
+
+		return false;
+	}
+	return defined;
+}
+
+bool CAlternativeCondition::isDoubleEqualSign( const CExtendedName& name ) const
+{
+	debug_check_logic( !static_cast<bool>( name.first ) );
+	debug_check_logic( static_cast<bool>( name.second ) );
+	if( name.second->Type == TT_DoubleEqualSign ) {
+		return true;
+	} else {
+		debug_check_logic( name.second->Type == TT_EqualSign );
+		return false;
+	}
+}
+
+void CAlternativeCondition::checkDictionary(
+	CConditionsCheckContext& context ) const
+{
+	debug_check_logic( static_cast<bool>( dictionary ) );
+	// STUB:
+	context.Context.ErrorProcessor.AddError( CError( *dictionary,
+		"dictionary conditions are not implemented yet" ) );
+
+	// TODO: check dictionary name
+	// TODO: check number of arguments
+	for( const CExtendedName& name : names ) {
+		if( !static_cast<bool>( name.first ) ) {
+			debug_check_logic( static_cast<bool>( name.second ) );
+			continue;
+		}
+		debug_check_logic( !static_cast<bool>( name.second ) );
+		if( context.Context.IsPatternReference( name.first ) ) {
+			context.Context.ErrorProcessor.AddError( CError( *name.first,
+				"pattern is not allowed in dictionary conditions" ) );
+		} else {
+			context.Context.ConditionElements.push_back( name.first );
+			// TODO: add word
+		}
+	}
+	// TODO: add dicitionary Condition
+}
+
+void CAlternativeCondition::Check( CConditionsCheckContext& context ) const
+{
+	if( static_cast<bool>( dictionary ) ) {
+		checkDictionary( context );
+	} else {
+		checkAgreement( context );
+	}
+}
+
+void CAlternativeCondition::Print( ostream& out ) const
+{
+	if( static_cast<bool>( dictionary ) ) {
+		dictionary->Print( out );
+		out << "(";
+	}
+
+	bool first = true;
+	for( const CExtendedName& name : names ) {
+		if( static_cast<bool>( name.first ) ) {
+			if( first ) {
+				first = false;
+			} else {
+				out << " ";
+			}
+			name.first->Print( out );
+			if( static_cast<bool>( name.second ) ) {
+				out << ".";
+				name.second->Print( out );
+			}
+		} else {
+			debug_check_logic( static_cast<bool>( name.second ) );
+			name.second->Print( out );
+			first = true;
+		}
+	}
+
+	if( static_cast<bool>( dictionary ) ) {
+		out << ")";
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+CConditions CAlternativeConditions::Check( CPatternsBuilder& context ) const
+{
+	CConditionsCheckContext conditionsCheckContext( context );
+
+	for( const CAlternativeCondition& condition : *this ) {
+		condition.Check( conditionsCheckContext );
+	}
+
+	return conditionsCheckContext.Build();
+	//conditionsCheckContext.Check();
+	// TODO: create pattern condtions;
+}
+
+void CAlternativeConditions::Print( ostream& out ) const
+{
+	if( this->empty() ) {
+		return;
+	}
+
+	out << "<<";
+	bool first = true;
+	for( const CAlternativeCondition& condition : *this ) {
+		if( first ) {
+			first = false;
+		} else {
+			out << ",";
+		}
+		condition.Print( out );
+	}
+	out << ">>";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void CPatternsBuilder::Read( const char* filename )
 {
 	check_logic( !ErrorProcessor.HasAnyErrors() );
@@ -110,7 +581,7 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 		index += name.Index * main.Values.Size(); // correct element index
 		if( static_cast<bool>( extendedName.second ) ) {
 			CIndexedName subName;
-			CWordSigns::SizeType subIndex;
+			TSign subIndex;
 			const bool found = !subName.Parse( extendedName.second )
 				&& signs.Find( subName.Name, subIndex );
 
@@ -141,7 +612,7 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 					return arg;
 				}
 			} else {
-				CWordSigns::SizeType subIndex;
+				TSign subIndex;
 				if( signs.Find( subName.Name, subIndex )
 					&& signs[subIndex].Type != Configuration::WST_Main )
 				{
@@ -185,7 +656,7 @@ CPatternBasePtr CPatternsBuilder::BuildElement( const CTokenPtr& reference,
 	const CWordSign& main = Configuration().WordSigns().MainWordSign();
 
 	CIndexedName name( reference );
-	CWordSigns::SizeType index;
+	TSign index;
 	if( main.Values.Find( name.Name, index ) ) {
 		const TElement element = index + name.Index * main.Values.Size();
 		{
@@ -218,61 +689,6 @@ TReference CPatternsBuilder::GetReference( const CTokenPtr& reference ) const
 {
 	const CIndexedName name( reference );
 	return PatternReference( name.Name, name.Index );
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-void CMatchingCondition::Check( CPatternsBuilder& context,
-	Pattern::CPatternConditions& conditions ) const
-{
-	debug_check_logic( Elements.size() >= 2 );
-	auto element = Elements.cbegin();
-	const CPatternArgument first = context.CheckExtendedName( *element );
-	CPatternArguments arguments( 1, first );
-	bool wellFormed = true;
-	for( ++element; element != Elements.cend(); ++element ) {
-		context.ConditionElements.push_back( element->first );
-		const CPatternArgument current = context.CheckExtendedName( *element );
-		if( wellFormed && first.Inconsistent( current ) ) {
-			wellFormed = false;
-		}
-		arguments.push_back( current );
-	}
-
-	if( wellFormed ) {
-		conditions.emplace_back( Strong, move( arguments ) );
-	} else {
-		vector<CTokenPtr> tokens;
-		for( const CExtendedName& extendedName : Elements ) {
-			tokens.push_back( extendedName.first );
-			tokens.push_back( extendedName.second );
-			tokens.push_back( nullptr );
-		}
-		context.AddComplexError( tokens, "inconsistent condition" );
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-void CDictionaryCondition::Check( CPatternsBuilder& context,
-	Pattern::CPatternConditions& /*conditions*/ ) const
-{
-	// STUB:
-	context.ErrorProcessor.AddError( CError( *DictionaryName,
-		"dictionary conditions are not implemented yet" ) );
-
-	// TODO: check dictionary name
-	// TODO: check number of arguments
-	for( const auto& argument : Arguments ) {
-		for( const CTokenPtr& token : argument ) {
-			if( context.IsPatternReference( token ) ) {
-				context.ErrorProcessor.AddError( CError( *token,
-					"patterns is not allowed in dictionary conditions" ) );
-			}
-		}
-	}
-
-	// TODO: add dicitionary Condition
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -314,20 +730,15 @@ CPatternBasePtr CElementsNode::Check( CPatternsBuilder& context ) const
 void CAlternativeNode::Print( ostream& out ) const
 {
 	node->Print( out );
-	out << getConditions();
+	conditions.Print( out );
 }
 
 CPatternBasePtr CAlternativeNode::Check( CPatternsBuilder& context ) const
 {
 	CPatternBasePtr element = node->Check( context );
-
-	CPatternConditions patternConditions;
-	for( const unique_ptr<CAlternativeCondition>& condition : conditions ) {
-		condition->Check( context, patternConditions );
-	}
-
-	return CPatternBasePtr(
-		new CPatternAlternative( move( element ), move( patternConditions ) ) );
+	CConditions patternConditions = conditions.Check( context );
+	return CPatternBasePtr( new CPatternAlternative( move( element ),
+		move( patternConditions ) ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -545,7 +956,7 @@ CPatternArgument CPatternDefinition::Argument( const size_t argIndex,
 			if( static_cast<bool>( extendedName.second ) ) {
 				CIndexedName subName;
 
-				CWordSigns::SizeType subIndex;
+				TSign subIndex;
 				if( !subName.Parse( extendedName.second ) // name without index
 					&& signs.Find( subName.Name, subIndex ) // sign existst
 					&& signs[subIndex].Type != Configuration::WST_Main ) // sign isn't main
@@ -658,7 +1069,7 @@ void CPatternParser::addError( const string& text )
 bool CPatternParser::readExtendedName( CExtendedName& name )
 {
 	if( !tokens.CheckType( TT_Identifier ) ) {
-		addError( "word class or pattern name expected" );
+		addError( "word or pattern expected" );
 		return false;
 	}
 
@@ -667,7 +1078,7 @@ bool CPatternParser::readExtendedName( CExtendedName& name )
 
 	if( tokens.MatchType( TT_Dot ) ) {
 		if( !tokens.CheckType( TT_Identifier ) ) {
-			addError( "word class attribute name expected" );
+			addError( "word attribute expected" );
 			return false;
 		}
 
@@ -685,7 +1096,7 @@ bool CPatternParser::readPatternName( CPatternDefinition& patternDef )
 	debug_check_logic( !static_cast<bool>( patternDef.Name ) );
 
 	if( !tokens.CheckType( TT_Identifier ) ) {
-		addError( "pattern name expected" );
+		addError( "pattern expected" );
 		return false;
 	}
 
@@ -759,7 +1170,7 @@ bool CPatternParser::readElementCondition( CElementCondition& elementCondition )
 			elementCondition.Values.push_back( tokens.TokenPtr() );
 			tokens.Next();
 		} else {
-			addError( "regular expression or word class attribute value expected" );
+			addError( "word attribute value expected" );
 			return false;
 		}
 	} while( tokens.MatchType( TT_VerticalBar ) );
@@ -907,83 +1318,72 @@ bool CPatternParser::readElements( unique_ptr<CBasePatternNode>& out )
 	return true;
 }
 
-bool CPatternParser::readMatchingCondition( CMatchingCondition& condition )
+bool CPatternParser::readMatchingCondition( CExtendedNames& names )
 {
-	condition.Elements.emplace_back();
-	if( !readExtendedName( condition.Elements.back() ) ) {
-		return false;
-	}
-
-	condition.Strong = tokens.MatchType( TT_DoubleEqualSign );
-	if( !condition.Strong && !tokens.MatchType( TT_EqualSign ) ) {
-		addError( "equal sign `=` or double equal `==` sign expected" );
-		return false;
-	}
-
 	do {
-		condition.Elements.emplace_back();
-		if( !readExtendedName( condition.Elements.back() ) ) {
+		names.emplace_back();
+		if( !readExtendedName( names.back() ) ) {
 			return false;
 		}
 
-		if( tokens.CheckType( TT_EqualSign ) ) {
-			if( condition.Strong ) {
-				addError( "inconsistent equal sign `=` and double equal `==` sign" );
-			}
-		} else if( tokens.CheckType( TT_DoubleEqualSign ) ) {
-			if( !condition.Strong ) {
-				addError( "inconsistent equal sign `=` and double equal `==` sign" );
-			}
-		}
-	} while( tokens.MatchType( TT_EqualSign ) || tokens.MatchType( TT_DoubleEqualSign ) );
+		names.emplace_back();
+	} while( tokens.MatchType( TT_EqualSign, names.back().second )
+		|| tokens.MatchType( TT_DoubleEqualSign, names.back().second ) );
 
+	names.pop_back(); // remove last empty extended name
 	return true;
 }
 
 // reads TT_Identifier `(` TT_Identifier { TT_Identifier } { `,` TT_Identifier { TT_Identifier } } `)`
-bool CPatternParser::readDictionaryCondition( CDictionaryCondition& condition )
+bool CPatternParser::readDictionaryCondition( CTokenPtr& dictionary, CExtendedNames& names )
 {
-	if( !tokens.MatchType( TT_Identifier, condition.DictionaryName ) ) {
+	if( !tokens.MatchType( TT_Identifier, dictionary ) ) {
 		addError( "dictionary name expected" );
 		return false;
 	}
+
 	if( !tokens.MatchType( TT_OpeningParenthesis ) ) {
 		addError( "opening parenthesis `(` expected" );
 		return false;
 	}
-	do {
-		condition.Arguments.emplace_back();
-		while( tokens.CheckType( TT_Identifier ) ) {
-			condition.Arguments.back().push_back( tokens.TokenPtr() );
+
+	while( tokens.CheckType( TT_Identifier ) ) {
+		names.emplace_back( tokens.TokenPtr(), nullptr );
+		tokens.Next();
+		if( tokens.CheckType( TT_Comma ) ) {
+			names.emplace_back( nullptr, tokens.TokenPtr() );
 			tokens.Next();
 		}
-		if( condition.Arguments.back().empty() ) {
-			addError( "at least one pattern element expected" );
-			return false;
-		}
-	} while( tokens.MatchType( TT_Comma ) );
+	}
+
+	if( names.empty() || !static_cast<bool>( names.back().first ) ) {
+		addError( "at least one word expected" );
+		return false;
+	}
 
 	if( !tokens.MatchType( TT_ClosingParenthesis ) ) {
 		addError( "closing parenthesis `)` expected" );
 		return false;
 	}
+
 	return true;
 }
 
 bool CPatternParser::readAlternativeCondition( CAlternativeConditions& conditions )
 {
 	if( tokens.CheckType( TT_OpeningParenthesis, 1 /* offset */ ) ) {
-		unique_ptr<CDictionaryCondition> condition( new CDictionaryCondition );
-		if( !readDictionaryCondition( *condition ) ) {
+		CTokenPtr dictionary;
+		CExtendedNames names;
+		if( !readDictionaryCondition( dictionary, names ) ) {
 			return false;
 		}
-		conditions.emplace_back( condition.release() );
+		conditions.emplace_back( dictionary, move( names ) );
 	} else {
-		unique_ptr<CMatchingCondition> condition( new CMatchingCondition );
-		if( !readMatchingCondition( *condition ) ) {
+		CExtendedNames names;
+		if( !readMatchingCondition( names ) ) {
 			return false;
 		}
-		conditions.emplace_back( condition.release() );
+		conditions.emplace_back( move( names ) );
 	}
 	return true;
 }
@@ -1019,14 +1419,17 @@ bool CPatternParser::readAlternative( unique_ptr<CAlternativeNode>& alternative 
 	} while( tokens.MatchType( TT_Tilde ) );
 	check_logic( !transposition->empty() );
 
-	if( transposition->size() == 1 ) {
-		alternative.reset( new CAlternativeNode( move( transposition->front() ) ) );
-	} else {
-		alternative.reset( new CAlternativeNode( move( transposition ) ) );
+	CAlternativeConditions conditions;
+	if( !readAlternativeConditions( conditions ) ) {
+		return false;
 	}
 
-	if( !readAlternativeConditions( alternative->Conditions() ) ) {
-		return false;
+	if( transposition->size() == 1 ) {
+		alternative.reset( new CAlternativeNode(
+			move( transposition->front() ), move( conditions ) ) );
+	} else {
+		alternative.reset( new CAlternativeNode(
+			move( transposition ), move( conditions ) ) );
 	}
 
 	return true;
