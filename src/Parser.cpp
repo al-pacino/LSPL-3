@@ -575,9 +575,9 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 
 	const CIndexedName name( extendedName.first );
 	size_t index = 0;
-	const bool patternReference = !main.Values.Find( name.Name, index );
+	const bool element = main.Values.Find( name.Name, index );
 
-	if( !patternReference ) {
+	if( element ) {
 		index += name.Index * main.Values.Size(); // correct element index
 		if( static_cast<bool>( extendedName.second ) ) {
 			CIndexedName subName;
@@ -605,7 +605,7 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 			const CIndexedName subName( extendedName.second );
 			CPatternArgument arg
 				= PatternDefs[pi->second]->Argument( subName.Index, *this );
-
+			arg.Reference += name.Index * PatternDefs.size(); // correct reference
 			if( main.Values.Find( subName.Name, index ) ) {
 				index += subName.Index * main.Values.Size(); // correct element index
 				if( arg.Type == PAT_ReferenceElement && arg.Element == index ) {
