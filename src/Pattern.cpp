@@ -6,6 +6,17 @@
 using namespace Lspl::Configuration;
 using Lspl::Parser::CIndexedName;
 
+template<class Type, class SourceType>
+inline const Type Cast( const SourceType sourceValue )
+{
+	// only numeric types are allowed
+	static_assert( Type() * 2 == SourceType() * 2, "bad cast" ); 
+	const Type value = static_cast<Type>( sourceValue );
+	debug_check_logic( static_cast<SourceType>( value ) == sourceValue );
+	debug_check_logic( ( value >= 0 ) == ( sourceValue >= 0 ) );
+	return value;
+}
+
 namespace Lspl {
 namespace Pattern {
 
@@ -241,81 +252,89 @@ void CCondition::Print( const CPatterns& context, ostream& out ) const
 CConditions::CConditions( vector<CCondition>&& conditions ) :
 	data( move( conditions ) )
 {
-	for( TConditionIndex i = 0; i < data.size(); i++ ) {
+	for( TValue i = 0; i < data.size(); i++ ) {
 		const CPatternArguments& arguments = data[i].Arguments();
-		for( CPatternArguments::size_type j = 0; j < arguments.size(); j++ ) {
+		for( TValue j = 0; j < arguments.size(); j++ ) {
 			CPatternArgument argument = arguments[j];
 			if( argument.Defined() ) {
 				argument.RemoveSign();
-				indices.insert( make_pair( argument, CIndexPair{ i, j } ) );
+				indices.insert( make_pair( argument, make_pair( i, j ) ) );
 			}
 		}
 	}
 }
 
-void CConditions::Apply( CPatternVariant& variant ) const
+bool CConditions::buildLinks( CPatternVariant& variant, CLinks& links ) const
 {
 	debug_check_logic( !variant.empty() );
+	debug_check_logic( links.empty() );
 
-	typedef array<size_t, 3> CDescription;
-	set<CDescription> descriptions;
-	for( CPatternVariant::size_type wi = 0; wi < variant.size(); wi++ ) {
-		if( variant[wi].Id.Defined() ) {
-			auto range = indices.equal_range( variant[wi].Id );
-			for( auto ci = range.first; ci != range.second; ++ci ) {
-				const CIndexPair index = ci->second;
-				const CCondition& condition = data[index.first];
-				CDescription description{ index.first, wi, index.second };
-				if( !condition.Dictionary().empty() ) {
-					swap( description[1], description[2] );
-				}
-				auto pair = descriptions.insert( description );
+	for( TValue wi = 0; wi < variant.size(); wi++ ) {
+		if( !variant[wi].Id.Defined() ) {
+			continue;
+		}
+
+		auto range = indices.equal_range( variant[wi].Id );
+		for( auto ci = range.first; ci != range.second; ++ci ) {
+			const pair<TValue, TValue> ciai = ci->second;
+			if( data[ciai.first].Agreement() ) {
+				auto pair = links.insert( { ciai.first, wi, ciai.second } );
+				debug_check_logic( pair.second );
+			} else {
+				auto pair = links.insert( { ciai.first, ciai.second, wi }  );
 				debug_check_logic( pair.second );
 			}
 		}
 	}
 
-	if( descriptions.empty() ) {
+	return !links.empty();
+}
+
+void CConditions::Apply( CPatternVariant& variant ) const
+{
+	CLinks links;
+	if( !buildLinks( variant, links ) ) {
+		// no conditions
 		return;
 	}
 
-	auto i = descriptions.cbegin();
-	while( i != descriptions.cend() ) {
+	auto i = links.cbegin();
+	while( i != links.cend() ) {
 		const CCondition& condition = data[( *i )[0]];
 		if( condition.Agreement() ) {
 			const TSign sign = condition.Arguments().front().Sign;
 			if( condition.Strong() ) {
 				debug_check_logic( ( *i )[2] <= 1 );
 				auto j = i;
-				while( ++j != descriptions.cend() && ( *j )[0] == ( *i )[0] ) {
+				while( ++j != links.cend() && ( *j )[0] == ( *i )[0] ) {
 					debug_check_logic( ( *j )[2] <= 1 );
-					const CDescription& di = *i;
-					const CDescription& dj = *j;
+					const CLinks::value_type& di = *i;
+					const CLinks::value_type& dj = *j;
 					variant[dj[1]].Conditions.emplace_back( dj[1] - di[1], sign );
 					i++;
 				}
 				i = j;
 			} else if( condition.SelfAgreement() ) {
 				debug_check_logic( ( *i )[2] == 0 );
-				vector<uint8_t> words;
+				vector<TValue> words;
 				words.push_back( ( *i )[1] );
 				auto j = i;
-				while( ++j != descriptions.cend() && ( *j )[0] == ( *i )[0] ) {
+				while( ++j != links.cend() && ( *j )[0] == ( *i )[0] ) {
 					debug_check_logic( ( *j )[2] == 0 );
-					const uint8_t offset = ( *j )[1];
+					const TValue offset = ( *j )[1];
 					variant[offset].Conditions.emplace_back( offset, words, sign );
 					words.push_back( offset );
 				}
 				i = j;
 			} else {
 				debug_check_logic( ( *i )[2] <= 1 );
-				array<vector<uint8_t>, 2> words;
+				array<vector<TValue>, 2> words;
 				words[( *i )[2]].push_back( ( *i )[1] );
 				auto j = i;
-				while( ++j != descriptions.cend() && ( *j )[0] == ( *i )[0] ) {
+				while( ++j != links.cend() && ( *j )[0] == ( *i )[0] ) {
 					debug_check_logic( ( *j )[2] <= 1 );
-					const uint8_t offset = ( *j )[1];
-					const uint8_t another = ( *j )[2] == 0 ? 1 : 0;
+					const TValue offset = ( *j )[1];
+					const TValue another = ( *j )[2] == 0 ? 1 : 0;
 					if( !words[another].empty() ) {
 						variant[offset].Conditions.emplace_back( offset,
 							words[another], sign );
@@ -325,7 +344,24 @@ void CConditions::Apply( CPatternVariant& variant ) const
 				i = j;
 			}
 		} else {
-			// TODO: dictionary
+			const TSign sign = 99;
+			TValue maxOffset = ( *i )[2];
+			vector<TValue> words;
+			words.push_back( maxOffset );
+			auto j = i;
+			while( ++j != links.cend() && ( *j )[0] == ( *i )[0] ) {
+				if( ( *j )[1] - ( *i )[1] > 1 ) {
+					words.push_back( CPatternWordCondition::Max );
+				}
+				const TValue offset = ( *j )[2];
+				words.push_back( offset );
+				maxOffset = max( offset, maxOffset );
+				i++;
+			}
+			i = j;
+
+			// TODO: check condition
+			variant[maxOffset].Conditions.emplace_back( maxOffset, words, sign );
 		}
 	}
 }
@@ -914,27 +950,31 @@ const CPattern& CPatterns::ResolveReference( const TReference reference ) const
 ///////////////////////////////////////////////////////////////////////////////
 
 
-CPatternWordCondition::CPatternWordCondition( const uint8_t offset, const TSign param ) :
+CPatternWordCondition::CPatternWordCondition( const TValue offset, const TSign param ) :
 	Size( 1 ),
 	Strong( true ),
 	Param( param ),
-	Offsets( new uint8_t[Size] )
+	Offsets( new TValue[Size] )
 {
 	Offsets[0] = offset;
 }
 
-CPatternWordCondition::CPatternWordCondition( const uint8_t offset,
-		const vector<uint8_t>& words, const TSign param ) :
-	Size( words.size() ),
+CPatternWordCondition::CPatternWordCondition( const TValue offset,
+		const vector<TValue>& words, const TSign param ) :
+	Size( Cast<TValue>( words.size() ) ),
 	Strong( false ),
 	Param( param ),
-	Offsets( new uint8_t[Size] )
+	Offsets( new TValue[Size] )
 {
 	debug_check_logic( !words.empty() );
 	debug_check_logic( words.size() < Max );
-	for( uint8_t i = 0; i < Size; i++ ) {
-		debug_check_logic( words[i] < offset );
-		Offsets[i] = offset - words[i];
+	for( TValue i = 0; i < Size; i++ ) {
+		if( words[i] < Max ) {
+			debug_check_logic( words[i] <= offset );
+			Offsets[i] = offset - words[i];
+		} else {
+			Offsets[i] = Max;
+		}
 	}
 }
 
@@ -950,8 +990,8 @@ CPatternWordCondition& CPatternWordCondition::operator=(
 	Size = another.Size;
 	Strong = another.Strong;
 	Param = another.Param;
-	Offsets = new uint8_t[Size];
-	memcpy( Offsets, another.Offsets, Size * sizeof( uint8_t ) );
+	Offsets = new TValue[Size];
+	memcpy( Offsets, another.Offsets, Size * sizeof( TValue ) );
 	return *this;
 }
 
@@ -981,7 +1021,7 @@ void CPatternWordCondition::Print( ostream& out ) const
 	out << Param
 		<< ( Strong ? "==" : "=" )
 		<< static_cast<uint32_t>( Offsets[0] );
-	for( uint8_t i = 1; i < Size; i++ ) {
+	for( TValue i = 1; i < Size; i++ ) {
 		out << "," << static_cast<uint32_t>( Offsets[i] );
 	}
 }

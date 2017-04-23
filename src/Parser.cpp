@@ -383,15 +383,18 @@ void CAlternativeCondition::checkDictionary(
 	CConditionsCheckContext& context ) const
 {
 	debug_check_logic( static_cast<bool>( dictionary ) );
+	debug_check_logic( !dictionary->Text.empty() );
 	// STUB:
 	context.Context.ErrorProcessor.AddError( CError( *dictionary,
 		"dictionary conditions are not implemented yet" ) );
 
 	// TODO: check dictionary name
 	// TODO: check number of arguments
+	CPatternArguments words;
 	for( const CExtendedName& name : names ) {
 		if( !static_cast<bool>( name.first ) ) {
 			debug_check_logic( static_cast<bool>( name.second ) );
+			words.emplace_back();
 			continue;
 		}
 		debug_check_logic( !static_cast<bool>( name.second ) );
@@ -400,10 +403,14 @@ void CAlternativeCondition::checkDictionary(
 				"pattern is not allowed in dictionary conditions" ) );
 		} else {
 			context.Context.ConditionElements.push_back( name.first );
-			// TODO: add word
+			words.push_back( context.Context.CheckExtendedName( name ) );
+			debug_check_logic( words.back().Type == PAT_Element );
 		}
 	}
-	// TODO: add dicitionary Condition
+
+	if( words.size() == names.size() ) {
+		context.Add( dictionary, names, move( words ) );
+	}
 }
 
 void CAlternativeCondition::Check( CConditionsCheckContext& context ) const
@@ -452,14 +459,10 @@ void CAlternativeCondition::Print( ostream& out ) const
 CConditions CAlternativeConditions::Check( CPatternsBuilder& context ) const
 {
 	CConditionsCheckContext conditionsCheckContext( context );
-
 	for( const CAlternativeCondition& condition : *this ) {
 		condition.Check( conditionsCheckContext );
 	}
-
 	return conditionsCheckContext.Build();
-	//conditionsCheckContext.Check();
-	// TODO: create pattern condtions;
 }
 
 void CAlternativeConditions::Print( ostream& out ) const
