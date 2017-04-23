@@ -36,13 +36,13 @@
     <ClInclude Include="src\TranspositionSupport.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\PatternMatcher.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Text.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\OrderedList.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PatternMatch.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
@@ -74,10 +74,10 @@
     <ClCompile Include="src\TranspositionSupport.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\PatternMatcher.cpp">
+    <ClCompile Include="src\Text.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Text.cpp">
+    <ClCompile Include="src\PatternMatch.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

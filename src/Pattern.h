@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Configuration.h>
-#include <PatternMatcher.h>
+#include <PatternMatch.h>
 
 namespace Lspl {
 namespace Pattern {

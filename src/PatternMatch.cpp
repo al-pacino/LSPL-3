@@ -1,7 +1,7 @@
 #pragma once
 
 #include <common.h>
-#include <PatternMatcher.h>
+#include <PatternMatch.h>
 
 using namespace Lspl::Text;
 
