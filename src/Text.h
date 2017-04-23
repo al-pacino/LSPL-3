@@ -238,21 +238,16 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CText : public CWords {
+class CText {
 public:
-	CText() :
-		argreements( static_cast<CWords&>( *this ) )
-	{
-	}
+	explicit CText( CWords&& words );
 
-	bool HasWord( const TWordIndex wordIndex ) const
-	{
-		return ( wordIndex < size() );
-	}
-
+	const CWord& Word( const TWordIndex index ) const;
+	const TWordIndex End() const { return words.size(); }
 	const CArgreements& Argreements() const { return argreements; }
 
 private:
+	CWords words;
 	CArgreements argreements;
 };
 

@@ -122,5 +122,19 @@ const CAgreement& CArgreements::Agreement( const CKey& key, const bool strong ) 
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CText::CText( CWords&& _words ) :
+	words( move( _words ) ),
+	argreements( words )
+{
+}
+
+const CWord& CText::Word( const TWordIndex index ) const
+{
+	debug_check_logic( index < words.size() );
+	return words[index];
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // end of Text namespace
 } // end of Lspl namespace

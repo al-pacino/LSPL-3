@@ -75,6 +75,15 @@ struct CTransition {
 	TStateIndex NextState;
 	RegexEx WordOrAttributesRegex;
 
+	CTransition( const bool word, const TStateIndex nextState,
+			RegexEx&& wordOrAttributesRegex ) :
+		Word( word ),
+		NextState( nextState ),
+		WordOrAttributesRegex( wordOrAttributesRegex )
+	{
+		debug_check_logic( NextState != 0 );
+	}
+
 	bool Match( const Text::CWord& word,
 		/* out */ Text::CAnnotationIndices& indices ) const;
 };

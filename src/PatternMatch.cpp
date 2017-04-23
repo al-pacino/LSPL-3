@@ -184,14 +184,14 @@ void CMatchContext::match( const TStateIndex stateIndex )
 	wordIndex--; // dirty hack
 	if( !state.Actions.Run( *this ) // conditions are not met
 		|| transitions.empty() // leaf
-		|| !text.HasWord( ++wordIndex ) ) // end of text
+		|| !( ++wordIndex < Text().End() ) ) // end of text
 	{
 		return;
 	}
 
 	for( const CTransition& transition : transitions ) {
 		data.emplace_back();
-		if( transition.Match( text[wordIndex], data.back() ) ) {
+		if( transition.Match( Text().Word( wordIndex ), data.back() ) ) {
 			wordIndex++;
 			match( transition.NextState );
 			wordIndex--;
@@ -257,7 +257,7 @@ bool CDictionaryAction::Run( const CMatchContext& context ) const
 		} else {
 			debug_check_logic( offset <= context.Shift() );
 			const TWordIndex word = context.Word() - offset;
-			words.back() += context.Text()[word].text + " ";
+			words.back() += context.Text().Word( word ).text + " ";
 		}
 	}
 	debug_check_logic( !words.back().empty() );
