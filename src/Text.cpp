@@ -79,6 +79,7 @@ CArgreements::CArgreements( const CWords& text ) :
 const CAgreement& CArgreements::Agreement( const CKey& key, const bool strong ) const
 {
 	debug_check_logic( key.first.first < key.first.second );
+	debug_check_logic( key.first.second < words.size() );
 	auto pair = cache.insert( make_pair( key, CAgreementPair() ) );
 	CAgreementPair& agreementsPair = pair.first->second;
 	if( pair.second ) {

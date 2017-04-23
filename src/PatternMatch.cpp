@@ -212,26 +212,26 @@ bool CAgreementAction::Run( const CMatchContext& context ) const
 {
 	const CDataEditor& editor = context.DataEditor();
 	const CArgreements& agreements = context.Text().Argreements();
-	const TWordIndex firstIndex = context.Shift();
-	const CAnnotationIndices& firstIndices = editor.Value( firstIndex );
+	const TWordIndex index2 = context.Shift();
+	const CAnnotationIndices& indices2 = editor.Value( index2 );
 	
-	CArgreements::CKey key{ { context.Word(), 0 }, condition.Param };
+	CArgreements::CKey key{ { 0, context.Word() }, condition.Param };
 	for( CPatternWordCondition::TValue i = 0; i < condition.Size; i++ ) {
 		const CPatternWordCondition::TValue offset = condition.Offsets[i];
-		debug_check_logic( offset < firstIndex );
-		const TWordIndex secondIndex = firstIndex - offset;
-		const CAnnotationIndices& secondIndices = editor.Value( secondIndex );
-		key.first.second = context.Word() - offset;
-		CAgreement agreement = agreements.Agreement( key, condition.Strong );
-		agreement.first = CAnnotationIndices::Intersection( agreement.first, firstIndices );
-		agreement.second = CAnnotationIndices::Intersection( agreement.second, firstIndices );
+		debug_check_logic( offset < index2 );
+		const TWordIndex index1 = index2 - offset;
+		const CAnnotationIndices& indices1 = editor.Value( index1 );
+		key.first.first = context.Word() - offset;
+		CAgreement agr = agreements.Agreement( key, condition.Strong );
+		agr.first = CAnnotationIndices::Intersection( agr.first, indices1 );
+		agr.second = CAnnotationIndices::Intersection( agr.second, indices2 );
 
-		if( agreement.first.IsEmpty() || agreement.second.IsEmpty() ) {
+		if( agr.first.IsEmpty() || agr.second.IsEmpty() ) {
 			return false;
 		}
 
-		editor.Set( firstIndex, move( agreement.first ) );
-		editor.Set( secondIndex, move( agreement.second ) );
+		editor.Set( index1, move( agr.first ) );
+		editor.Set( index2, move( agr.second ) );
 	}
 	return true;
 }
