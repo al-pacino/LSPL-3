@@ -282,5 +282,26 @@ bool CDictionaryAction::Run( const CMatchContext& context ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CPrintAction::CPrintAction( ostream& _out ) :
+	out( _out )
+{
+}
+
+bool CPrintAction::Run( const CMatchContext& context ) const
+{
+	const TWordIndex begin = context.InitialWord();
+	const TWordIndex end = context.Word();
+
+	out << "{";
+	for( TWordIndex wi = begin; wi < end; wi++ ) {
+		out << context.Text().Word( wi ).text << " ";
+	}
+	out << context.Text().Word( end ).text << "}" << endl;
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // end of Pattern namespace
 } // end of Lspl namespace

@@ -171,5 +171,17 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
+class CPrintAction : public IAction {
+public:
+	explicit CPrintAction( ostream& out );
+	~CPrintAction() override {}
+	bool Run( const CMatchContext& context ) const override;
+
+private:
+	ostream& out;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
 } // end of Pattern namespace
 } // end of Lspl namespace
