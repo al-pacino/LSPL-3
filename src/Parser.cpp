@@ -679,15 +679,6 @@ CPatternBasePtr CPatternsBuilder::BuildElement( const CTokenPtr& reference,
 	}
 }
 
-CSignValues::ValueType CPatternsBuilder::StringIndex( const string& str )
-{
-	auto pair = StringIndices.insert( make_pair( str, Strings.size() ) );
-	if( pair.second ) {
-		Strings.push_back( str );
-	}
-	return pair.first->second;
-}
-
 TReference CPatternsBuilder::GetReference( const CTokenPtr& reference ) const
 {
 	const CIndexedName name( reference );

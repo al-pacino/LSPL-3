@@ -234,6 +234,7 @@ public:
 	void Intersection( const CSignRestriction& signRestriction );
 	// returns true if there are no words matching restriction
 	bool IsEmpty( const CPatterns& context ) const;
+	StringEx Build() const;
 	void Print( const CPatterns& context, ostream& out ) const;
 
 private:
@@ -254,6 +255,7 @@ public:
 		const TElement element );
 	// returns true if all sign restrictions are empty
 	bool IsEmpty( const CPatterns& context ) const;
+	StringEx Build( const Configuration::CConfiguration& configuration ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 
 private:
@@ -345,19 +347,34 @@ public:
 	TReference PatternReference( const string& name,
 		const TReference nameIndex = 0 ) const;
 	const CPattern& ResolveReference( const TReference reference ) const;
+	CSignValues::ValueType StringIndex( const string& str ) const;
 
 protected:
 	vector<CPattern> Patterns;
 	typedef vector<CPattern>::size_type TPatternIndex;
 	unordered_map<string, TPatternIndex> Names;
 
-	vector<string> Strings;
-	unordered_map<string, CSignValues::ValueType> StringIndices;
+	mutable vector<string> Strings;
+	mutable unordered_map<string, CSignValues::ValueType> StringIndices;
 
 	explicit CPatterns( Configuration::CConfigurationPtr configuration );
 
 private:
 	const Configuration::CConfigurationPtr configuration;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+struct CStatesBuildContext {
+	const CPatterns& Patterns;
+	CStates States;
+	vector<pair<string, TStateIndex>> LastVariant;
+
+	explicit CStatesBuildContext( const CPatterns& patterns ) :
+		Patterns( patterns )
+	{
+		States.emplace_back();
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -368,21 +385,11 @@ struct CPatternWord {
 	CSignRestrictions SignRestrictions;
 	list<CPatternWordCondition> Conditions;
 
-	explicit CPatternWord( const string* const regexp ) :
-		Regexp( regexp )
-	{
-		debug_check_logic( Regexp != nullptr );
-	}
-
+	explicit CPatternWord( const string* const regexp );
 	CPatternWord( const CPatternArgument id,
-			const CSignRestrictions& signRestrictions ) :
-		Id( id ),
-		Regexp( nullptr ),
-		SignRestrictions( signRestrictions )
-	{
-		debug_check_logic( Id.Type == PAT_Element );
-	}
+		const CSignRestrictions& signRestrictions );
 
+	void Build( CStatesBuildContext& context ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 };
 
@@ -396,6 +403,7 @@ public:
 		return *this;
 	}
 
+	void Build( CStatesBuildContext& context ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 };
 
@@ -404,6 +412,7 @@ public:
 class CPatternVariants : public vector<CPatternVariant> {
 public:
 	void SortAndRemoveDuplicates( const CPatterns& context );
+	CStates Build( const CPatterns& context ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 };
 

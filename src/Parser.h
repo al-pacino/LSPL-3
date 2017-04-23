@@ -323,7 +323,6 @@ public:
 	bool IsPatternReference( const CTokenPtr& reference ) const;
 	Pattern::CPatternBasePtr BuildElement( const CTokenPtr& reference,
 		Pattern::CSignRestrictions&& signRestrictions ) const;
-	Pattern::CSignValues::ValueType StringIndex( const string& str );
 	Pattern::TReference GetReference( const CTokenPtr& reference ) const;
 
 ////////

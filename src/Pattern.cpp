@@ -193,7 +193,6 @@ CCondition::CCondition( const bool _strong,
 	if( CPatternArgument::Comparator{}( arguments[0], arguments[1] ) ) {
 		arguments.pop_back();
 	}
-	
 }
 
 CCondition::CCondition( const string& _dictionary,
@@ -590,6 +589,20 @@ bool CSignRestriction::IsEmpty( const CPatterns& context ) const
 	}
 }
 
+StringEx CSignRestriction::Build() const
+{
+	StringEx result;
+	result += CharEx( '[' );
+	if( exclude ) {
+		result += CharEx( '^' );
+	}
+	for( CSignValues::SizeType i = 0; i < values.Size(); i++ ) {
+		result += Cast<CharEx>( values.Value( i ) + Text::BeginAttributeValue );
+	}
+	result += CharEx( ']' );
+	return result;
+}
+
 void CSignRestriction::Print( const CPatterns& context, ostream& out ) const
 {
 	out << context.SignName( sign );
@@ -672,6 +685,26 @@ bool CSignRestrictions::IsEmpty( const CPatterns& context ) const
 		}
 	}
 	return false;
+}
+
+StringEx CSignRestrictions::Build( const CConfiguration& configuration ) const
+{
+	StringEx result;
+	for( TSign i = 0, j = 0; i < configuration.WordSigns().Size(); i++ ) {
+		if( j < data.size() ) {
+			const CSignRestriction& signRestriction = data[j];
+			if( i < signRestriction.Sign() ) {
+				result += CharEx( '.' );
+			} else {
+				debug_check_logic( i == signRestriction.Sign() );
+				result += signRestriction.Build();
+				j++;
+			}
+		} else {
+			result += CharEx( '.' );
+		}
+	}
+	return result;
 }
 
 void CSignRestrictions::Print( const CPatterns& context, ostream& out ) const
@@ -936,7 +969,59 @@ const CPattern& CPatterns::ResolveReference( const TReference reference ) const
 	return Patterns[reference % Patterns.size()];
 }
 
+CSignValues::ValueType CPatterns::StringIndex( const string& str ) const
+{
+	auto pair = StringIndices.insert( make_pair( str, Strings.size() ) );
+	if( pair.second ) {
+		Strings.push_back( str );
+	}
+	return pair.first->second;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
+
+CPatternWord::CPatternWord( const string* const regexp ) :
+	Regexp( regexp )
+{
+	debug_check_logic( Regexp != nullptr );
+}
+
+CPatternWord::CPatternWord( const CPatternArgument id,
+		const CSignRestrictions& signRestrictions ) :
+	Id( id ),
+	Regexp( nullptr ),
+	SignRestrictions( signRestrictions )
+{
+	debug_check_logic( Id.Type == PAT_Element );
+}
+
+void CPatternWord::Build( CStatesBuildContext& context ) const
+{
+	const TStateIndex state = context.LastVariant.empty()
+		? 0 : context.LastVariant.back().second;
+
+	const TStateIndex nextStateIndex = context.States.size();
+	context.States.emplace_back();
+	for( const CPatternWordCondition& condition : Conditions ) {
+		// TODO: build
+		context.States.back().Actions.Add(
+			shared_ptr<IAction>( new CAgreementAction( condition ) ) );
+	}
+
+	StringEx regexp;
+	if( Regexp != nullptr ) {
+		regexp = ToStringEx( *Regexp );
+	} else {
+		regexp = SignRestrictions.Build( context.Patterns.Configuration() );
+	}
+
+	context.States[state].Transitions.emplace_back(
+		( Regexp != nullptr ), nextStateIndex, RegexEx( regexp ) );
+
+	ostringstream oss;
+	Print( context.Patterns, oss );
+	context.LastVariant.push_back( make_pair( oss.str(), nextStateIndex ) );
+}
 
 void CPatternWord::Print( const CPatterns& context, ostream& out ) const
 {
@@ -963,6 +1048,31 @@ void CPatternWord::Print( const CPatterns& context, ostream& out ) const
 			out << ">>";
 		}
 	}
+}
+
+void CPatternVariant::Build( CStatesBuildContext& context ) const
+{
+	auto i = this->cbegin();
+	auto j = context.LastVariant.begin();
+
+	while( i != this->cend() && j != context.LastVariant.end() ) {
+		ostringstream oss;
+		i->Print( context.Patterns, oss );
+		if( j->first != oss.str() ) {
+			break;
+		}
+		++i;
+		++j;
+	}
+	debug_check_logic( i != this->cend() );
+	context.LastVariant.erase( j, context.LastVariant.cend() );
+
+	for( ; i != this->cend(); ++i ) {
+		i->Build( context );
+	}
+
+	context.States[context.LastVariant.back().second].Actions.Add(
+		shared_ptr<IAction>( new CPrintAction( cout ) ) );
 }
 
 void CPatternVariant::Print( const CPatterns& context, ostream& out ) const
@@ -1016,6 +1126,17 @@ void CPatternVariants::SortAndRemoveDuplicates( const CPatterns& context )
 	for( CPair& pair : pairs ) {
 		this->emplace_back( move( pair.second ) );
 	}
+}
+
+CStates CPatternVariants::Build( const CPatterns& context ) const
+{
+	CStatesBuildContext statesBuildContext( context );
+
+	for( const CPatternVariant& variant : *this ) {
+		variant.Build( statesBuildContext );
+	}
+
+	return statesBuildContext.States;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
