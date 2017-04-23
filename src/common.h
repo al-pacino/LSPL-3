@@ -12,6 +12,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <codecvt>
 #include <fstream>
 #include <sstream>
 #include <iostream>
