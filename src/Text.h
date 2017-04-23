@@ -177,15 +177,23 @@ typedef StringEx CAttributes;
 typedef CAttributes::size_type TAttributeIndex;
 
 const TAttributeIndex MainAttribute = 0;
+const CharEx AnyAttributeValue = static_cast<CharEx>( 128 );
 
-struct CAnnotation {
-	static const CharEx ConformAny = static_cast<CharEx>( 128 );
-
-	CAttributes Attributes;
+class CAnnotation {
+public:
+	explicit CAnnotation( CAttributes&& attributes );
 
 	bool Match( const RegexEx& attributesRegex ) const;
 	TAgreementPower Agreement( const CAnnotation& annotation,
 		const TAttributeIndex attribute = MainAttribute ) const;
+
+	// sets interval for agreement as [index, attributes.size()]
+	static void SetArgreementBegin( const TAttributeIndex index );
+
+private:
+	CAttributes attributes;
+
+	static TAttributeIndex agreementBegin;
 };
 
 typedef vector<CAnnotation> CAnnotations;

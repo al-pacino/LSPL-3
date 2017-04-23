@@ -8,29 +8,36 @@ namespace Text {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CAnnotation::CAnnotation( CAttributes&& _attributes ) :
+	attributes( _attributes )
+{
+	debug_check_logic( !attributes.empty() );
+}
+
 bool CAnnotation::Match( const RegexEx& attributesRegex ) const
 {
 	MatchResultsEx match;
-	return regex_match( Attributes, match, attributesRegex );
+	return regex_match( attributes, match, attributesRegex );
 }
 
 TAgreementPower CAnnotation::Agreement( const CAnnotation& annotation,
 	const TAttributeIndex attribute ) const
 {
-	debug_check_logic( Attributes.length() == annotation.Attributes.length() );
-	// TODO: checks
+	debug_check_logic( MainAttribute < agreementBegin );
+	debug_check_logic( attributes.length() == annotation.attributes.length() );
+	debug_check_logic( attribute == MainAttribute || agreementBegin <= attribute );
 
 	const TAttributeIndex begin =
-		( attribute != MainAttribute ? attribute : 1 );
+		( attribute != MainAttribute ? attribute : agreementBegin );
 	const TAttributeIndex end =
-		( attribute != MainAttribute ? attribute : Attributes.length() );
+		( attribute != MainAttribute ? attribute : attributes.length() );
 
 	TAgreementPower power = AP_Strong;
 	for( TAttributeIndex i = begin; i < end; i++ ) {
-		const CharEx c1 = Attributes[i];
-		const CharEx c2 = annotation.Attributes[i];
+		const CharEx c1 = attributes[i];
+		const CharEx c2 = annotation.attributes[i];
 		if( c1 != c2 ) {
-			if( c1 == ConformAny || c2 == ConformAny ) {
+			if( c1 == AnyAttributeValue || c2 == AnyAttributeValue ) {
 				power = AP_Weak;
 			} else {
 				return AP_None;
@@ -38,6 +45,13 @@ TAgreementPower CAnnotation::Agreement( const CAnnotation& annotation,
 		}
 	}
 	return power;
+}
+
+TAttributeIndex CAnnotation::agreementBegin = MainAttribute;
+
+void CAnnotation::SetArgreementBegin( const TAttributeIndex index )
+{
+	agreementBegin = index;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
