@@ -254,8 +254,10 @@ CConditions::CConditions( vector<CCondition>&& conditions ) :
 
 bool CConditions::buildLinks( CPatternVariant& variant, CLinks& links ) const
 {
-	debug_check_logic( !variant.empty() );
 	debug_check_logic( links.empty() );
+	if( variant.empty() ) {
+		return false;
+	}
 
 	for( TValue wi = 0; wi < variant.size(); wi++ ) {
 		if( !variant[wi].Id.Defined() ) {
@@ -862,6 +864,10 @@ void CPattern::Build( CPatternBuildContext& context,
 	root->Build( context, variants, correctMaxSize );
 	const size_t topMaxSize = context.PopMaxSize( name );
 	debug_check_logic( topMaxSize == correctMaxSize );
+
+	if( !variants.empty() && variants.front().empty() ) {
+		variants.erase( variants.begin() );
+	}
 
 	// correct ids
 	const COrderedStrings::SizeType mainSize = context.Patterns()
