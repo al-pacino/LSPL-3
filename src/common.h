@@ -1,7 +1,9 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include <list>
+#include <array>
 #include <regex>
 #include <stack>
 #include <tuple>

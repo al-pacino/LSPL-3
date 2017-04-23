@@ -39,6 +39,17 @@ bool CPatternArgument::HasSign() const
 	return ( Type == PAT_ElementSign || Type == PAT_ReferenceElementSign );
 }
 
+void CPatternArgument::RemoveSign()
+{
+	if( Type == PAT_ElementSign ) {
+		Type = PAT_Element;
+		Sign = 0;
+	} else if( Type == PAT_ReferenceElementSign ) {
+		Type = PAT_ReferenceElement;
+		Sign = 0;
+	}
+}
+
 bool CPatternArgument::HasReference() const
 {
 	return ( Type == PAT_ReferenceElement || Type == PAT_ReferenceElementSign );
@@ -179,6 +190,10 @@ CCondition::CCondition( const bool _strong,
 {
 	debug_check_logic( arguments.size() == 2 );
 	debug_check_logic( arguments[0].HasSign() == arguments[1].HasSign() );
+	if( CPatternArgument::Comparator{}( arguments[0], arguments[1] ) ) {
+		arguments.pop_back();
+	}
+	
 }
 
 CCondition::CCondition( const string& _dictionary,
@@ -189,20 +204,18 @@ CCondition::CCondition( const string& _dictionary,
 {
 	debug_check_logic( !dictionary.empty() );
 	debug_check_logic( !arguments.empty() );
+	for( const CPatternArgument& argument : arguments ) {
+		debug_check_logic( argument.Type == PAT_None
+			|| argument.Type == PAT_Element );
+	}
 }
 
 void CCondition::Print( const CPatterns& context, ostream& out ) const
 {
-	if( dictionary.empty() ) {
-		bool first = true;
-		for( const CPatternArgument& arg : arguments ) {
-			if( first ) {
-				first = false;
-			} else {
-				out << ( strong ? "==" : "=" );
-			}
-			arg.Print( context, out );
-		}
+	if( Agreement() ) {
+		arguments[0].Print( context, out );
+		out << ( Strong() ? "==" : "=" );
+		arguments[SelfAgreement() ? 0 : 1].Print( context, out );
 	} else {
 		out << dictionary << "(";
 		bool first = true;
@@ -228,16 +241,91 @@ void CCondition::Print( const CPatterns& context, ostream& out ) const
 CConditions::CConditions( vector<CCondition>&& conditions ) :
 	data( move( conditions ) )
 {
-	for( TIndex i = 0; i < data.size(); i++ ) {
-		for( const CPatternArgument& word : data[i].Arguments() ) {
-			if( !word.HasSign() ) {
-				indices.insert( make_pair( word, i ) );
-			} else {
-				CPatternArgument tmp = word;
-				tmp.Type = word.Type == PAT_ElementSign ?
-					PAT_Element : PAT_ReferenceElement;
-				indices.insert( make_pair( tmp, i ) );
+	for( TConditionIndex i = 0; i < data.size(); i++ ) {
+		const CPatternArguments& arguments = data[i].Arguments();
+		for( CPatternArguments::size_type j = 0; j < arguments.size(); j++ ) {
+			CPatternArgument argument = arguments[j];
+			if( argument.Defined() ) {
+				argument.RemoveSign();
+				indices.insert( make_pair( argument, CIndexPair{ i, j } ) );
 			}
+		}
+	}
+}
+
+void CConditions::Apply( CPatternVariant& variant ) const
+{
+	debug_check_logic( !variant.empty() );
+
+	typedef array<size_t, 3> CDescription;
+	set<CDescription> descriptions;
+	for( CPatternVariant::size_type wi = 0; wi < variant.size(); wi++ ) {
+		if( variant[wi].Id.Defined() ) {
+			auto range = indices.equal_range( variant[wi].Id );
+			for( auto ci = range.first; ci != range.second; ++ci ) {
+				const CIndexPair index = ci->second;
+				const CCondition& condition = data[index.first];
+				CDescription description{ index.first, wi, index.second };
+				if( !condition.Dictionary().empty() ) {
+					swap( description[1], description[2] );
+				}
+				auto pair = descriptions.insert( description );
+				debug_check_logic( pair.second );
+			}
+		}
+	}
+
+	if( descriptions.empty() ) {
+		return;
+	}
+
+	auto i = descriptions.cbegin();
+	while( i != descriptions.cend() ) {
+		const CCondition& condition = data[( *i )[0]];
+		if( condition.Agreement() ) {
+			const TSign sign = condition.Arguments().front().Sign;
+			if( condition.Strong() ) {
+				debug_check_logic( ( *i )[2] <= 1 );
+				auto j = i;
+				while( ++j != descriptions.cend() && ( *j )[0] == ( *i )[0] ) {
+					debug_check_logic( ( *j )[2] <= 1 );
+					const CDescription& di = *i;
+					const CDescription& dj = *j;
+					variant[dj[1]].Conditions.emplace_back( dj[1] - di[1], sign );
+					i++;
+				}
+				i = j;
+			} else if( condition.SelfAgreement() ) {
+				debug_check_logic( ( *i )[2] == 0 );
+				vector<uint8_t> words;
+				words.push_back( ( *i )[1] );
+				auto j = i;
+				while( ++j != descriptions.cend() && ( *j )[0] == ( *i )[0] ) {
+					debug_check_logic( ( *j )[2] == 0 );
+					const uint8_t offset = ( *j )[1];
+					variant[offset].Conditions.emplace_back( offset, words, sign );
+					words.push_back( offset );
+				}
+				i = j;
+			} else {
+				debug_check_logic( ( *i )[2] <= 1 );
+				array<vector<uint8_t>, 2> words;
+				words[( *i )[2]].push_back( ( *i )[1] );
+				auto j = i;
+				while( ++j != descriptions.cend() && ( *j )[0] == ( *i )[0] ) {
+					debug_check_logic( ( *j )[2] <= 1 );
+					const uint8_t offset = ( *j )[1];
+					const uint8_t another = ( *j )[2] == 0 ? 1 : 0;
+					if( !words[another].empty() ) {
+						variant[offset].Conditions.emplace_back( offset,
+							words[another], sign );
+					}
+					words[( *j )[2]].push_back( offset );
+				}
+				i = j;
+			}
+		} else {
+			// TODO: dictionary
 		}
 	}
 }
@@ -286,12 +374,9 @@ void CPatternAlternative::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
 	element->Build( context, variants, maxSize );
-#pragma message( "not implemented!" )
-	// TODO: not implemented
-	/*for( CPatternVariant& variant : variants ) {
-		debug_check_logic( !variant.empty() );
-		variant.back().Conditions = conditions;
-	}*/
+	for( CPatternVariant& variant : variants ) {
+		conditions.Apply( variant );
+	}
 	variants.SortAndRemoveDuplicates( context.Patterns() );
 }
 
@@ -759,7 +844,7 @@ void CPatterns::Print( ostream& out ) const
 		pattern.Print( *this, out );
 		CPatternBuildContext buildContext( *this );
 		CPatternVariants variants;
-		pattern.Build( buildContext, variants, 5 );
+		pattern.Build( buildContext, variants, 7 );
 		variants.Print( *this, out );
 		out << endl;
 	}
@@ -828,6 +913,81 @@ const CPattern& CPatterns::ResolveReference( const TReference reference ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+
+CPatternWordCondition::CPatternWordCondition( const uint8_t offset, const TSign param ) :
+	Size( 1 ),
+	Strong( true ),
+	Param( param ),
+	Offsets( new uint8_t[Size] )
+{
+	Offsets[0] = offset;
+}
+
+CPatternWordCondition::CPatternWordCondition( const uint8_t offset,
+		const vector<uint8_t>& words, const TSign param ) :
+	Size( words.size() ),
+	Strong( false ),
+	Param( param ),
+	Offsets( new uint8_t[Size] )
+{
+	debug_check_logic( !words.empty() );
+	debug_check_logic( words.size() < Max );
+	for( uint8_t i = 0; i < Size; i++ ) {
+		debug_check_logic( words[i] < offset );
+		Offsets[i] = offset - words[i];
+	}
+}
+
+CPatternWordCondition::CPatternWordCondition(
+	const CPatternWordCondition& another )
+{
+	*this = another;
+}
+
+CPatternWordCondition& CPatternWordCondition::operator=(
+	const CPatternWordCondition& another )
+{
+	Size = another.Size;
+	Strong = another.Strong;
+	Param = another.Param;
+	Offsets = new uint8_t[Size];
+	memcpy( Offsets, another.Offsets, Size * sizeof( uint8_t ) );
+	return *this;
+}
+
+CPatternWordCondition::CPatternWordCondition( CPatternWordCondition&& another )
+{
+	*this = move( another );
+}
+
+CPatternWordCondition& CPatternWordCondition::operator=(
+	CPatternWordCondition&& another )
+{
+	Size = another.Size;
+	Strong = another.Strong;
+	Param = another.Param;
+	Offsets = another.Offsets;
+	another.Offsets = nullptr;
+	return *this;
+}
+
+CPatternWordCondition::~CPatternWordCondition()
+{
+	delete[] Offsets;
+}
+
+void CPatternWordCondition::Print( ostream& out ) const
+{
+	out << Param
+		<< ( Strong ? "==" : "=" )
+		<< static_cast<uint32_t>( Offsets[0] );
+	for( uint8_t i = 1; i < Size; i++ ) {
+		out << "," << static_cast<uint32_t>( Offsets[i] );
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void CPatternWord::Print( const CPatterns& context, ostream& out ) const
 {
 	if( Regexp != nullptr ) {
@@ -838,6 +998,20 @@ void CPatternWord::Print( const CPatterns& context, ostream& out ) const
 			Id.Print( context, out );
 		}
 		SignRestrictions.Print( context, out );
+
+		if( !Conditions.empty() ) {
+			out << "<<";
+			bool first = true;
+			for( const CPatternWordCondition& condition : Conditions ) {
+				if( first ) {
+					first = false;
+				} else {
+					out << "|";
+				}
+				condition.Print( out );
+			}
+			out << ">>";
+		}
 	}
 }
 

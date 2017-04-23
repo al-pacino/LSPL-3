@@ -42,6 +42,7 @@ struct CPatternArgument {
 
 	bool Defined() const;
 	bool HasSign() const;
+	void RemoveSign();
 	bool HasReference() const;
 	bool Inconsistent( const CPatternArgument& arg ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
@@ -105,27 +106,35 @@ class CCondition {
 public:
 	CCondition( const bool strong, const CPatternArguments& arguments );
 	CCondition( const string& dictionary, const CPatternArguments& arguments );
+	bool Agreement() const { return dictionary.empty(); }
+	bool SelfAgreement() const { return Agreement() && arguments.size() == 1; }
+	bool Strong() const { return strong; }
+	const string& Dictionary() const { return dictionary; }
 	const CPatternArguments& Arguments() const { return arguments; }
 	void Print( const CPatterns& context, ostream& out ) const;
 
 private:
-	const bool strong;
-	const string dictionary;
-	const CPatternArguments arguments;
+	bool strong;
+	string dictionary;
+	CPatternArguments arguments;
 };
 
 class CConditions {
 public:
 	explicit CConditions( vector<CCondition>&& conditions );
-
+	void Apply( CPatternVariant& variant ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 
 private:
 	vector<CCondition> data;
-	typedef vector<CCondition>::size_type TIndex;
-	unordered_multimap<CPatternArgument, TIndex,
+	typedef vector<CCondition>::size_type TConditionIndex;
+	typedef CPatternArguments::size_type TArgumentIndex;
+	typedef pair<TConditionIndex, TArgumentIndex> CIndexPair;
+	typedef unordered_multimap<
+		CPatternArgument, CIndexPair,
 		CPatternArgument::Hasher,
-		CPatternArgument::Comparator> indices;
+		CPatternArgument::Comparator> CIndices;
+	CIndices indices;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -348,10 +357,33 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
+struct CPatternWordCondition {
+	static const uint8_t Max = numeric_limits<uint8_t>::max();
+
+	CPatternWordCondition( const uint8_t offset, const TSign param );
+	CPatternWordCondition( const uint8_t offset,
+		const vector<uint8_t>& words, const TSign param );
+	CPatternWordCondition( const CPatternWordCondition& another );
+	CPatternWordCondition& operator=( const CPatternWordCondition& another );
+	CPatternWordCondition( CPatternWordCondition&& another );
+	CPatternWordCondition& operator=( CPatternWordCondition&& another );
+	~CPatternWordCondition();
+
+	void Print( ostream& out ) const;
+
+	uint8_t Size;
+	bool Strong;
+	TSign Param;
+	uint8_t* Offsets;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
 struct CPatternWord {
 	CPatternArgument Id;
 	const string* Regexp;
 	CSignRestrictions SignRestrictions;
+	list<CPatternWordCondition> Conditions;
 
 	explicit CPatternWord( const string* const regexp ) :
 		Regexp( regexp )
