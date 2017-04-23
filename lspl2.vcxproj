@@ -162,6 +162,7 @@
     <ClInclude Include="src\Configuration.h" />
     <ClInclude Include="src\ErrorProcessor.h" />
     <ClInclude Include="src\Parser.h" />
+    <ClInclude Include="src\PatternMatcher.h" />
     <ClInclude Include="src\PatternsFileProcessor.h" />
     <ClInclude Include="src\Pattern.h" />
     <ClInclude Include="src\SharedFileLine.h" />
@@ -175,6 +176,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Matcher.cpp" />
     <ClCompile Include="src\Parser.cpp" />
+    <ClCompile Include="src\PatternMatcher.cpp" />
     <ClCompile Include="src\PatternsFileProcessor.cpp" />
     <ClCompile Include="src\Pattern.cpp" />
     <ClCompile Include="src\Tokenizer.cpp" />

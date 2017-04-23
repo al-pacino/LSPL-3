@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Configuration.h>
+#include <PatternMatcher.h>
 
 namespace Lspl {
 namespace Pattern {
@@ -16,7 +17,9 @@ class CPatternBuildContext;
 
 typedef size_t TElement;
 typedef size_t TReference;
-typedef Configuration::CWordSigns::SizeType TSign;
+
+static_assert( sizeof( TSign )
+	== sizeof( Configuration::CWordSigns::SizeType ), "must be the same" );
 
 // Sample( A7, N7.c, Sub.Pa, SubSub.c ) = A7 N7 Sub SubSub
 // Sub( Pa5 ) = Pa5
@@ -57,29 +60,6 @@ struct CPatternArgument {
 };
 
 typedef vector<CPatternArgument> CPatternArguments;
-
-///////////////////////////////////////////////////////////////////////////////
-
-struct CPatternWordCondition {
-	typedef uint8_t TValue;
-	static const TValue Max = numeric_limits<TValue>::max();
-
-	CPatternWordCondition( const TValue offset, const TSign param );
-	CPatternWordCondition( const TValue offset,
-		const vector<TValue>& words, const TSign param );
-	CPatternWordCondition( const CPatternWordCondition& another );
-	CPatternWordCondition& operator=( const CPatternWordCondition& another );
-	CPatternWordCondition( CPatternWordCondition&& another );
-	CPatternWordCondition& operator=( CPatternWordCondition&& another );
-	~CPatternWordCondition();
-
-	void Print( ostream& out ) const;
-
-	TValue Size;
-	bool Strong;
-	TSign Param;
-	TValue* Offsets;
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -36,6 +36,9 @@
     <ClInclude Include="src\TranspositionSupport.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\PatternMatcher.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -66,6 +69,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\TranspositionSupport.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PatternMatcher.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

@@ -6,17 +6,6 @@
 using namespace Lspl::Configuration;
 using Lspl::Parser::CIndexedName;
 
-template<class Type, class SourceType>
-inline const Type Cast( const SourceType sourceValue )
-{
-	// only numeric types are allowed
-	static_assert( Type() * 2 == SourceType() * 2, "bad cast" ); 
-	const Type value = static_cast<Type>( sourceValue );
-	debug_check_logic( static_cast<SourceType>( value ) == sourceValue );
-	debug_check_logic( ( value >= 0 ) == ( sourceValue >= 0 ) );
-	return value;
-}
-
 namespace Lspl {
 namespace Pattern {
 
@@ -945,85 +934,6 @@ TReference CPatterns::PatternReference( const string& name,
 const CPattern& CPatterns::ResolveReference( const TReference reference ) const
 {
 	return Patterns[reference % Patterns.size()];
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-
-CPatternWordCondition::CPatternWordCondition( const TValue offset, const TSign param ) :
-	Size( 1 ),
-	Strong( true ),
-	Param( param ),
-	Offsets( new TValue[Size] )
-{
-	Offsets[0] = offset;
-}
-
-CPatternWordCondition::CPatternWordCondition( const TValue offset,
-		const vector<TValue>& words, const TSign param ) :
-	Size( Cast<TValue>( words.size() ) ),
-	Strong( false ),
-	Param( param ),
-	Offsets( new TValue[Size] )
-{
-	debug_check_logic( !words.empty() );
-	debug_check_logic( words.size() < Max );
-	for( TValue i = 0; i < Size; i++ ) {
-		if( words[i] < Max ) {
-			debug_check_logic( words[i] <= offset );
-			Offsets[i] = offset - words[i];
-		} else {
-			Offsets[i] = Max;
-		}
-	}
-}
-
-CPatternWordCondition::CPatternWordCondition(
-	const CPatternWordCondition& another )
-{
-	*this = another;
-}
-
-CPatternWordCondition& CPatternWordCondition::operator=(
-	const CPatternWordCondition& another )
-{
-	Size = another.Size;
-	Strong = another.Strong;
-	Param = another.Param;
-	Offsets = new TValue[Size];
-	memcpy( Offsets, another.Offsets, Size * sizeof( TValue ) );
-	return *this;
-}
-
-CPatternWordCondition::CPatternWordCondition( CPatternWordCondition&& another )
-{
-	*this = move( another );
-}
-
-CPatternWordCondition& CPatternWordCondition::operator=(
-	CPatternWordCondition&& another )
-{
-	Size = another.Size;
-	Strong = another.Strong;
-	Param = another.Param;
-	Offsets = another.Offsets;
-	another.Offsets = nullptr;
-	return *this;
-}
-
-CPatternWordCondition::~CPatternWordCondition()
-{
-	delete[] Offsets;
-}
-
-void CPatternWordCondition::Print( ostream& out ) const
-{
-	out << Param
-		<< ( Strong ? "==" : "=" )
-		<< static_cast<uint32_t>( Offsets[0] );
-	for( TValue i = 1; i < Size; i++ ) {
-		out << "," << static_cast<uint32_t>( Offsets[i] );
-	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
