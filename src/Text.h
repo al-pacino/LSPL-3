@@ -239,6 +239,9 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 class CText {
+	CText( const CText& ) = delete;
+	CText& operator=( const CText& ) = delete;
+
 public:
 	explicit CText( CWords&& words );
 
