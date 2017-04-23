@@ -893,14 +893,14 @@ string CPatterns::Reference( const TReference reference ) const
 	return refName.Normalize();
 }
 
-string CPatterns::SignName( const CSignRestriction::TSign sign ) const
+string CPatterns::SignName( const TSign sign ) const
 {
 	const CWordSigns& signs = Configuration().WordSigns();
 	debug_check_logic( sign < signs.Size() );
 	return signs[sign].Names.Value( 0 );
 }
 
-string CPatterns::SignValue( const CSignRestriction::TSign signIndex,
+string CPatterns::SignValue( const TSign signIndex,
 	const CSignValues::ValueType value ) const
 {
 	const CWordSigns& signs = Configuration().WordSigns();

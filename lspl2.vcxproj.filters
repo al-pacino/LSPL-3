@@ -39,6 +39,12 @@
     <ClInclude Include="src\PatternMatcher.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Text.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OrderedList.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -62,9 +68,6 @@
     <ClCompile Include="src\Configuration.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Matcher.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Pattern.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -72,6 +75,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\PatternMatcher.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Text.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

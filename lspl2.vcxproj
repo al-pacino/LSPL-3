@@ -161,11 +161,13 @@
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\Configuration.h" />
     <ClInclude Include="src\ErrorProcessor.h" />
+    <ClInclude Include="src\OrderedList.h" />
     <ClInclude Include="src\Parser.h" />
     <ClInclude Include="src\PatternMatcher.h" />
     <ClInclude Include="src\PatternsFileProcessor.h" />
     <ClInclude Include="src\Pattern.h" />
     <ClInclude Include="src\SharedFileLine.h" />
+    <ClInclude Include="src\Text.h" />
     <ClInclude Include="src\Tokenizer.h" />
     <ClInclude Include="src\Tools.h" />
     <ClInclude Include="src\TranspositionSupport.h" />
@@ -174,11 +176,11 @@
     <ClCompile Include="src\Configuration.cpp" />
     <ClCompile Include="src\ErrorProcessor.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Matcher.cpp" />
     <ClCompile Include="src\Parser.cpp" />
     <ClCompile Include="src\PatternMatcher.cpp" />
     <ClCompile Include="src\PatternsFileProcessor.cpp" />
     <ClCompile Include="src\Pattern.cpp" />
+    <ClCompile Include="src\Text.cpp" />
     <ClCompile Include="src\Tokenizer.cpp" />
     <ClCompile Include="src\Tools.cpp" />
     <ClCompile Include="src\TranspositionSupport.cpp" />

@@ -221,12 +221,10 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef Configuration::COrderedList<size_t> CSignValues;
+typedef COrderedList<Configuration::COrderedStrings::SizeType> CSignValues;
 
 class CSignRestriction {
 public:
-	typedef size_t TSign;
-
 	CSignRestriction( const TElement element, const TSign sign,
 		CSignValues&& values, const bool exclude = false );
 
@@ -340,8 +338,8 @@ public:
 	void Print( ostream& out ) const;
 	string Element( const TElement element ) const;
 	string Reference( const TReference reference ) const;
-	string SignName( const CSignRestriction::TSign sign ) const;
-	string SignValue( const CSignRestriction::TSign sign,
+	string SignName( const TSign sign ) const;
+	string SignValue( const TSign sign,
 		const CSignValues::ValueType value ) const;
 	string String( const CSignValues::ValueType index ) const;
 	TReference PatternReference( const string& name,
