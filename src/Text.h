@@ -3,149 +3,6 @@
 #include <OrderedList.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-// basic_regex for CharEx
-
-#pragma region
-
-typedef uint32_t CharEx;
-
-namespace std {
-	template<>
-	class regex_traits<CharEx> : public _Regex_traits_base {
-	public:
-		typedef CharEx _Uelem;
-		typedef regex_traits<CharEx> _Myt;
-		typedef CharEx char_type;
-		typedef basic_string<CharEx> string_type;
-		typedef locale locale_type;
-		typedef typename string_type::size_type size_type;
-
-		static size_type length( const CharEx* str )
-		{
-			return string_type( str ).length();
-		}
-		regex_traits()
-		{
-		}
-		regex_traits( const regex_traits& _Right )
-		{
-		}
-		regex_traits& operator=( const regex_traits& _Right )
-		{
-			return ( *this );
-		}
-		CharEx translate( CharEx c ) const
-		{
-			return c;
-		}
-		CharEx translate_nocase( CharEx c ) const
-		{
-			return c;
-		}
-		template<class Iter>
-		string_type transform( Iter first, Iter last ) const
-		{
-			return string_type( first, last );
-		}
-		template<class Iter>
-		string_type transform_primary( Iter first, Iter last ) const
-		{
-			return string_type( first, last );
-		}
-		template<class Iter>
-		string_type lookup_collatename( Iter first, Iter last ) const
-		{
-			return string_type( first, last );
-		}
-		template<class Iter>
-		char_class_type lookup_classname( Iter /*first*/, Iter /*last*/,
-			bool /*case = false*/ ) const
-		{
-			return 0;
-		}
-		bool isctype( CharEx /*c*/, char_class_type /*type*/ ) const
-		{
-			return false;
-		}
-		int value( CharEx /*c*/, int /*base*/ ) const
-		{
-			throw logic_error( "regex_traits<CharEx>::value" );
-			return -1;
-		}
-		locale_type imbue( locale_type /*newLocale*/ )
-		{
-			return locale();
-		}
-		locale_type getloc() const
-		{
-			return locale();
-		}
-	};
-}
-
-class StringEx : public basic_string<CharEx> {
-public:
-	StringEx()
-	{
-	}
-	StringEx( const string& str )
-	{
-		AppendString( str );
-	}
-	StringEx( const basic_string<CharEx>& str ) :
-		basic_string<CharEx>( str )
-	{
-	}
-	StringEx& operator=( const string& str )
-	{
-		clear();
-		AppendString( str );
-		return *this;
-	}
-	StringEx& operator=( const basic_string<CharEx>& str )
-	{
-		basic_string<CharEx>::operator=( str );
-		return *this;
-	}
-
-	void AppendString( const string& str )
-	{
-		reserve( length() + str.length() );
-		for( const char c : str ) {
-			push_back( static_cast<unsigned char>( c ) );
-		}
-	}
-
-	string ToString() const
-	{
-		string result;
-		result.reserve( length() );
-		for( const CharEx c : *this ) {
-			if( c < 128 ) {
-				result.push_back( c );
-			} else {
-				throw logic_error( "StringEx::ToString()" );
-			}
-		}
-		return result;
-	}
-};
-
-template<>
-struct hash<StringEx> {
-	typedef StringEx argument_type;
-	typedef size_t result_type;
-	result_type operator()( argument_type const& str ) const
-	{
-		return hash<basic_string<CharEx>>{}( str );
-	}
-};
-
-typedef basic_regex<CharEx> RegexEx;
-typedef match_results<StringEx::const_iterator> MatchResultsEx;
-#pragma endregion
-
-///////////////////////////////////////////////////////////////////////////////
 
 namespace std {
 	template<typename FIRST_TYPE, typename SECOND_TYPE>
@@ -159,6 +16,16 @@ namespace std {
 		}
 	};
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+typedef wstring StringEx;
+typedef StringEx::value_type CharEx;
+typedef basic_regex<CharEx> RegexEx;
+typedef match_results<StringEx::const_iterator> MatchResultsEx;
+
+StringEx ToStringEx( const string& str );
+string FromStringEx( const StringEx& str );
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -178,6 +45,7 @@ typedef CAttributes::size_type TAttributeIndex;
 
 const TAttributeIndex MainAttribute = 0;
 const CharEx AnyAttributeValue = static_cast<CharEx>( 128 );
+const CharEx BeginAttributeValue = static_cast<CharEx>( 129 );
 
 class CAnnotation {
 public:

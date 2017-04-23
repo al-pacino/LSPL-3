@@ -3,6 +3,20 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+StringEx ToStringEx( const string& str )
+{
+	wstring_convert<codecvt_utf8<CharEx>, CharEx> cvt;
+	return cvt.from_bytes( str );
+}
+
+string FromStringEx( const StringEx& str )
+{
+	wstring_convert<codecvt_utf8<CharEx>, CharEx> cvt;
+	return cvt.to_bytes( str );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 namespace Lspl {
 namespace Text {
 
