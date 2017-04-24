@@ -79,9 +79,7 @@ public:
 protected:
 	CWordSigns wordSigns;
 
-	CConfiguration()
-	{
-	}
+	CConfiguration() = default;
 };
 
 typedef shared_ptr<CConfiguration> CConfigurationPtr;
