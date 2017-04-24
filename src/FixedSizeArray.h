@@ -69,35 +69,6 @@ private:
 	ValueType* values;
 };
 
-#ifdef _DEBUG
-void TestFixedSizeArray()
-{
-	typedef CFixedSizeArray<int, int> CSimple;
-
-	CSimple empty;
-	CSimple fsa7( 7 );
-	CSimple fsa95( 95 );
-
-	for( int i = 0; i < 95; i++ ) {
-		fsa95[i] = i;
-	}
-	empty = fsa95;
-	for( int i = 0; i < 95; i++ ) {
-		debug_check_logic( fsa95[i] == i );
-		debug_check_logic( empty[i] == i );
-	}
-
-	for( int i = 0; i < 7; i++ ) {
-		fsa7[i] = 2 * i;
-	}
-	empty = move( fsa7 );
-	debug_check_logic( fsa7.Size() == 0 );
-	for( int i = 0; i < 7; i++ ) {
-		debug_check_logic( empty[i] == 2 * i );
-	}
-}
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////
 
 } // end of Lspl namespace
