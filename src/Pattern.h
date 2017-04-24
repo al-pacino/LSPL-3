@@ -346,7 +346,7 @@ public:
 	TReference PatternReference( const string& name,
 		const TReference nameIndex = 0 ) const;
 	const CPattern& ResolveReference( const TReference reference ) const;
-	CSignValues::ValueType StringIndex( const string& str ) const;
+	Text::TAttributeValue StringIndex( const string& str ) const;
 
 protected:
 	vector<CPattern> Patterns;
@@ -354,7 +354,7 @@ protected:
 	unordered_map<string, TPatternIndex> Names;
 
 	mutable vector<string> Strings;
-	mutable unordered_map<string, CSignValues::ValueType> StringIndices;
+	mutable unordered_map<string, TAttributeValue> StringIndices;
 
 	explicit CPatterns( Configuration::CConfigurationPtr configuration );
 

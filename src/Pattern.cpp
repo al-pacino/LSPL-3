@@ -964,9 +964,10 @@ const CPattern& CPatterns::ResolveReference( const TReference reference ) const
 	return Patterns[reference % Patterns.size()];
 }
 
-CSignValues::ValueType CPatterns::StringIndex( const string& str ) const
+TAttributeValue CPatterns::StringIndex( const string& str ) const
 {
-	auto pair = StringIndices.insert( make_pair( str, Strings.size() ) );
+	auto pair = StringIndices.insert( make_pair( str,
+		Cast<TAttributeValue>( Strings.size() ) ) );
 	if( pair.second ) {
 		Strings.push_back( str );
 	}
