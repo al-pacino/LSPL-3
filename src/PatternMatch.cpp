@@ -10,25 +10,24 @@ namespace Pattern {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CPatternWordCondition::CPatternWordCondition( const TValue offset, const TSign param ) :
-	Size( 1 ),
+CPatternWordCondition::CPatternWordCondition( const TValue offset,
+		const TParam param ) :
 	Strong( true ),
 	Param( param ),
-	Offsets( new TValue[Size] )
+	Offsets( 1 )
 {
 	Offsets[0] = offset;
 }
 
 CPatternWordCondition::CPatternWordCondition( const TValue offset,
-		const vector<TValue>& words, const TSign param ) :
-	Size( Cast<TValue>( words.size() ) ),
+		const vector<TValue>& words, const TParam param ) :
 	Strong( false ),
 	Param( param ),
-	Offsets( new TValue[Size] )
+	Offsets( Cast<TValue>( words.size() ) )
 {
 	debug_check_logic( !words.empty() );
 	debug_check_logic( words.size() < Max );
-	for( TValue i = 0; i < Size; i++ ) {
+	for( TValue i = 0; i < Offsets.Size(); i++ ) {
 		if( words[i] < Max ) {
 			debug_check_logic( words[i] <= offset );
 			Offsets[i] = offset - words[i];
@@ -38,50 +37,12 @@ CPatternWordCondition::CPatternWordCondition( const TValue offset,
 	}
 }
 
-CPatternWordCondition::CPatternWordCondition(
-	const CPatternWordCondition& another )
-{
-	*this = another;
-}
-
-CPatternWordCondition& CPatternWordCondition::operator=(
-	const CPatternWordCondition& another )
-{
-	Size = another.Size;
-	Strong = another.Strong;
-	Param = another.Param;
-	Offsets = new TValue[Size];
-	memcpy( Offsets, another.Offsets, Size * sizeof( TValue ) );
-	return *this;
-}
-
-CPatternWordCondition::CPatternWordCondition( CPatternWordCondition&& another )
-{
-	*this = move( another );
-}
-
-CPatternWordCondition& CPatternWordCondition::operator=(
-	CPatternWordCondition&& another )
-{
-	Size = another.Size;
-	Strong = another.Strong;
-	Param = another.Param;
-	Offsets = another.Offsets;
-	another.Offsets = nullptr;
-	return *this;
-}
-
-CPatternWordCondition::~CPatternWordCondition()
-{
-	delete[] Offsets;
-}
-
 void CPatternWordCondition::Print( ostream& out ) const
 {
 	out << Param
 		<< ( Strong ? "==" : "=" )
 		<< static_cast<uint32_t>( Offsets[0] );
-	for( TValue i = 1; i < Size; i++ ) {
+	for( TValue i = 1; i < Offsets.Size(); i++ ) {
 		out << "," << static_cast<uint32_t>( Offsets[i] );
 	}
 }
@@ -122,17 +83,46 @@ void CDataEditor::Restore()
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool CTransition::Match( const CWord& word, CAnnotationIndices& indices ) const
+CBaseTransition::CBaseTransition( const TStateIndex _nextState ) :
+	nextState( _nextState )
 {
-	if( Word ) {
-		if( !word.MatchWord( WordOrAttributesRegex ) ) {
-			return false;
-		}
-		indices = move( word.AnnotationIndices() );
-		return true;
-	} else {
-		return word.MatchAttributes( WordOrAttributesRegex, indices );
+	debug_check_logic( nextState > 0 );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+CWordTransition::CWordTransition( RegexEx&& _wordRegex,
+		const TStateIndex nextState ) :
+	CBaseTransition( nextState ),
+	wordRegex( move( _wordRegex ) )
+{
+}
+
+bool CWordTransition::Match( const CWord& word,
+	CAnnotationIndices& indices ) const
+{
+	if( !word.MatchWord( wordRegex ) ) {
+		return false;
 	}
+	indices = move( word.AnnotationIndices() );
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+CAttributesTransition::CAttributesTransition(
+		CAttributesRestriction&& _attributesRestriction,
+		const TStateIndex nextState ) :
+	CBaseTransition( nextState ),
+	attributesRestriction( move( _attributesRestriction ) )
+{
+	debug_check_logic( !attributesRestriction.IsEmpty() );
+}
+
+bool CAttributesTransition::Match( const CWord& word,
+	CAnnotationIndices& indices ) const
+{
+	return word.MatchAttributes( attributesRestriction, indices );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -189,11 +179,11 @@ void CMatchContext::match( const TStateIndex stateIndex )
 		return;
 	}
 
-	for( const CTransition& transition : transitions ) {
+	for( const CTransitionPtr& transition : transitions ) {
 		data.emplace_back();
-		if( transition.Match( Text().Word( wordIndex ), data.back() ) ) {
+		if( transition->Match( Text().Word( wordIndex ), data.back() ) ) {
 			wordIndex++;
-			match( transition.NextState );
+			match( transition->NextState() );
 			wordIndex--;
 		}
 		data.pop_back();
@@ -215,8 +205,10 @@ bool CAgreementAction::Run( const CMatchContext& context ) const
 	const TWordIndex index2 = context.Shift();
 	const CAnnotationIndices& indices2 = editor.Value( index2 );
 	
-	CArgreements::CKey key{ { 0, context.Word() }, condition.Param };
-	for( CPatternWordCondition::TValue i = 0; i < condition.Size; i++ ) {
+	CArgreements::CKey key{ { 0, context.Word() },
+		Cast<TAttribute>( condition.Param ) };
+
+	for( CPatternWordCondition::TValue i = 0; i < condition.Offsets.Size(); i++ ) {
 		const CPatternWordCondition::TValue offset = condition.Offsets[i];
 		debug_check_logic( offset < index2 );
 		const TWordIndex index1 = index2 - offset;
@@ -248,7 +240,7 @@ bool CDictionaryAction::Run( const CMatchContext& context ) const
 {
 	vector<string> words;
 	words.emplace_back();
-	for( CPatternWordCondition::TValue i = 0; i < condition.Size; i++ ) {
+	for( CPatternWordCondition::TValue i = 0; i < condition.Offsets.Size(); i++ ) {
 		const CPatternWordCondition::TValue offset = condition.Offsets[i];
 		if( offset == CPatternWordCondition::Max ) {
 			debug_check_logic( !words.back().empty() );

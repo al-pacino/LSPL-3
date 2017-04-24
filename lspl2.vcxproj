@@ -158,6 +158,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Attributes.h" />
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\Configuration.h" />
     <ClInclude Include="src\ErrorProcessor.h" />
@@ -175,6 +176,7 @@
     <ClInclude Include="src\TranspositionSupport.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Attributes.cpp" />
     <ClCompile Include="src\Configuration.cpp" />
     <ClCompile Include="src\ErrorProcessor.cpp" />
     <ClCompile Include="src\main.cpp" />

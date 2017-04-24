@@ -1,9 +1,11 @@
 #include <common.h>
 #include <Pattern.h>
-#include <TranspositionSupport.h>
 #include <Parser.h>
+#include <PatternMatch.h>
+#include <TranspositionSupport.h>
 
 using namespace Lspl::Configuration;
+using namespace Lspl::Text;
 using Lspl::Parser::CIndexedName;
 
 namespace Lspl {
@@ -591,18 +593,12 @@ bool CSignRestriction::IsEmpty( const CPatterns& context ) const
 	}
 }
 
-StringEx CSignRestriction::Build() const
+void CSignRestriction::Build( CAttributesRestrictionBuilder& builder ) const
 {
-	StringEx result;
-	result += CharEx( '[' );
-	if( exclude ) {
-		result += CharEx( '^' );
-	}
+	builder.AddAttribute( Cast<TAttribute>( sign ), exclude );
 	for( CSignValues::SizeType i = 0; i < values.Size(); i++ ) {
-		result += Cast<CharEx>( values.Value( i ) + Text::BeginAttributeValue );
+		builder.AddAttributeValue( Cast<TAttributeValue>( values.Value( i ) ) );
 	}
-	result += CharEx( ']' );
-	return result;
 }
 
 void CSignRestriction::Print( const CPatterns& context, ostream& out ) const
@@ -689,24 +685,17 @@ bool CSignRestrictions::IsEmpty( const CPatterns& context ) const
 	return false;
 }
 
-StringEx CSignRestrictions::Build( const CConfiguration& configuration ) const
+CAttributesRestriction CSignRestrictions::Build(
+	const Configuration::CConfiguration& configuration ) const
 {
-	StringEx result;
-	for( TSign i = 0, j = 0; i < configuration.WordSigns().Size(); i++ ) {
-		if( j < data.size() ) {
-			const CSignRestriction& signRestriction = data[j];
-			if( i < signRestriction.Sign() ) {
-				result += CharEx( '.' );
-			} else {
-				debug_check_logic( i == signRestriction.Sign() );
-				result += signRestriction.Build();
-				j++;
-			}
-		} else {
-			result += CharEx( '.' );
-		}
+	CAttributesRestrictionBuilder builder(
+		Cast<TAttribute>( configuration.WordSigns().Size() ) );
+
+	for( const CSignRestriction& signRestriction : data ) {
+		signRestriction.Build( builder );
 	}
-	return result;
+
+	return builder.Build();
 }
 
 void CSignRestrictions::Print( const CPatterns& context, ostream& out ) const
@@ -986,6 +975,14 @@ CSignValues::ValueType CPatterns::StringIndex( const string& str ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CStatesBuildContext::CStatesBuildContext( const CPatterns& patterns ) :
+	Patterns( patterns )
+{
+	States.emplace_back();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 CPatternWord::CPatternWord( const string* const regexp ) :
 	Regexp( regexp )
 {
@@ -1014,15 +1011,18 @@ void CPatternWord::Build( CStatesBuildContext& context ) const
 			shared_ptr<IAction>( new CAgreementAction( condition ) ) );
 	}
 
-	StringEx regexp;
+	CTransitionPtr transition;
 	if( Regexp != nullptr ) {
-		regexp = ToStringEx( *Regexp );
+		transition.reset( new CWordTransition(
+			RegexEx( ToStringEx( *Regexp ) ),
+			nextStateIndex ) );
 	} else {
-		regexp = SignRestrictions.Build( context.Patterns.Configuration() );
+		transition.reset( new CAttributesTransition(
+			SignRestrictions.Build( context.Patterns.Configuration() ),
+			nextStateIndex ) );
 	}
 
-	context.States[state].Transitions.emplace_back(
-		( Regexp != nullptr ), nextStateIndex, RegexEx( regexp ) );
+	context.States[state].Transitions.emplace_back( transition.release() );
 
 	ostringstream oss;
 	Print( context.Patterns, oss );
@@ -1142,7 +1142,7 @@ CStates CPatternVariants::Build( const CPatterns& context ) const
 		variant.Build( statesBuildContext );
 	}
 
-	return statesBuildContext.States;
+	return move( statesBuildContext.States );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

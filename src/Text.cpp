@@ -25,33 +25,27 @@ namespace Text {
 CAnnotation::CAnnotation( CAttributes&& _attributes ) :
 	attributes( _attributes )
 {
-	debug_check_logic( !attributes.empty() );
-}
-
-bool CAnnotation::Match( const RegexEx& attributesRegex ) const
-{
-	MatchResultsEx match;
-	return regex_match( attributes, match, attributesRegex );
+	debug_check_logic( attributes.Get( MainAttribute ) != NullAttributeValue );
 }
 
 TAgreementPower CAnnotation::Agreement( const CAnnotation& annotation,
-	const TAttributeIndex attribute ) const
+	const TAttribute attribute ) const
 {
 	debug_check_logic( MainAttribute < agreementBegin );
-	debug_check_logic( attributes.length() == annotation.attributes.length() );
+	debug_check_logic( attributes.Size() == annotation.attributes.Size() );
 	debug_check_logic( attribute == MainAttribute || agreementBegin <= attribute );
 
-	const TAttributeIndex begin =
+	const TAttribute begin =
 		( attribute != MainAttribute ? attribute : agreementBegin );
-	const TAttributeIndex end =
-		( attribute != MainAttribute ? attribute : attributes.length() );
+	const TAttribute end =
+		( attribute != MainAttribute ? attribute : attributes.Size() );
 
 	TAgreementPower power = AP_Strong;
-	for( TAttributeIndex i = begin; i < end; i++ ) {
-		const CharEx c1 = attributes[i];
-		const CharEx c2 = annotation.attributes[i];
+	for( TAttribute i = begin; i < end; i++ ) {
+		const CharEx c1 = attributes.Get( i );
+		const CharEx c2 = annotation.attributes.Get( i );
 		if( c1 != c2 ) {
-			if( c1 == AnyAttributeValue || c2 == AnyAttributeValue ) {
+			if( c1 == NullAttributeValue || c2 == NullAttributeValue ) {
 				power = AP_Weak;
 			} else {
 				return AP_None;
@@ -61,11 +55,11 @@ TAgreementPower CAnnotation::Agreement( const CAnnotation& annotation,
 	return power;
 }
 
-TAttributeIndex CAnnotation::agreementBegin = MainAttribute;
+TAttribute CAnnotation::agreementBegin = MainAttribute;
 
-void CAnnotation::SetArgreementBegin( const TAttributeIndex index )
+void CAnnotation::SetArgreementBegin( const TAttribute attribute )
 {
-	agreementBegin = index;
+	agreementBegin = attribute;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -85,12 +79,12 @@ bool CWord::MatchWord( const RegexEx& wordRegex ) const
 	return regex_match( word, match, wordRegex );
 }
 
-bool CWord::MatchAttributes( const RegexEx& attributesRegex,
+bool CWord::MatchAttributes( const CAttributesRestriction& attributesRestriction,
 	CAnnotationIndices& indices ) const
 {
 	debug_check_logic( indices.IsEmpty() );
 	for( TAnnotationIndex i = 0; i < annotations.size(); i++ ) {
-		if( annotations[i].Match( attributesRegex ) ) {
+		if( attributesRestriction.Check( annotations[i].Attributes() ) ) {
 			indices.Add( i );
 		}
 	}

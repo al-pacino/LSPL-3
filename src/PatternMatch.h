@@ -1,26 +1,14 @@
 #pragma once
 
 #include <Text.h>
+#include <FixedSizeArray.h>
 
 namespace Lspl {
 namespace Pattern {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef size_t TSign;
-
-///////////////////////////////////////////////////////////////////////////////
-
-template<class TYPE, class SOURCE_TYPE>
-inline const TYPE Cast( const SOURCE_TYPE sourceValue )
-{
-	// only numeric types are allowed
-	static_assert( TYPE() * 2 == SOURCE_TYPE() * 2, "bad cast" );
-	const TYPE value = static_cast<TYPE>( sourceValue );
-	debug_check_logic( static_cast<SOURCE_TYPE>( value ) == sourceValue );
-	debug_check_logic( ( value >= 0 ) == ( sourceValue >= 0 ) );
-	return value;
-}
+typedef size_t TParam;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -28,21 +16,15 @@ struct CPatternWordCondition {
 	typedef uint8_t TValue;
 	static const TValue Max = numeric_limits<TValue>::max();
 
-	CPatternWordCondition( const TValue offset, const TSign param );
+	CPatternWordCondition( const TValue offset, const TParam param );
 	CPatternWordCondition( const TValue offset,
-		const vector<TValue>& words, const TSign param );
-	CPatternWordCondition( const CPatternWordCondition& another );
-	CPatternWordCondition& operator=( const CPatternWordCondition& another );
-	CPatternWordCondition( CPatternWordCondition&& another );
-	CPatternWordCondition& operator=( CPatternWordCondition&& another );
-	~CPatternWordCondition();
+		const vector<TValue>& words, const TParam param );
 
 	void Print( ostream& out ) const;
 
-	TValue Size;
 	bool Strong;
-	TSign Param;
-	TValue* Offsets;
+	TParam Param;
+	CFixedSizeArray<TValue, TValue> Offsets;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -70,25 +52,52 @@ struct CState;
 typedef vector<CState> CStates;
 typedef CStates::size_type TStateIndex;
 
-struct CTransition {
-	bool Word;
-	TStateIndex NextState;
-	RegexEx WordOrAttributesRegex;
+///////////////////////////////////////////////////////////////////////////////
 
-	CTransition( const bool word, const TStateIndex nextState,
-			RegexEx&& wordOrAttributesRegex ) :
-		Word( word ),
-		NextState( nextState ),
-		WordOrAttributesRegex( wordOrAttributesRegex )
-	{
-		debug_check_logic( NextState != 0 );
-	}
+class CBaseTransition {
+public:
+	explicit CBaseTransition( const TStateIndex nextState );
+	virtual ~CBaseTransition() = 0 {}
 
-	bool Match( const Text::CWord& word,
-		/* out */ Text::CAnnotationIndices& indices ) const;
+	const TStateIndex NextState() const { return nextState; }
+	virtual bool Match( const Text::CWord& word,
+		/* out */ Text::CAnnotationIndices& indices ) const = 0;
+
+private:
+	const TStateIndex nextState;
 };
 
-typedef vector<CTransition> CTransitions;
+typedef unique_ptr<CBaseTransition> CTransitionPtr;
+typedef vector<CTransitionPtr> CTransitions;
+
+///////////////////////////////////////////////////////////////////////////////
+
+class CWordTransition : public CBaseTransition {
+public:
+	CWordTransition( RegexEx&& wordRegex, const TStateIndex nextState );
+	~CWordTransition() override {}
+
+	bool Match( const Text::CWord& word,
+		/* out */ Text::CAnnotationIndices& indices ) const override;
+
+private:
+	const RegexEx wordRegex;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+class CAttributesTransition : public CBaseTransition {
+public:
+	CAttributesTransition( Text::CAttributesRestriction&& attributesRestriction,
+		const TStateIndex nextState );
+	~CAttributesTransition() override {}
+
+	bool Match( const Text::CWord& word,
+		/* out */ Text::CAnnotationIndices& indices ) const override;
+
+private:
+	const Text::CAttributesRestriction attributesRestriction;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -51,6 +51,9 @@
     <ClInclude Include="src\FixedSizeArray.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Attributes.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -87,6 +90,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\TextLoader.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Attributes.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

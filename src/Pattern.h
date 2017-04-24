@@ -17,9 +17,7 @@ class CPatternBuildContext;
 
 typedef size_t TElement;
 typedef size_t TReference;
-
-static_assert( sizeof( TSign )
-	== sizeof( Configuration::CWordSigns::SizeType ), "must be the same" );
+typedef Configuration::CWordSigns::SizeType TSign;
 
 // Sample( A7, N7.c, Sub.Pa, SubSub.c ) = A7 N7 Sub SubSub
 // Sub( Pa5 ) = Pa5
@@ -234,7 +232,7 @@ public:
 	void Intersection( const CSignRestriction& signRestriction );
 	// returns true if there are no words matching restriction
 	bool IsEmpty( const CPatterns& context ) const;
-	StringEx Build() const;
+	void Build( Text::CAttributesRestrictionBuilder& builder ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 
 private:
@@ -255,7 +253,8 @@ public:
 		const TElement element );
 	// returns true if all sign restrictions are empty
 	bool IsEmpty( const CPatterns& context ) const;
-	StringEx Build( const Configuration::CConfiguration& configuration ) const;
+	Text::CAttributesRestriction Build(
+		const Configuration::CConfiguration& configuration ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 
 private:
@@ -370,11 +369,7 @@ struct CStatesBuildContext {
 	CStates States;
 	vector<pair<string, TStateIndex>> LastVariant;
 
-	explicit CStatesBuildContext( const CPatterns& patterns ) :
-		Patterns( patterns )
-	{
-		States.emplace_back();
-	}
+	explicit CStatesBuildContext( const CPatterns& patterns );
 };
 
 ///////////////////////////////////////////////////////////////////////////////

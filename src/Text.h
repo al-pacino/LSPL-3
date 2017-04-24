@@ -1,6 +1,7 @@
 #pragma once
 
 #include <OrderedList.h>
+#include <Attributes.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -40,28 +41,21 @@ enum TAgreementPower {
 	AP_Strong
 };
 
-typedef StringEx CAttributes;
-typedef CAttributes::size_type TAttributeIndex;
-
-const TAttributeIndex MainAttribute = 0;
-const CharEx AnyAttributeValue = static_cast<CharEx>( 128 );
-const CharEx BeginAttributeValue = static_cast<CharEx>( 129 );
-
 class CAnnotation {
 public:
 	explicit CAnnotation( CAttributes&& attributes );
 
-	bool Match( const RegexEx& attributesRegex ) const;
+	const CAttributes& Attributes() const { return attributes; }
 	TAgreementPower Agreement( const CAnnotation& annotation,
-		const TAttributeIndex attribute = MainAttribute ) const;
+		const TAttribute attribute = MainAttribute ) const;
 
 	// sets interval for agreement as [index, attributes.size()]
-	static void SetArgreementBegin( const TAttributeIndex index );
+	static void SetArgreementBegin( const TAttribute attribute );
 
 private:
 	CAttributes attributes;
 
-	static TAttributeIndex agreementBegin;
+	static TAttribute agreementBegin;
 };
 
 typedef vector<CAnnotation> CAnnotations;
@@ -78,7 +72,7 @@ struct CWord {
 	const CAnnotations& Annotations() const { return annotations; }
 	CAnnotationIndices AnnotationIndices() const;
 	bool MatchWord( const RegexEx& wordRegex ) const;
-	bool MatchAttributes( const RegexEx& attributesRegex,
+	bool MatchAttributes( const CAttributesRestriction& attributesRestriction,
 		CAnnotationIndices& indices ) const;
 };
 
@@ -93,7 +87,7 @@ typedef pair<CAnnotationIndices, CAnnotationIndices> CAgreement;
 
 class CArgreements {
 public:
-	typedef pair<pair<TWordIndex, TWordIndex>, TAttributeIndex> CKey;
+	typedef pair<pair<TWordIndex, TWordIndex>, TAttribute> CKey;
 
 	explicit CArgreements( const CWords& text );
 	const CAgreement& Agreement( const CKey& key, const bool strong ) const;

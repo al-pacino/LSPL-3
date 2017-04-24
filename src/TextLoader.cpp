@@ -76,7 +76,7 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 				return false;
 			}
 
-			CAttributes attributes( wordSigns.Size(), AnyAttributeValue );
+			CAttributes attributes( Cast<TAttribute>( wordSigns.Size() ) );
 
 			Value attrObject = annotations[ai].GetObject();
 			for( Value::ConstMemberIterator attr = attrObject.MemberBegin();
@@ -101,11 +101,13 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 							valueIndex = wordSigns[index].Values.Size();
 						}
 					}
-					attributes[index] = Cast<CharEx>( BeginAttributeValue + valueIndex );
+					// TODO: check!
+					attributes.Set( Cast<TAttribute>( index ),
+						Cast<TAttributeValue>( valueIndex ) );
 				}
 			}
 
-			if( attributes.front() == AnyAttributeValue ) {
+			if( attributes.Get( MainAttribute ) == NullAttributeValue ) {
 				cerr << "bad 'word' #" << wi
 					<< " 'annotation' #" << ai
 					<< " has no main attribute" << endl;
