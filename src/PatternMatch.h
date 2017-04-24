@@ -74,14 +74,14 @@ typedef vector<CTransitionPtr> CTransitions;
 
 class CWordTransition : public CBaseTransition {
 public:
-	CWordTransition( RegexEx&& wordRegex, const TStateIndex nextState );
+	CWordTransition( Text::RegexEx&& wordRegex, const TStateIndex nextState );
 	~CWordTransition() override {}
 
 	bool Match( const Text::CWord& word,
 		/* out */ Text::CAnnotationIndices& indices ) const override;
 
 private:
-	const RegexEx wordRegex;
+	const Text::RegexEx wordRegex;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
