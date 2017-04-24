@@ -48,6 +48,9 @@
     <ClInclude Include="src\TextLoader.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\FixedSizeArray.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
