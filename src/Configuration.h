@@ -1,6 +1,7 @@
 #pragma once
 
 #include <OrderedList.h>
+#include <Attributes.h>
 
 namespace Lspl {
 namespace Configuration {
@@ -42,7 +43,6 @@ public:
 	CWordSigns();
 	bool IsEmpty() const;
 	SizeType Size() const;
-	SizeType MainWordSignIndex() const;
 	const CWordSign& MainWordSign() const;
 	const CWordSign& operator[]( SizeType index ) const;
 	bool Find( const string& name, SizeType& index ) const;

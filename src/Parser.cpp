@@ -666,8 +666,7 @@ CPatternBasePtr CPatternsBuilder::BuildElement( const CTokenPtr& reference,
 			CSignValues values;
 			values.Add( index );
 			CSignRestriction mainRestriction( element,
-				Configuration().WordSigns().MainWordSignIndex(),
-				move( values ) );
+				Text::MainAttribute, move( values ) );
 			const bool added = signRestrictions.Add( move( mainRestriction ) );
 			debug_check_logic( added );
 		}
@@ -829,7 +828,7 @@ void CElementCondition::Check( CPatternsBuilder& context,
 		if( !arg.Defined() ) {
 			return;
 		}
-		if( arg.Sign == wordSigns.MainWordSignIndex() ) {
+		if( arg.Sign == Text::MainAttribute ) {
 			context.ErrorProcessor.AddError( CError( *Name,
 				"main word sign is not allowed here" ) );
 		}
