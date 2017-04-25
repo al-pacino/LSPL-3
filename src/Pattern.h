@@ -354,7 +354,7 @@ protected:
 	unordered_map<string, TPatternIndex> Names;
 
 	mutable vector<string> Strings;
-	mutable unordered_map<string, TAttributeValue> StringIndices;
+	mutable unordered_map<string, Text::TAttributeValue> StringIndices;
 
 	explicit CPatterns( Configuration::CConfigurationPtr configuration );
 
