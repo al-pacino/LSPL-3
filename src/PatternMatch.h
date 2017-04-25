@@ -136,20 +136,19 @@ class CMatchContext {
 public:
 	CMatchContext( const Text::CText& text, const CStates& states );
 
-	const Text::TWordIndex Word() const { return wordIndex; }
-	const Text::TWordIndex InitialWord() const { return initialWordIndex; }
 	const Text::CText& Text() const { return text; }
-	const CDataEditor& DataEditor() const { return dataEditor; }
-	const Text::TWordIndex Shift() const;
+	const CDataEditor& DataEditor() const;
+	const Text::TWordIndex InitialWord() const { return initialWordIndex; }
+	const Text::TWordIndex Shift() const { return data.size(); }
+	const Text::TWordIndex Word() const;
 	void Match( const Text::TWordIndex initialWordIndex );
 
 private:
 	const Text::CText& text;
 	const CStates& states;
-	Text::TWordIndex wordIndex;
 	Text::TWordIndex initialWordIndex;
 	vector<Text::CAnnotationIndices> data;
-	CDataEditor dataEditor;
+	stack<CDataEditor> editors;
 
 	void match( const TStateIndex stateIndex );
 };

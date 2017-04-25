@@ -147,22 +147,28 @@ bool CActions::Run( const CMatchContext& context ) const
 CMatchContext::CMatchContext( const CText& text, const CStates& states ) :
 	text( text ),
 	states( states ),
-	wordIndex( 0 ),
-	initialWordIndex( 0 ),
-	dataEditor( data )
+	initialWordIndex( 0 )
 {
 	data.reserve( 32 );
 }
 
-const TWordIndex CMatchContext::Shift() const
+const CDataEditor& CMatchContext::DataEditor() const
 {
-	return ( Word() - InitialWord() );
+	debug_check_logic( !editors.empty() );
+	return editors.top();
+}
+
+const Text::TWordIndex CMatchContext::Word() const
+{
+	debug_check_logic( Shift() > 0 );
+	return ( InitialWord() + Shift() - 1 );
 }
 
 void CMatchContext::Match( const TWordIndex _initialWordIndex )
 {
+	debug_check_logic( data.empty() );
+	debug_check_logic( editors.empty() );
 	initialWordIndex = _initialWordIndex;
-	wordIndex = initialWordIndex;
 	match( 0 );
 }
 
@@ -171,23 +177,22 @@ void CMatchContext::match( const TStateIndex stateIndex )
 	const CState& state = states[stateIndex];
 	const CTransitions& transitions = state.Transitions;
 
-	wordIndex--; // dirty hack
 	if( !state.Actions.Run( *this ) // conditions are not met
 		|| transitions.empty() // leaf
-		|| !( ++wordIndex < Text().End() ) ) // end of text
+		|| !( ( InitialWord() + Shift() ) < Text().Length() ) )
 	{
 		return;
 	}
 
+	data.emplace_back();
+	editors.emplace( data );
 	for( const CTransitionPtr& transition : transitions ) {
-		data.emplace_back();
-		if( transition->Match( Text().Word( wordIndex ), data.back() ) ) {
-			wordIndex++;
+		if( transition->Match( Text().Word( Word() ), data.back() ) ) {
 			match( transition->NextState() );
-			wordIndex--;
 		}
-		data.pop_back();
 	}
+	editors.pop();
+	data.pop_back();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

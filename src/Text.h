@@ -109,7 +109,7 @@ public:
 	explicit CText( CWords&& words );
 
 	const CWord& Word( const TWordIndex index ) const;
-	const TWordIndex End() const { return words.size(); }
+	const TWordIndex Length() const { return words.size(); }
 	const CArgreements& Argreements() const { return argreements; }
 
 private:

@@ -82,7 +82,7 @@ bool CWord::MatchWord( const RegexEx& wordRegex ) const
 bool CWord::MatchAttributes( const CAttributesRestriction& attributesRestriction,
 	CAnnotationIndices& indices ) const
 {
-	debug_check_logic( indices.IsEmpty() );
+	indices.Empty();
 	for( TAnnotationIndex i = 0; i < annotations.size(); i++ ) {
 		if( attributesRestriction.Check( annotations[i].Attributes() ) ) {
 			indices.Add( i );
