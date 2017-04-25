@@ -17,13 +17,13 @@ enum TWordSignType {
 
 typedef COrderedList<string> COrderedStrings;
 
-struct CWordSign {
+struct CWordAttribute {
 	bool Consistent;
 	TWordSignType Type;
 	COrderedStrings Names;
 	COrderedStrings Values;
 
-	CWordSign() :
+	CWordAttribute() :
 		Consistent( false ),
 		Type( WST_None )
 	{
@@ -32,57 +32,63 @@ struct CWordSign {
 	void Print( ostream& out ) const;
 };
 
-class CWordSigns {
-	friend class CWordSignsBuilder;
-	CWordSigns( const CWordSigns& ) = delete;
-	CWordSigns& operator=( const CWordSigns& ) = delete;
+///////////////////////////////////////////////////////////////////////////////
+
+class CWordAttributes {
+	friend class CWordAttributesBuilder;
+	CWordAttributes( const CWordAttributes& ) = delete;
+	CWordAttributes& operator=( const CWordAttributes& ) = delete;
 
 public:
-	typedef vector<CWordSign>::size_type SizeType;
-
-	CWordSigns();
+	CWordAttributes() = default;
+	CWordAttributes( CWordAttributes&& ) = default;
+	CWordAttributes& operator=( CWordAttributes&& ) = default;
 	bool IsEmpty() const;
-	SizeType Size() const;
-	const CWordSign& MainWordSign() const;
-	const CWordSign& operator[]( SizeType index ) const;
-	bool Find( const string& name, SizeType& index ) const;
+	Text::TAttribute Size() const;
+	const CWordAttribute& Main() const;
+	const CWordAttribute& operator[]( Text::TAttribute index ) const;
+	bool Find( const string& name, Text::TAttribute& index ) const;
 	void Print( ostream& out ) const;
 
 private:
-	vector<CWordSign> wordSigns;
-	typedef unordered_map<string, SizeType> CNameIndices;
+	vector<CWordAttribute> data;
+	typedef unordered_map<string, Text::TAttribute> CNameIndices;
 	CNameIndices nameIndices;
 };
 
-class CWordSignsBuilder {
+///////////////////////////////////////////////////////////////////////////////
+
+class CWordAttributesBuilder {
 public:
-	explicit CWordSignsBuilder( const CWordSigns::SizeType count );
-	void Add( CWordSign&& wordSign );
-	bool Build( ostream& errorStream, CWordSigns& wordSigns );
+	explicit CWordAttributesBuilder( const Text::TAttribute size );
+	void Add( CWordAttribute&& wordAttribute );
+	bool Build( ostream& errorStream, CWordAttributes& wordSigns );
 
 private:
-	vector<CWordSign> mainSigns;
-	vector<CWordSign> consistentSigns;
-	vector<CWordSign> notConsistentSigns;
+	vector<CWordAttribute> mains;
+	vector<CWordAttribute> consistents;
+	vector<CWordAttribute> notConsistents;
 };
+
+///////////////////////////////////////////////////////////////////////////////
 
 class CConfiguration {
 	CConfiguration( const CConfiguration& ) = delete;
 	CConfiguration& operator=( const CConfiguration& ) = delete;
 
 public:
-	const CWordSigns& WordSigns() const
-	{
-		return wordSigns;
-	}
-
-protected:
-	CWordSigns wordSigns;
-
 	CConfiguration() = default;
+
+	const CWordAttributes& Attributes() const { return wordAttributes; }
+	void SetAttributes( CWordAttributes&& attributes );
+
+private:
+	CWordAttributes wordAttributes;
 };
 
 typedef shared_ptr<CConfiguration> CConfigurationPtr;
+
+///////////////////////////////////////////////////////////////////////////////
 
 const char* JsonConfigurationSchemeText();
 

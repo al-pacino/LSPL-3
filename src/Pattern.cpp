@@ -579,14 +579,13 @@ void CSignRestriction::Intersection( const CSignRestriction& restriction )
 
 bool CSignRestriction::IsEmpty( const CPatterns& context ) const
 {
-	const CWordSign& wordSign = context.Configuration().WordSigns()[sign];
-	debug_check_logic( wordSign.Type != WST_None );
+	const CWordAttribute& attribute = context.Configuration().Attributes()[sign];
 	if( exclude ) {
-		if( wordSign.Type == WST_String ) {
+		if( attribute.Type == WST_String ) {
 			// todo: check
 			return false;
 		} else {
-			return ( values.Size() == wordSign.Values.Size() );
+			return ( values.Size() == attribute.Values.Size() );
 		}
 	} else {
 		return values.IsEmpty();
@@ -688,8 +687,7 @@ bool CSignRestrictions::IsEmpty( const CPatterns& context ) const
 CAttributesRestriction CSignRestrictions::Build(
 	const Configuration::CConfiguration& configuration ) const
 {
-	CAttributesRestrictionBuilder builder(
-		Cast<TAttribute>( configuration.WordSigns().Size() ) );
+	CAttributesRestrictionBuilder builder( configuration.Attributes().Size() );
 
 	for( const CSignRestriction& signRestriction : data ) {
 		signRestriction.Build( builder );
@@ -859,8 +857,8 @@ void CPattern::Build( CPatternBuildContext& context,
 	}
 
 	// correct ids
-	const COrderedStrings::SizeType mainSize = context.Patterns()
-		.Configuration().WordSigns().MainWordSign().Values.Size();
+	const COrderedStrings::SizeType mainSize
+		= context.Patterns().Configuration().Attributes().Main().Values.Size();
 	const TReference patternReference = context.Patterns().PatternReference( name );
 	for( CPatternVariant& variant : variants ) {
 		for( CPatternWord& word : variant ) {
@@ -905,8 +903,7 @@ void CPatterns::Print( ostream& out ) const
 
 string CPatterns::Element( const TElement element ) const
 {
-	const COrderedStrings& values
-		= Configuration().WordSigns().MainWordSign().Values;
+	const COrderedStrings& values = Configuration().Attributes().Main().Values;
 	CIndexedName name;
 	name.Index = element / values.Size();
 	name.Name = values.Value( element % values.Size() );
@@ -923,17 +920,17 @@ string CPatterns::Reference( const TReference reference ) const
 
 string CPatterns::SignName( const TSign sign ) const
 {
-	const CWordSigns& signs = Configuration().WordSigns();
-	debug_check_logic( sign < signs.Size() );
-	return signs[sign].Names.Value( 0 );
+	const CWordAttributes& attributes = Configuration().Attributes();
+	debug_check_logic( sign < attributes.Size() );
+	return attributes[sign].Names.Value( 0 );
 }
 
 string CPatterns::SignValue( const TSign signIndex,
 	const CSignValues::ValueType value ) const
 {
-	const CWordSigns& signs = Configuration().WordSigns();
-	debug_check_logic( signIndex < signs.Size() );
-	const CWordSign& sign = signs[signIndex];
+	const CWordAttributes& attributes = Configuration().Attributes();
+	debug_check_logic( signIndex < attributes.Size() );
+	const CWordAttribute& sign = attributes[signIndex];
 	if( sign.Type == WST_String ) {
 		return String( value );
 	} else {

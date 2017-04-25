@@ -17,7 +17,7 @@ class CPatternBuildContext;
 
 typedef size_t TElement;
 typedef size_t TReference;
-typedef Configuration::CWordSigns::SizeType TSign;
+typedef Text::TAttribute TSign;
 
 // Sample( A7, N7.c, Sub.Pa, SubSub.c ) = A7 N7 Sub SubSub
 // Sub( Pa5 ) = Pa5
@@ -219,7 +219,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef COrderedList<Configuration::COrderedStrings::SizeType> CSignValues;
+typedef COrderedList<Text::TAttributeValue> CSignValues;
 
 class CSignRestriction {
 public:

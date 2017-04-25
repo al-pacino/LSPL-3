@@ -45,7 +45,7 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 	}
 
 	const CConfiguration& configuration = context.Configuration();
-	const CWordSigns& wordSigns = configuration.WordSigns();
+	const CWordAttributes& wordAttributes = configuration.Attributes();
 
 	CWords words;
 	Value wordsArray = textDocument["text"].GetArray();
@@ -76,7 +76,7 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 				return false;
 			}
 
-			CAttributes attributes( Cast<TAttribute>( wordSigns.Size() ) );
+			CAttributes attributes( wordAttributes.Size() );
 
 			Value attrObject = annotations[ai].GetObject();
 			for( Value::ConstMemberIterator attr = attrObject.MemberBegin();
@@ -89,16 +89,16 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 					return false;
 				}
 
-				CWordSigns::SizeType index;
-				if( wordSigns.Find( attr->name.GetString(), index ) ) {
-					const CWordSign& wordSign = wordSigns[index];
+				TAttribute index;
+				if( wordAttributes.Find( attr->name.GetString(), index ) ) {
+					const CWordAttribute& attribute = wordAttributes[index];
 					const string value = attr->value.GetString();
 					COrderedStrings::SizeType valueIndex;
-					if( wordSign.Type == WST_String ) {
+					if( attribute.Type == WST_String ) {
 						valueIndex = context.StringIndex( value );
 					} else {
-						if( !wordSign.Values.Find( value, valueIndex ) ) {
-							valueIndex = wordSigns[index].Values.Size();
+						if( !attribute.Values.Find( value, valueIndex ) ) {
+							valueIndex = attribute.Values.Size();
 						}
 					}
 					// TODO: check!

@@ -574,8 +574,8 @@ bool CPatternsBuilder::HasElement( const CTokenPtr& elementToken ) const
 CPatternArgument CPatternsBuilder::CheckExtendedName(
 	const CExtendedName& extendedName ) const
 {
-	const CWordSigns& signs = Configuration().WordSigns();
-	const CWordSign& main = signs.MainWordSign();
+	const CWordAttributes& attributes = Configuration().Attributes();
+	const CWordAttribute& main = attributes.Main();
 
 	const CIndexedName name( extendedName.first );
 	size_t index = 0;
@@ -587,10 +587,10 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 			CIndexedName subName;
 			TSign subIndex;
 			const bool found = !subName.Parse( extendedName.second )
-				&& signs.Find( subName.Name, subIndex );
+				&& attributes.Find( subName.Name, subIndex );
 
 			if( found ) {
-				if( signs[subIndex].Type != Configuration::WST_Main ) {
+				if( attributes[subIndex].Type != Configuration::WST_Main ) {
 					return CPatternArgument( index, PAT_ElementSign, subIndex );
 				} else {
 					ErrorProcessor.AddError( CError( *extendedName.second,
@@ -617,8 +617,8 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 				}
 			} else {
 				TSign subIndex;
-				if( signs.Find( subName.Name, subIndex )
-					&& signs[subIndex].Type != Configuration::WST_Main )
+				if( attributes.Find( subName.Name, subIndex )
+					&& attributes[subIndex].Type != Configuration::WST_Main )
 				{
 					if( arg.Type == PAT_ReferenceElementSign
 						&& arg.Sign == subIndex )
@@ -650,22 +650,22 @@ void CPatternsBuilder::CheckPatternExists( const CTokenPtr& reference ) const
 
 bool CPatternsBuilder::IsPatternReference( const CTokenPtr& reference ) const
 {
-	return !Configuration().WordSigns().MainWordSign().Values.Has(
+	return !Configuration().Attributes().Main().Values.Has(
 		CIndexedName( reference ).Name );
 }
 
 CPatternBasePtr CPatternsBuilder::BuildElement( const CTokenPtr& reference,
 	CSignRestrictions&& signRestrictions ) const
 {
-	const CWordSign& main = Configuration().WordSigns().MainWordSign();
+	const CWordAttribute& main = Configuration().Attributes().Main();
 
 	CIndexedName name( reference );
-	TSign index;
+	COrderedStrings::SizeType index;
 	if( main.Values.Find( name.Name, index ) ) {
 		const TElement element = index + name.Index * main.Values.Size();
 		{
 			CSignValues values;
-			values.Add( index );
+			values.Add( Cast<Text::TAttributeValue>( index ) );
 			CSignRestriction mainRestriction( element,
 				Text::MainAttribute, move( values ) );
 			const bool added = signRestrictions.Add( move( mainRestriction ) );
@@ -825,7 +825,7 @@ vector<CTokenPtr> CElementCondition::collectTokens() const
 void CElementCondition::Check( CPatternsBuilder& context,
 	const CTokenPtr& element, CSignRestrictions& signRestrictions ) const
 {
-	const CWordSigns& wordSigns = context.Configuration().WordSigns();
+	const CWordAttributes& attributes = context.Configuration().Attributes();
 
 	debug_check_logic( !Values.empty() );
 	CPatternArgument arg;
@@ -845,8 +845,8 @@ void CElementCondition::Check( CPatternsBuilder& context,
 	}
 
 	CSignValues signValues;
-	const CWordSign& wordSign = wordSigns[arg.Sign];
-	if( wordSign.Type == Configuration::WST_String ) {
+	const CWordAttribute& attribute = attributes[arg.Sign];
+	if( attribute.Type == Configuration::WST_String ) {
 		for( const CTokenPtr& value : Values ) {
 			debug_check_logic( value->Type == TT_Identifier || value->Type == TT_Regexp );
 			/*if( tokenPtr->Type != TT_Regexp ) {
@@ -859,7 +859,7 @@ void CElementCondition::Check( CPatternsBuilder& context,
 		for( const CTokenPtr& value : Values ) {
 			debug_check_logic( value->Type == TT_Identifier || value->Type == TT_Regexp );
 			CSignValues::ValueType signValue;
-			if( wordSign.Values.Find( value->Text, signValue ) ) {
+			if( attribute.Values.Find( value->Text, signValue ) ) {
 				if( !signValues.Add( signValue ) ) {
 					context.ErrorProcessor.AddError( CError( *value,
 						"duplicate word sign value" ) );
@@ -943,8 +943,8 @@ CPatternArgument CPatternDefinition::Argument( const size_t argIndex,
 	if( argIndex < Arguments.size() ) {
 		const CExtendedName& extendedName = Arguments[argIndex];
 
-		const CWordSigns& signs = context.Configuration().WordSigns();
-		const CWordSign& main = signs.MainWordSign();
+		const CWordAttributes& attributes = context.Configuration().Attributes();
+		const CWordAttribute& main = attributes.Main();
 
 		const CIndexedName name( extendedName.first );
 		size_t index = 0;
@@ -957,8 +957,8 @@ CPatternArgument CPatternDefinition::Argument( const size_t argIndex,
 
 				TSign subIndex;
 				if( !subName.Parse( extendedName.second ) // name without index
-					&& signs.Find( subName.Name, subIndex ) // sign existst
-					&& signs[subIndex].Type != Configuration::WST_Main ) // sign isn't main
+					&& attributes.Find( subName.Name, subIndex ) // sign existst
+					&& attributes[subIndex].Type != Configuration::WST_Main ) // sign isn't main
 				{
 					return CPatternArgument( index, PAT_ReferenceElementSign,
 						subIndex, context.GetReference( Name ) );

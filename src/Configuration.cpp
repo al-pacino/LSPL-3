@@ -9,6 +9,8 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/istreamwrapper.h>
 
+using namespace Lspl::Text;
+
 namespace Lspl {
 namespace Configuration {
 
@@ -29,7 +31,9 @@ static const char* WordSignTypeString( const TWordSignType type )
 	return "none";
 }
 
-void CWordSign::Print( ostream& out ) const
+///////////////////////////////////////////////////////////////////////////////
+
+void CWordAttribute::Print( ostream& out ) const
 {
 	out << ( Consistent ? "consistent " : "" )
 		<< WordSignTypeString( Type )
@@ -48,32 +52,31 @@ void CWordSign::Print( ostream& out ) const
 	}
 }
 
-CWordSigns::CWordSigns()
+///////////////////////////////////////////////////////////////////////////////
+
+bool CWordAttributes::IsEmpty() const
 {
+	return data.empty();
 }
 
-bool CWordSigns::IsEmpty() const
+Text::TAttribute CWordAttributes::Size() const
 {
-	return wordSigns.empty();
+	return Cast<Text::TAttribute>( data.size() );
 }
 
-CWordSigns::SizeType CWordSigns::Size() const
+const CWordAttribute& CWordAttributes::Main() const
 {
-	return wordSigns.size();
+	debug_check_logic( !IsEmpty() );
+	return data[Text::MainAttribute];
 }
 
-const CWordSign& CWordSigns::MainWordSign() const
+const CWordAttribute& CWordAttributes::operator[]( Text::TAttribute index ) const
 {
-	return wordSigns[Text::MainAttribute];
+	debug_check_logic( index < data.size() );
+	return data[index];
 }
 
-const CWordSign& CWordSigns::operator[]( SizeType index ) const
-{
-	debug_check_logic( index < wordSigns.size() );
-	return wordSigns[index];
-}
-
-bool CWordSigns::Find( const string& name, SizeType& index ) const
+bool CWordAttributes::Find( const string& name, Text::TAttribute& index ) const
 {
 	auto i = nameIndices.find( name );
 	if( i != nameIndices.cend() ) {
@@ -83,80 +86,87 @@ bool CWordSigns::Find( const string& name, SizeType& index ) const
 	return false;
 }
 
-void CWordSigns::Print( ostream& out ) const
+void CWordAttributes::Print( ostream& out ) const
 {
-	for( const CWordSign& wordSign : wordSigns ) {
-		wordSign.Print( out );
+	for( const CWordAttribute& wordAttribute : data ) {
+		wordAttribute.Print( out );
 		out << endl;
 	}
 }
 
-CWordSignsBuilder::CWordSignsBuilder( const CWordSigns::SizeType count )
+///////////////////////////////////////////////////////////////////////////////
+
+CWordAttributesBuilder::CWordAttributesBuilder( const Text::TAttribute count )
 {
-	mainSigns.reserve( count );
-	consistentSigns.reserve( count );
-	notConsistentSigns.reserve( count );
+	mains.reserve( count );
+	consistents.reserve( count );
+	notConsistents.reserve( count );
 }
 
-void CWordSignsBuilder::Add( CWordSign&& wordSign )
+void CWordAttributesBuilder::Add( CWordAttribute&& wordAttribute )
 {
-	if( wordSign.Type == WST_Main ) {
-		mainSigns.push_back( wordSign );
-	} else if( wordSign.Consistent ) {
-		consistentSigns.push_back( wordSign );
+	if( wordAttribute.Type == WST_Main ) {
+		mains.push_back( wordAttribute );
+	} else if( wordAttribute.Consistent ) {
+		consistents.push_back( wordAttribute );
 	} else {
-		notConsistentSigns.push_back( wordSign );
+		notConsistents.push_back( wordAttribute );
 	}
 }
 
-bool CWordSignsBuilder::Build( ostream& errorStream, CWordSigns& dest )
+bool CWordAttributesBuilder::Build( ostream& errorStream, CWordAttributes& dest )
 {
-	dest.wordSigns.clear();
-	dest.nameIndices.clear();
-
 	// MUST be exactly one main word sign
 	// All word sign names MUST be unique
 	bool success = true;
 
-	if( mainSigns.size() != 1 ) {
+	if( mains.size() != 1 ) {
 		success = false;
 		errorStream << "Configuration error: MUST be exactly one main word sign!" << endl;
 	}
 
-	vector<CWordSign> wordSigns = move( mainSigns );
-	wordSigns.insert( wordSigns.end(),
-		notConsistentSigns.cbegin(), notConsistentSigns.cend() );
-	wordSigns.insert( wordSigns.end(),
-		consistentSigns.cbegin(), consistentSigns.cend() );
+	vector<CWordAttribute> data = move( mains );
+	data.insert( data.end(), notConsistents.cbegin(), notConsistents.cend() );
+	data.insert( data.end(), consistents.cbegin(), consistents.cend() );
 
-	CWordSigns::CNameIndices nameIndices;
-	for( CWordSigns::SizeType index = 0; index < wordSigns.size(); index++ ) {
-		const CWordSign& wordSign = wordSigns[index];
+	CWordAttributes::CNameIndices nameIndices;
+	for( Text::TAttribute index = 0; index < data.size(); index++ ) {
+		const CWordAttribute& attribute = data[index];
 
-		check_logic( wordSign.Type == WST_Enum
-			|| wordSign.Type == WST_String
-			|| wordSign.Type == WST_Main );
-		check_logic( !wordSign.Names.IsEmpty() );
-		check_logic( wordSign.Type != WST_String || wordSign.Values.IsEmpty() );
-		check_logic( wordSign.Type != WST_Main || !wordSign.Consistent );
+		check_logic( attribute.Type == WST_Enum
+			|| attribute.Type == WST_String
+			|| attribute.Type == WST_Main );
+		check_logic( !attribute.Names.IsEmpty() );
+		check_logic( attribute.Type != WST_String || attribute.Values.IsEmpty() );
+		check_logic( attribute.Type != WST_Main || !attribute.Consistent );
 
-		for( COrderedStrings::SizeType i = 0; i < wordSign.Names.Size(); i++ ) {
+		for( COrderedStrings::SizeType i = 0; i < attribute.Names.Size(); i++ ) {
 			auto pair = nameIndices.insert(
-				make_pair( wordSign.Names.Value( i ), index ) );
+				make_pair( attribute.Names.Value( i ), index ) );
 			if( !pair.second ) {
 				success = false;
-				errorStream << "Configuration error: redefinition of word sign name '"
+				errorStream
+					<< "Configuration error: redefinition of word sign name '"
 					<< pair.first->first << "'!" << endl;
 			}
 		}
 	}
 
 	if( success ) {
-		dest.wordSigns = move( wordSigns );
+		dest.data = move( data );
 		dest.nameIndices = move( nameIndices );
 	}
 	return success;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+void CConfiguration::SetAttributes( CWordAttributes&& attributes )
+{
+	wordAttributes = move( attributes );
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 static TWordSignType ParseWordSignType( const string& typeStr )
 {
@@ -247,15 +257,6 @@ const char* JsonConfigurationSchemeText()
 	return SchemeText;
 }
 
-class CConfigurationDerived : public CConfiguration {
-public:
-	using CConfiguration::wordSigns;
-
-	CConfigurationDerived()
-	{
-	}
-};
-
 CConfigurationPtr LoadConfigurationFromFile( const char* filename,
 	ostream& errorStream, ostream& logStream )
 {
@@ -301,40 +302,41 @@ CConfigurationPtr LoadConfigurationFromFile( const char* filename,
 	logStream << "Building configuration..." << endl;
 
 	Value wordSignArray = configDocument["word_signs"].GetArray();
-	CWordSignsBuilder wordSignsBuilder( wordSignArray.Size() );
+	CWordAttributesBuilder attributesBuilder( wordSignArray.Size() );
 	for( rapidjson::SizeType i = 0; i < wordSignArray.Size(); i++ ) {
-		CWordSign wordSign;
+		CWordAttribute attribute;
 		Value wordSignObject = wordSignArray[i].GetObject();
-		wordSign.Type = ParseWordSignType( wordSignObject["type"].GetString() );
-		debug_check_logic( wordSign.Type != WST_None );
+		attribute.Type = ParseWordSignType( wordSignObject["type"].GetString() );
+		debug_check_logic( attribute.Type != WST_None );
 
 		Value nameArray = wordSignObject["names"].GetArray();
 		for( rapidjson::SizeType ni = 0; ni < nameArray.Size(); ni++ ) {
-			const bool added = wordSign.Names.Add( nameArray[ni].GetString() );
+			const bool added = attribute.Names.Add( nameArray[ni].GetString() );
 			debug_check_logic( added );
 		}
 		if( wordSignObject.HasMember( "values" ) ) {
-			wordSign.Values.Add( "null" );
+			attribute.Values.Add( "null" );
 			Value valueArray = wordSignObject["values"].GetArray();
 			for( rapidjson::SizeType vi = 0; vi < valueArray.Size(); vi++ ) {
-				const bool added = wordSign.Values.Add( valueArray[vi].GetString() );
+				const bool added = attribute.Values.Add( valueArray[vi].GetString() );
 				debug_check_logic( added );
 			}
 		}
 		if( wordSignObject.HasMember( "consistent" ) ) {
-			wordSign.Consistent = wordSignObject["consistent"].GetBool();
+			attribute.Consistent = wordSignObject["consistent"].GetBool();
 		}
-		wordSignsBuilder.Add( move( wordSign ) );
+		attributesBuilder.Add( move( attribute ) );
 	}
 
-	unique_ptr<CConfigurationDerived> tmp( new CConfigurationDerived );
-	if( !wordSignsBuilder.Build( errorStream, tmp->wordSigns ) ) {
+	CWordAttributes wordAttributes;
+	if( !attributesBuilder.Build( errorStream, wordAttributes ) ) {
 		return CConfigurationPtr();
 	}
 
 	logStream << endl;
-	CConfigurationPtr configuration( tmp.release() );
-	configuration->WordSigns().Print( logStream );
+	CConfigurationPtr configuration( new CConfiguration );
+	configuration->SetAttributes( move( wordAttributes ) );
+	configuration->Attributes().Print( logStream );
 	logStream << "Configuration was successfully built!" << endl << endl;
 	return configuration;
 }
