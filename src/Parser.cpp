@@ -1,5 +1,6 @@
 #include <common.h>
 #include <Parser.h>
+#include <Text.h>
 #include <ErrorProcessor.h>
 #include <TranspositionSupport.h>
 #include <PatternsFileProcessor.h>
@@ -796,8 +797,13 @@ void CRegexpNode::Print( ostream& out ) const
 
 CPatternBasePtr CRegexpNode::Check( CPatternsBuilder& context ) const
 {
-	// TODO: check regex syntax!
 	debug_check_logic( regexp->Type == TT_Regexp );
+	// check regex syntax
+	try {
+		Text::RegexEx regexEx( Text::ToStringEx( regexp->Text ) );
+	} catch( regex_error& e ) {
+		context.AddComplexError( { regexp }, e.what() );
+	}
 	return CPatternBasePtr( new CPatternRegexp( regexp->Text ) );
 }
 
