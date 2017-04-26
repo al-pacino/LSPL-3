@@ -853,7 +853,7 @@ void CElementCondition::Check( CPatternsBuilder& context,
 				context.ErrorProcessor.AddError( CError( *tokenPtr,
 					"string constant expected" ) );
 			}*/
-			signValues.Add( context.StringIndex( value->Text ) );
+			signValues.Add( context.StringValue( value->Text ) );
 		}
 	} else {
 		for( const CTokenPtr& value : Values ) {

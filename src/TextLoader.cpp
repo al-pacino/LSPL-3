@@ -95,7 +95,7 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 					const string value = attr->value.GetString();
 					COrderedStrings::SizeType valueIndex;
 					if( attribute.Type == WST_String ) {
-						valueIndex = context.StringIndex( value );
+						valueIndex = context.StringValue( value );
 					} else {
 						if( !attribute.Values.Find( value, valueIndex ) ) {
 							valueIndex = attribute.Values.Size();

@@ -331,11 +331,10 @@ class CPatterns {
 public:
 	CPatterns( CPatterns&& ) = default;
 
-	const Configuration::CConfiguration& Configuration() const
-	{
-		return *configuration;
-	}
+	const Configuration::CConfiguration& Configuration() const { return *configuration; }
 
+	TReference Size() const { return Patterns.size(); }
+	const CPattern& Pattern( const TReference reference ) const;
 	void Print( ostream& out ) const;
 	string Element( const TElement element ) const;
 	string Reference( const TReference reference ) const;
@@ -343,13 +342,11 @@ public:
 		const Text::TAttributeValue attributeValue ) const;
 	TReference PatternReference( const string& name,
 		const TReference nameIndex = 0 ) const;
-	const CPattern& ResolveReference( const TReference reference ) const;
-	Text::TAttributeValue StringIndex( const string& str ) const;
+	Text::TAttributeValue StringValue( const string& str ) const;
 
 protected:
 	vector<CPattern> Patterns;
-	typedef vector<CPattern>::size_type TPatternIndex;
-	unordered_map<string, TPatternIndex> Names;
+	unordered_map<string, TReference> Names;
 
 	mutable vector<string> Strings;
 	mutable unordered_map<string, Text::TAttributeValue> StringIndices;
@@ -417,15 +414,18 @@ public:
 
 	const CPatterns& Patterns() const { return patterns; }
 
-	size_t PushMaxSize( const string& name, const size_t maxSize );
-	size_t PopMaxSize( const string& name );
+	size_t PushMaxSize( const TReference reference, const size_t maxSize );
+	size_t PopMaxSize( const TReference reference );
 
 	static void AddVariants( const vector<CPatternVariants>& allSubVariants,
 		vector<CPatternVariant>& variants, const size_t maxSize );
 
 private:
 	const CPatterns& patterns;
-	unordered_map<string, stack<size_t>> namedMaxSizes;
+	struct CPatternBuildData {
+		stack<size_t> MaxSizes;
+	};
+	vector<CPatternBuildData> data;
 
 	static bool nextIndices( const vector<CPatternVariants>& allSubVariants,
 		vector<size_t>& indices );

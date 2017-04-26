@@ -779,7 +779,7 @@ size_t CPatternReference::MinSizePrediction() const
 void CPatternReference::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
-	const CPattern& pattern = context.Patterns().ResolveReference( reference );
+	const CPattern& pattern = context.Patterns().Pattern( reference );
 	pattern.Build( context, variants, maxSize );
 
 	auto last = variants.begin();
@@ -847,9 +847,11 @@ size_t CPattern::MinSizePrediction() const
 void CPattern::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
-	const size_t correctMaxSize = context.PushMaxSize( name, maxSize );
+	const TReference reference = context.Patterns().PatternReference( name );
+
+	const size_t correctMaxSize = context.PushMaxSize( reference, maxSize );
 	root->Build( context, variants, correctMaxSize );
-	const size_t topMaxSize = context.PopMaxSize( name );
+	const size_t topMaxSize = context.PopMaxSize( reference );
 	debug_check_logic( topMaxSize == correctMaxSize );
 
 	if( !variants.empty() && variants.front().empty() ) {
@@ -859,7 +861,6 @@ void CPattern::Build( CPatternBuildContext& context,
 	// correct ids
 	const COrderedStrings::SizeType mainSize
 		= context.Patterns().Configuration().Attributes().Main().Values.Size();
-	const TReference patternReference = context.Patterns().PatternReference( name );
 	for( CPatternVariant& variant : variants ) {
 		for( CPatternWord& word : variant ) {
 			if( word.Id.Type != PAT_Element ) {
@@ -870,7 +871,7 @@ void CPattern::Build( CPatternBuildContext& context,
 				if( word.Id.Element == arguments[i].Element ) {
 					word.Id.Type = PAT_ReferenceElement;
 					word.Id.Element = word.Id.Element % mainSize + i * mainSize;
-					word.Id.Reference = patternReference;
+					word.Id.Reference = reference;
 					break;
 				}
 			}
@@ -889,14 +890,15 @@ CPatterns::CPatterns( Configuration::CConfigurationPtr _configuration ) :
 	check_logic( static_cast<bool>( configuration ) );
 }
 
+const CPattern& CPatterns::Pattern( const TReference reference ) const
+{
+	return Patterns[reference % Patterns.size()];
+}
+
 void CPatterns::Print( ostream& out ) const
 {
 	for( const CPattern& pattern : Patterns ) {
 		pattern.Print( *this, out );
-		CPatternBuildContext buildContext( *this );
-		CPatternVariants variants;
-		pattern.Build( buildContext, variants, 7 );
-		variants.Print( *this, out );
 		out << endl;
 	}
 }
@@ -940,12 +942,7 @@ TReference CPatterns::PatternReference( const string& name,
 	return ( pi->second + nameIndex * Names.size() );
 }
 
-const CPattern& CPatterns::ResolveReference( const TReference reference ) const
-{
-	return Patterns[reference % Patterns.size()];
-}
-
-TAttributeValue CPatterns::StringIndex( const string& str ) const
+TAttributeValue CPatterns::StringValue( const string& str ) const
 {
 	auto pair = StringIndices.insert( make_pair( str, Strings.size() ) );
 	if( pair.second ) {
@@ -1131,32 +1128,32 @@ CStates CPatternVariants::Build( const CPatterns& context ) const
 CPatternBuildContext::CPatternBuildContext( const CPatterns& _patterns ) :
 	patterns( _patterns )
 {
+	data.resize( patterns.Size() );
 }
 
-size_t CPatternBuildContext::PushMaxSize( const string& name,
+size_t CPatternBuildContext::PushMaxSize( const TReference reference,
 	const size_t maxSize )
 {
-	auto pair = namedMaxSizes.insert( make_pair( name, stack<size_t>() ) );
-	stack<size_t>& maxSizes = pair.first->second;
-
+	stack<size_t>& maxSizes = data[reference % data.size()].MaxSizes;
 	if( maxSizes.empty() || maxSize < maxSizes.top() ) {
 		maxSizes.push( maxSize );
 	} else {
 		debug_check_logic( maxSize == maxSizes.top() );
 		maxSizes.push( maxSize - 1 );
 	}
-
 	return maxSizes.top();
 }
 
-size_t CPatternBuildContext::PopMaxSize( const string& name )
+size_t CPatternBuildContext::PopMaxSize( const TReference reference )
 {
-	auto si = namedMaxSizes.find( name );
-	debug_check_logic( si != namedMaxSizes.end() );
-	const size_t topMaxSize = si->second.top();
-	si->second.pop();
+	stack<size_t>& maxSizes = data[reference % data.size()].MaxSizes;
+	debug_check_logic( !maxSizes.empty() );
+	const size_t topMaxSize = maxSizes.top();
+	maxSizes.pop();
 	return topMaxSize;
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 void CPatternBuildContext::AddVariants(
 	const vector<CPatternVariants>& allSubVariants,
