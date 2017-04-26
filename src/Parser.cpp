@@ -578,7 +578,7 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 	const CWordAttribute& main = attributes.Main();
 
 	const CIndexedName name( extendedName.first );
-	size_t index = 0;
+	COrderedStrings::SizeType index = 0;
 	const bool element = main.Values.Find( name.Name, index );
 
 	if( element ) {
