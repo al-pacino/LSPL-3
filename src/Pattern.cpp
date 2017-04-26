@@ -504,20 +504,10 @@ void CPatternRepeating::Build( CPatternBuildContext& context,
 	CPatternVariants subVariants;
 	element->Build( context, subVariants, elementMaxSize );
 
-	vector<CPatternVariants> allSubVariants( start, subVariants );
-	context.AddVariants( allSubVariants, variants, maxSize );
-
-	for( size_t count = start + 1; count <= finish; count++ ) {
-		const size_t variantsSize = variants.size();
-		for( size_t vi = 0; vi < variantsSize; vi++ ) {
-			const CPatternVariant& variant = variants[vi];
-			for( const CPatternVariant& subVariant : subVariants ) {
-				if( variant.size() + subVariant.size() <= maxSize ) {
-					variants.push_back( variant );
-					variants.back() += subVariant;
-				}
-			}
-		}
+	vector<CPatternVariants> allSubVariants( start - 1, subVariants );
+	for( size_t count = start; count <= finish; count++ ) {
+		allSubVariants.push_back( subVariants );
+		context.AddVariants( allSubVariants, variants, maxSize );
 	}
 }
 
