@@ -884,6 +884,8 @@ CPatterns::CPatterns( Configuration::CConfigurationPtr _configuration ) :
 	configuration( _configuration )
 {
 	check_logic( static_cast<bool>( configuration ) );
+	const TAttributeValue emptyStringAttributeValue = StringValue( "" );
+	debug_check_logic( emptyStringAttributeValue == NullAttributeValue );
 }
 
 const CPattern& CPatterns::Pattern( const TReference reference ) const
