@@ -202,19 +202,6 @@ private:
 	const bool optionalNode;
 	CTokenPtr minToken;
 	CTokenPtr maxToken;
-
-	size_t getMinCount() const
-	{
-		return ( ( minToken != nullptr ) ? minToken->Number : 0 );
-	}
-	size_t getMaxCount() const
-	{
-		if( maxToken != nullptr ) {
-			return maxToken->Number;
-		} else {
-			return ( optionalNode ? 1 : numeric_limits<size_t>::max() );
-		}
-	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////

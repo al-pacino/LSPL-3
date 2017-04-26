@@ -777,15 +777,31 @@ CPatternBasePtr CRepeatingNode::Check( CPatternsBuilder& context ) const
 			"inconsistent min/max repeating value" );
 	}
 
-	size_t mic = getMinCount();
-	size_t mac = getMaxCount();
-	if( mac < mic ) {
-		mic = 0;
-		mac = 1;
+	TVariantSize minCount = 0;
+	TVariantSize maxCount = optionalNode ? 1 : MaxVariantSize;
+
+	if( minToken != nullptr ) {
+		if( MaxVariantSize < minToken->Number ) {
+			context.AddComplexError( { minToken },
+				"too big min repeating value" );
+			minCount = MaxVariantSize;
+		} else {
+			minCount = Cast<TVariantSize>( minToken->Number );
+		}
+	}
+
+	if( maxToken != nullptr ) {
+		if( MaxVariantSize < maxToken->Number ) {
+			context.AddComplexError( { maxToken },
+				"too big max repeating value" );
+			maxCount = MaxVariantSize;
+		} else {
+			maxCount = max( Cast<TVariantSize>( maxToken->Number ), minCount );
+		}
 	}
 
 	return CPatternBasePtr(
-		new CPatternRepeating( node->Check( context ), mic, mac ) );
+		new CPatternRepeating( node->Check( context ), minCount, maxCount ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
