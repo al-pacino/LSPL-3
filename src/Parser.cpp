@@ -335,31 +335,31 @@ bool CAlternativeCondition::checkConsistency( CPatternsBuilder& context,
 	}
 
 	if( !wordConsistency || !equalConsistency ) {
-		vector<CTokenPtr> words;
-		vector<CTokenPtr> equals;
+		vector<CTokenPtr> wordTokens;
+		vector<CTokenPtr> equalTokens;
 
 		for( CExtendedNames::size_type i = 0; i < names.size(); i++ ) {
 			if( i % 2 == 0 ) {
 				// word
-				words.push_back( names[i].first );
-				words.push_back( names[i].second );
-				if( static_cast<bool>( words.back() ) ) {
-					words.push_back( nullptr );
+				wordTokens.push_back( names[i].first );
+				wordTokens.push_back( names[i].second );
+				if( static_cast<bool>( wordTokens.back() ) ) {
+					wordTokens.push_back( nullptr );
 				}
 			} else {
 				// = or ==
-				equals.push_back( names[i].second );
-				equals.push_back( nullptr );
+				equalTokens.push_back( names[i].second );
+				equalTokens.push_back( nullptr );
 			}
 		}
 
 		if( !equalConsistency ) {
-			context.AddComplexError( equals,
+			context.AddComplexError( equalTokens,
 				"inconsistent comparison in the condition" );
 		}
 
 		if( !wordConsistency ) {
-			context.AddComplexError( words,
+			context.AddComplexError( wordTokens,
 				"inconsistent attributes in the condition" );
 		}
 
@@ -585,7 +585,7 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 		index += name.Index * main.Values.Size(); // correct element index
 		if( static_cast<bool>( extendedName.second ) ) {
 			CIndexedName subName;
-			TSign subIndex;
+			Text::TAttribute subIndex = 0;
 			const bool found = !subName.Parse( extendedName.second )
 				&& attributes.Find( subName.Name, subIndex );
 

@@ -539,7 +539,7 @@ size_t CPatternRegexp::MinSizePrediction() const
 	return 1;
 }
 
-void CPatternRegexp::Build( CPatternBuildContext& context,
+void CPatternRegexp::Build( CPatternBuildContext& /*context*/,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
 	variants.clear();
@@ -740,7 +740,7 @@ size_t CPatternElement::MinSizePrediction() const
 	return 1;
 }
 
-void CPatternElement::Build( CPatternBuildContext& context,
+void CPatternElement::Build( CPatternBuildContext& /*context*/,
 	CPatternVariants& variants, const size_t maxSize ) const
 {
 	variants.clear();

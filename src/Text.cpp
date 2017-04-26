@@ -42,10 +42,10 @@ TAgreementPower CAnnotation::Agreement( const CAnnotation& annotation,
 
 	TAgreementPower power = AP_Strong;
 	for( TAttribute i = begin; i < end; i++ ) {
-		const CharEx c1 = attributes.Get( i );
-		const CharEx c2 = annotation.attributes.Get( i );
-		if( c1 != c2 ) {
-			if( c1 == NullAttributeValue || c2 == NullAttributeValue ) {
+		const TAttributeValue av1 = attributes.Get( i );
+		const TAttributeValue av2 = annotation.attributes.Get( i );
+		if( av1 != av2 ) {
+			if( av1 == NullAttributeValue || av2 == NullAttributeValue ) {
 				power = AP_Weak;
 			} else {
 				return AP_None;

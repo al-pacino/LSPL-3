@@ -302,7 +302,7 @@ CConfigurationPtr LoadConfigurationFromFile( const char* filename,
 	logStream << "Building configuration..." << endl;
 
 	Value wordSignArray = configDocument["word_signs"].GetArray();
-	CWordAttributesBuilder attributesBuilder( wordSignArray.Size() );
+	CWordAttributesBuilder attributesBuilder( Cast<TAttribute>( wordSignArray.Size() ) );
 	for( rapidjson::SizeType i = 0; i < wordSignArray.Size(); i++ ) {
 		CWordAttribute attribute;
 		Value wordSignObject = wordSignArray[i].GetObject();

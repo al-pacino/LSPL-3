@@ -110,9 +110,9 @@ void CTokenizer::Reset()
 	reset();
 }
 
-void CTokenizer::TokenizeLine( CSharedFileLine line )
+void CTokenizer::TokenizeLine( CSharedFileLine _line )
 {
-	initialize( line );
+	initialize( _line );
 	for( char c : line->Line ) {
 		step( c );
 		offset++;
