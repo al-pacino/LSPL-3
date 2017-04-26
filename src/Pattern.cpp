@@ -76,7 +76,7 @@ void CPatternArgument::Print( const CPatterns& context, ostream& out ) const
 	}
 	out << context.Element( Element );
 	if( HasSign() ) {
-		out << "." << context.SignName( Sign );
+		out << "." << context.Configuration().Attributes()[Sign].Names.Value( 0 );
 	}
 }
 
@@ -602,13 +602,13 @@ void CSignRestriction::Build( CAttributesRestrictionBuilder& builder ) const
 
 void CSignRestriction::Print( const CPatterns& context, ostream& out ) const
 {
-	out << context.SignName( sign );
+	out << context.Configuration().Attributes()[sign].Names.Value( 0 );
 	out << ( exclude ? "!=" : "=" );
 	for( CSignValues::SizeType i = 0; i < values.Size(); i++ ) {
 		if( i > 0 ) {
 			out << "|";
 		}
-		out << context.SignValue( sign, values.Value( i ) );
+		out << context.AttributeStringValue( sign, i );
 	}
 }
 
@@ -918,32 +918,16 @@ string CPatterns::Reference( const TReference reference ) const
 	return refName.Normalize();
 }
 
-string CPatterns::SignName( const TSign sign ) const
+string CPatterns::AttributeStringValue( const TAttribute attribute,
+	const TAttributeValue attributeValue ) const
 {
-	const CWordAttributes& attributes = Configuration().Attributes();
-	debug_check_logic( sign < attributes.Size() );
-	return attributes[sign].Names.Value( 0 );
-}
-
-string CPatterns::SignValue( const TSign signIndex,
-	const CSignValues::ValueType value ) const
-{
-	const CWordAttributes& attributes = Configuration().Attributes();
-	debug_check_logic( signIndex < attributes.Size() );
-	const CWordAttribute& sign = attributes[signIndex];
-	if( sign.Type == WST_String ) {
-		return String( value );
+	const CWordAttribute& wordAttribute = Configuration().Attributes()[attribute];
+	if( wordAttribute.Type == WST_String ) {
+		debug_check_logic( attributeValue < Strings.size() );
+		return Strings[attributeValue];
 	} else {
-		debug_check_logic( sign.Type == WST_Main || sign.Type == WST_Enum );
-		debug_check_logic( value < sign.Values.Size() );
-		return sign.Values.Value( value );
+		return wordAttribute.Values.Value( attributeValue );
 	}
-}
-
-string CPatterns::String( const CSignValues::ValueType index ) const
-{
-	debug_check_logic( index < Strings.size() );
-	return Strings[index];
 }
 
 TReference CPatterns::PatternReference( const string& name,

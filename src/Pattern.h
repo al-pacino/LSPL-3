@@ -339,10 +339,8 @@ public:
 	void Print( ostream& out ) const;
 	string Element( const TElement element ) const;
 	string Reference( const TReference reference ) const;
-	string SignName( const TSign sign ) const;
-	string SignValue( const TSign sign,
-		const CSignValues::ValueType value ) const;
-	string String( const CSignValues::ValueType index ) const;
+	string AttributeStringValue( const Text::TAttribute attribute,
+		const Text::TAttributeValue attributeValue ) const;
 	TReference PatternReference( const string& name,
 		const TReference nameIndex = 0 ) const;
 	const CPattern& ResolveReference( const TReference reference ) const;
