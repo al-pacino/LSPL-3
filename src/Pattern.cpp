@@ -594,9 +594,9 @@ bool CSignRestriction::IsEmpty( const CPatterns& context ) const
 
 void CSignRestriction::Build( CAttributesRestrictionBuilder& builder ) const
 {
-	builder.AddAttribute( Cast<TAttribute>( sign ), exclude );
+	builder.AddAttribute( sign, exclude );
 	for( CSignValues::SizeType i = 0; i < values.Size(); i++ ) {
-		builder.AddAttributeValue( Cast<TAttributeValue>( values.Value( i ) ) );
+		builder.AddAttributeValue( values.Value( i ) );
 	}
 }
 
@@ -963,8 +963,7 @@ const CPattern& CPatterns::ResolveReference( const TReference reference ) const
 
 TAttributeValue CPatterns::StringIndex( const string& str ) const
 {
-	auto pair = StringIndices.insert( make_pair( str,
-		Cast<TAttributeValue>( Strings.size() ) ) );
+	auto pair = StringIndices.insert( make_pair( str, Strings.size() ) );
 	if( pair.second ) {
 		Strings.push_back( str );
 	}

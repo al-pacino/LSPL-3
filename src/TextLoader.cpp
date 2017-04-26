@@ -101,9 +101,8 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 							valueIndex = attribute.Values.Size();
 						}
 					}
-					// TODO: check!
-					attributes.Set( Cast<TAttribute>( index ),
-						Cast<TAttributeValue>( valueIndex ) );
+					// TODO: check redefinition attribute value
+					attributes.Set( index, valueIndex );
 				}
 			}
 

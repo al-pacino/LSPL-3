@@ -665,7 +665,7 @@ CPatternBasePtr CPatternsBuilder::BuildElement( const CTokenPtr& reference,
 		const TElement element = index + name.Index * main.Values.Size();
 		{
 			CSignValues values;
-			values.Add( Cast<Text::TAttributeValue>( index ) );
+			values.Add( index );
 			CSignRestriction mainRestriction( element,
 				Text::MainAttribute, move( values ) );
 			const bool added = signRestrictions.Add( move( mainRestriction ) );
