@@ -71,9 +71,9 @@ public:
 	virtual ~IPatternBase() = 0 {}
 
 	virtual void Print( const CPatterns& context, ostream& out ) const = 0;
-	virtual size_t MinSizePrediction() const = 0;
+	virtual TVariantSize MinSizePrediction() const = 0;
 	virtual void Build( CPatternBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const = 0;
+		CPatternVariants& variants, const TVariantSize maxSize ) const = 0;
 };
 
 typedef unique_ptr<IPatternBase> CPatternBasePtr;
@@ -89,16 +89,17 @@ public:
 
 	// IPatternBase
 	void Print( const CPatterns& context, ostream& out ) const override;
-	size_t MinSizePrediction() const override;
-	void Build( CPatternBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override;
+	TVariantSize MinSizePrediction() const override;
+	void Build( CPatternBuildContext& context, CPatternVariants& variants,
+		const TVariantSize maxSize ) const override;
 
 private:
 	const bool transposition;
 	const CPatternBasePtrs elements;
 
 	void collectAllSubVariants( CPatternBuildContext& context,
-		vector<CPatternVariants>& allSubVariants, const size_t maxSize ) const;
+		vector<CPatternVariants>& allSubVariants,
+		const TVariantSize maxSize ) const;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -151,9 +152,9 @@ public:
 
 	// IPatternBase
 	void Print( const CPatterns& context, ostream& out ) const override;
-	size_t MinSizePrediction() const override;
-	void Build( CPatternBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override;
+	TVariantSize MinSizePrediction() const override;
+	void Build( CPatternBuildContext& context, CPatternVariants& variants,
+		const TVariantSize maxSize ) const override;
 
 private:
 	CPatternBasePtr element;
@@ -172,9 +173,9 @@ public:
 
 	// IPatternBase
 	void Print( const CPatterns& context, ostream& out ) const override;
-	size_t MinSizePrediction() const override;
-	void Build( CPatternBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override;
+	TVariantSize MinSizePrediction() const override;
+	void Build( CPatternBuildContext& context, CPatternVariants& variants,
+		const TVariantSize maxSize ) const override;
 
 private:
 	const CPatternBasePtrs alternatives;
@@ -184,20 +185,20 @@ private:
 
 class CPatternRepeating : public IPatternBase {
 public:
-	explicit CPatternRepeating( CPatternBasePtr&& element,
-		const size_t minCount = 0, const size_t maxCount = 1 );
+	CPatternRepeating( CPatternBasePtr&& element,
+		const TVariantSize minCount, const TVariantSize maxCount );
 	~CPatternRepeating() override {}
 
 	// IPatternBase
 	void Print( const CPatterns& context, ostream& out ) const override;
-	size_t MinSizePrediction() const override;
-	void Build( CPatternBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override;
+	TVariantSize MinSizePrediction() const override;
+	void Build( CPatternBuildContext& context, CPatternVariants& variants,
+		const TVariantSize maxSize ) const override;
 
 private:
 	const CPatternBasePtr element;
-	const size_t minCount;
-	const size_t maxCount;
+	const TVariantSize minCount;
+	const TVariantSize maxCount;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,9 +210,9 @@ public:
 
 	// IPatternBase
 	void Print( const CPatterns& context, ostream& out ) const override;
-	size_t MinSizePrediction() const override;
-	void Build( CPatternBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override;
+	TVariantSize MinSizePrediction() const override;
+	void Build( CPatternBuildContext& context, CPatternVariants& variants,
+		const TVariantSize maxSize ) const override;
 
 private:
 	string regexp;
@@ -271,9 +272,9 @@ public:
 
 	// IPatternBase
 	void Print( const CPatterns& context, ostream& out ) const override;
-	size_t MinSizePrediction() const override;
-	void Build( CPatternBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override;
+	TVariantSize MinSizePrediction() const override;
+	void Build( CPatternBuildContext& context, CPatternVariants& variants,
+		const TVariantSize maxSize ) const override;
 
 private:
 	const TElement element;
@@ -290,9 +291,9 @@ public:
 
 	// IPatternBase
 	void Print( const CPatterns& context, ostream& out ) const override;
-	size_t MinSizePrediction() const override;
-	void Build( CPatternBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override;
+	TVariantSize MinSizePrediction() const override;
+	void Build( CPatternBuildContext& context, CPatternVariants& variants,
+		const TVariantSize maxSize ) const override;
 
 private:
 	const TReference reference;
@@ -312,9 +313,9 @@ public:
 
 	// IPatternBase
 	void Print( const CPatterns& context, ostream& out ) const override;
-	size_t MinSizePrediction() const override;
-	void Build( CPatternBuildContext& context,
-		CPatternVariants& variants, const size_t maxSize ) const override;
+	TVariantSize MinSizePrediction() const override;
+	void Build( CPatternBuildContext& context, CPatternVariants& variants,
+		const TVariantSize maxSize ) const override;
 
 private:
 	string name;
@@ -414,8 +415,9 @@ public:
 
 	const CPatterns& Patterns() const { return patterns; }
 
-	size_t PushMaxSize( const TReference reference, const size_t maxSize );
-	size_t PopMaxSize( const TReference reference );
+	TVariantSize PushMaxSize( const TReference reference,
+		const TVariantSize maxSize );
+	TVariantSize PopMaxSize( const TReference reference );
 
 	static void AddVariants( const vector<CPatternVariants>& allSubVariants,
 		vector<CPatternVariant>& variants, const size_t maxSize );
@@ -423,7 +425,7 @@ public:
 private:
 	const CPatterns& patterns;
 	struct CPatternBuildData {
-		stack<size_t> MaxSizes;
+		stack<TVariantSize> MaxSizes;
 	};
 	vector<CPatternBuildData> data;
 

@@ -120,17 +120,17 @@ void CPatternSequence::Print( const CPatterns& context, ostream& out ) const
 	}
 }
 
-size_t CPatternSequence::MinSizePrediction() const
+TVariantSize CPatternSequence::MinSizePrediction() const
 {
 	size_t minSizePrediction = 0;
 	for( const CPatternBasePtr& childNode : elements ) {
 		minSizePrediction += childNode->MinSizePrediction();
 	}
-	return minSizePrediction;
+	return Cast<TVariantSize>( min<size_t>( minSizePrediction, MaxVariantSize ) );
 }
 
 void CPatternSequence::Build( CPatternBuildContext& context,
-	CPatternVariants& variants, const size_t maxSize ) const
+	CPatternVariants& variants, const TVariantSize maxSize ) const
 {
 	vector<CPatternVariants> allSubVariants;
 	collectAllSubVariants( context, allSubVariants, maxSize );
@@ -155,22 +155,23 @@ void CPatternSequence::Build( CPatternBuildContext& context,
 }
 
 void CPatternSequence::collectAllSubVariants( CPatternBuildContext& context,
-	vector<CPatternVariants>& allSubVariants, const size_t maxSize ) const
+	vector<CPatternVariants>& allSubVariants,
+	const TVariantSize maxSize ) const
 {
 	allSubVariants.clear();
 	if( maxSize == 0 ) {
 		return;
 	}
 
-	const size_t minSize = MinSizePrediction();
+	const TVariantSize minSize = MinSizePrediction();
 	if( minSize > maxSize ) {
 		return;
 	}
 
 	allSubVariants.reserve( elements.size() );
 	for( const CPatternBasePtr& childNode : elements ) {
-		const size_t emsp = childNode->MinSizePrediction();
-		const size_t mes = maxSize - minSize + emsp;
+		const TVariantSize emsp = childNode->MinSizePrediction();
+		const TVariantSize mes = maxSize - minSize + emsp;
 
 		CPatternVariants subVariants;
 		childNode->Build( context, subVariants, mes );
@@ -393,13 +394,13 @@ void CPatternAlternative::Print( const CPatterns& context, ostream& out ) const
 	conditions.Print( context, out );
 }
 
-size_t CPatternAlternative::MinSizePrediction() const
+TVariantSize CPatternAlternative::MinSizePrediction() const
 {
 	return element->MinSizePrediction();
 }
 
 void CPatternAlternative::Build( CPatternBuildContext& context,
-	CPatternVariants& variants, const size_t maxSize ) const
+	CPatternVariants& variants, const TVariantSize maxSize ) const
 {
 	element->Build( context, variants, maxSize );
 	for( CPatternVariant& variant : variants ) {
@@ -431,10 +432,10 @@ void CPatternAlternatives::Print( const CPatterns& context, ostream& out ) const
 	out << " )";
 }
 
-size_t CPatternAlternatives::MinSizePrediction() const
+TVariantSize CPatternAlternatives::MinSizePrediction() const
 {
 	check_logic( !alternatives.empty() );
-	size_t minSizePrediction = numeric_limits<size_t>::max();
+	TVariantSize minSizePrediction = MaxVariantSize;
 	for( const CPatternBasePtr& alternative : alternatives ) {
 		minSizePrediction = min( minSizePrediction, alternative->MinSizePrediction() );
 	}
@@ -442,7 +443,7 @@ size_t CPatternAlternatives::MinSizePrediction() const
 }
 
 void CPatternAlternatives::Build( CPatternBuildContext& context,
-	CPatternVariants& variants, const size_t maxSize ) const
+	CPatternVariants& variants, const TVariantSize maxSize ) const
 {
 	for( const CPatternBasePtr& alternative : alternatives ) {
 		CPatternVariants subVariants;
@@ -456,7 +457,7 @@ void CPatternAlternatives::Build( CPatternBuildContext& context,
 ///////////////////////////////////////////////////////////////////////////////
 
 CPatternRepeating::CPatternRepeating( CPatternBasePtr&& _element,
-		const size_t _minCount, const size_t _maxCount ) :
+		const TVariantSize _minCount, const TVariantSize _maxCount ) :
 	element( move( _element ) ),
 	minCount( _minCount ),
 	maxCount( _maxCount )
@@ -470,16 +471,18 @@ void CPatternRepeating::Print( const CPatterns& context, ostream& out ) const
 {
 	out << "{ ";
 	element->Print( context, out );
-	out << " }<" << minCount << "," << maxCount << ">";
+	out << " }<"
+		<< static_cast<size_t>( minCount ) << ","
+		<< static_cast<size_t>( maxCount ) << ">";
 }
 
-size_t CPatternRepeating::MinSizePrediction() const
+TVariantSize CPatternRepeating::MinSizePrediction() const
 {
 	return minCount;
 }
 
 void CPatternRepeating::Build( CPatternBuildContext& context,
-	CPatternVariants& variants, const size_t maxSize ) const
+	CPatternVariants& variants, const TVariantSize maxSize ) const
 {
 	variants.clear();
 	debug_check_logic( minCount <= maxCount );
@@ -498,8 +501,9 @@ void CPatternRepeating::Build( CPatternBuildContext& context,
 		return;
 	}
 
-	size_t finish = min( maxCount, maxSize / nmsp );
-	const size_t elementMaxSize = finish - nsmsp + nmsp;
+	size_t finish = min<size_t>( maxCount, maxSize / nmsp );
+	const TVariantSize elementMaxSize = Cast<TVariantSize>(
+		min<size_t>( finish - nsmsp + nmsp, MaxVariantSize ) );
 
 	CPatternVariants subVariants;
 	element->Build( context, subVariants, elementMaxSize );
@@ -509,6 +513,8 @@ void CPatternRepeating::Build( CPatternBuildContext& context,
 		allSubVariants.push_back( subVariants );
 		context.AddVariants( allSubVariants, variants, maxSize );
 	}
+
+	return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -524,13 +530,13 @@ void CPatternRegexp::Print( const CPatterns& /*context*/, ostream& out ) const
 	out << '"' << regexp << '"';
 }
 
-size_t CPatternRegexp::MinSizePrediction() const
+TVariantSize CPatternRegexp::MinSizePrediction() const
 {
 	return 1;
 }
 
 void CPatternRegexp::Build( CPatternBuildContext& /*context*/,
-	CPatternVariants& variants, const size_t maxSize ) const
+	CPatternVariants& variants, const TVariantSize maxSize ) const
 {
 	variants.clear();
 	if( maxSize > 0 ) {
@@ -725,13 +731,13 @@ void CPatternElement::Print( const CPatterns& context, ostream& out ) const
 	signs.Print( context, out );
 }
 
-size_t CPatternElement::MinSizePrediction() const
+TVariantSize CPatternElement::MinSizePrediction() const
 {
 	return 1;
 }
 
 void CPatternElement::Build( CPatternBuildContext& /*context*/,
-	CPatternVariants& variants, const size_t maxSize ) const
+	CPatternVariants& variants, const TVariantSize maxSize ) const
 {
 	variants.clear();
 	if( maxSize > 0 ) {
@@ -761,13 +767,13 @@ void CPatternReference::Print( const CPatterns& context, ostream& out ) const
 	signs.Print( context, out );
 }
 
-size_t CPatternReference::MinSizePrediction() const
+TVariantSize CPatternReference::MinSizePrediction() const
 {
 	return 1;
 }
 
 void CPatternReference::Build( CPatternBuildContext& context,
-	CPatternVariants& variants, const size_t maxSize ) const
+	CPatternVariants& variants, const TVariantSize maxSize ) const
 {
 	const CPattern& pattern = context.Patterns().Pattern( reference );
 	pattern.Build( context, variants, maxSize );
@@ -829,19 +835,19 @@ void CPattern::Print( const CPatterns& context, ostream& out ) const
 	out << endl;
 }
 
-size_t CPattern::MinSizePrediction() const
+TVariantSize CPattern::MinSizePrediction() const
 {
 	return root->MinSizePrediction();
 }
 
 void CPattern::Build( CPatternBuildContext& context,
-	CPatternVariants& variants, const size_t maxSize ) const
+	CPatternVariants& variants, const TVariantSize maxSize ) const
 {
 	const TReference reference = context.Patterns().PatternReference( name );
 
-	const size_t correctMaxSize = context.PushMaxSize( reference, maxSize );
+	const TVariantSize correctMaxSize = context.PushMaxSize( reference, maxSize );
 	root->Build( context, variants, correctMaxSize );
-	const size_t topMaxSize = context.PopMaxSize( reference );
+	const TVariantSize topMaxSize = context.PopMaxSize( reference );
 	debug_check_logic( topMaxSize == correctMaxSize );
 
 	if( !variants.empty() && variants.front().empty() ) {
@@ -1121,10 +1127,10 @@ CPatternBuildContext::CPatternBuildContext( const CPatterns& _patterns ) :
 	data.resize( patterns.Size() );
 }
 
-size_t CPatternBuildContext::PushMaxSize( const TReference reference,
-	const size_t maxSize )
+TVariantSize CPatternBuildContext::PushMaxSize( const TReference reference,
+	const TVariantSize maxSize )
 {
-	stack<size_t>& maxSizes = data[reference % data.size()].MaxSizes;
+	stack<TVariantSize>& maxSizes = data[reference % data.size()].MaxSizes;
 	if( maxSizes.empty() || maxSize < maxSizes.top() ) {
 		maxSizes.push( maxSize );
 	} else {
@@ -1134,11 +1140,11 @@ size_t CPatternBuildContext::PushMaxSize( const TReference reference,
 	return maxSizes.top();
 }
 
-size_t CPatternBuildContext::PopMaxSize( const TReference reference )
+TVariantSize CPatternBuildContext::PopMaxSize( const TReference reference )
 {
-	stack<size_t>& maxSizes = data[reference % data.size()].MaxSizes;
+	stack<TVariantSize>& maxSizes = data[reference % data.size()].MaxSizes;
 	debug_check_logic( !maxSizes.empty() );
-	const size_t topMaxSize = maxSizes.top();
+	const TVariantSize topMaxSize = maxSizes.top();
 	maxSizes.pop();
 	return topMaxSize;
 }
