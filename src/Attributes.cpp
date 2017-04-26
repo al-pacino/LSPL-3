@@ -127,7 +127,7 @@ CAttributesRestriction CAttributesRestrictionBuilder::Build() const
 			TShort* valuePtr = reinterpret_cast<TShort*>( dataPtr );
 			for( uint8_t i = 0; i < header.Length; i++ ) {
 				debug_check_logic( vi != values.cend() );
-				*valuePtr = *vi;
+				*valuePtr = Cast<TShort>( *vi );
 				++valuePtr;
 				++vi;
 			}
