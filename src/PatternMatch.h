@@ -8,6 +8,10 @@ namespace Pattern {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+typedef size_t TDictionary;
+
+///////////////////////////////////////////////////////////////////////////////
+
 typedef uint8_t TVariantSize;
 const TVariantSize MaxVariantSize = numeric_limits<TVariantSize>::max();
 
@@ -160,24 +164,33 @@ private:
 
 class CAgreementAction : public IAction {
 public:
-	explicit CAgreementAction( const CPatternWordCondition& condition );
+	CAgreementAction( const Text::TAttribute attribute,
+		const TVariantSize offset );
+	CAgreementAction( const Text::TAttribute attribute,
+		const TVariantSize offset, const vector<TVariantSize>& words );
+
 	~CAgreementAction() override {}
 	bool Run( const CMatchContext& context ) const override;
 
 private:
-	const CPatternWordCondition condition;
+	const bool strong;
+	const Text::TAttribute attribute;
+	CFixedSizeArray<TVariantSize, TVariantSize> offsets;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
 class CDictionaryAction : public IAction {
 public:
-	explicit CDictionaryAction( const CPatternWordCondition& condition );
+	CDictionaryAction( const TDictionary dictionary,
+		const TVariantSize offset, const vector<TVariantSize>& words );
+
 	~CDictionaryAction() override {}
 	bool Run( const CMatchContext& context ) const override;
 
 private:
-	const CPatternWordCondition condition;
+	const TDictionary dictionary;
+	CFixedSizeArray<TVariantSize, TVariantSize> offsets;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

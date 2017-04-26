@@ -197,10 +197,26 @@ void CMatchContext::match( const TStateIndex stateIndex )
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CAgreementAction::CAgreementAction( const CPatternWordCondition& _condition ) :
-	condition( _condition )
+CAgreementAction::CAgreementAction( const TAttribute _attribute,
+		const TVariantSize offset ) :
+	strong( true ),
+	attribute( _attribute ),
+	offsets( 1 )
 {
-	// TODO: checks
+	offsets[0] = offset;
+}
+
+CAgreementAction::CAgreementAction( const TAttribute _attribute,
+		const TVariantSize offset, const vector<TVariantSize>& words ) :
+	strong( false ),
+	attribute( _attribute ),
+	offsets( Cast<TVariantSize>( words.size() ) )
+{
+	debug_check_logic( !words.empty() );
+	for( TVariantSize i = 0; i < offsets.Size(); i++ ) {
+		debug_check_logic( words[i] <= offset );
+		offsets[i] = offset - words[i];
+	}
 }
 
 bool CAgreementAction::Run( const CMatchContext& context ) const
@@ -209,17 +225,15 @@ bool CAgreementAction::Run( const CMatchContext& context ) const
 	const CArgreements& agreements = context.Text().Argreements();
 	const TWordIndex index2 = context.Shift();
 	const CAnnotationIndices& indices2 = editor.Value( index2 );
-	
-	CArgreements::CKey key{ { 0, context.Word() },
-		Cast<TAttribute>( condition.Param ) };
 
-	for( CPatternWordCondition::TValue i = 0; i < condition.Offsets.Size(); i++ ) {
-		const CPatternWordCondition::TValue offset = condition.Offsets[i];
+	CArgreements::CKey key{ { 0, context.Word() }, attribute };
+	for( CPatternWordCondition::TValue i = 0; i < offsets.Size(); i++ ) {
+		const CPatternWordCondition::TValue offset = offsets[i];
 		debug_check_logic( offset < index2 );
 		const TWordIndex index1 = index2 - offset;
 		const CAnnotationIndices& indices1 = editor.Value( index1 );
 		key.first.first = context.Word() - offset;
-		CAgreement agr = agreements.Agreement( key, condition.Strong );
+		CAgreement agr = agreements.Agreement( key, strong );
 		agr.first = CAnnotationIndices::Intersection( agr.first, indices1 );
 		agr.second = CAnnotationIndices::Intersection( agr.second, indices2 );
 
@@ -235,18 +249,28 @@ bool CAgreementAction::Run( const CMatchContext& context ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CDictionaryAction::CDictionaryAction( const CPatternWordCondition& _condition ) :
-	condition( _condition )
+CDictionaryAction::CDictionaryAction( const TDictionary _dictionary,
+		const TVariantSize offset, const vector<TVariantSize>& words ) :
+	dictionary( _dictionary ),
+	offsets( Cast<TVariantSize>( words.size() ) )
 {
-	// TODO: checks
+	debug_check_logic( !words.empty() );
+	for( TVariantSize i = 0; i < offsets.Size(); i++ ) {
+		if( words[i] < MaxVariantSize ) {
+			debug_check_logic( words[i] <= offset );
+			offsets[i] = offset - words[i];
+		} else {
+			offsets[i] = MaxVariantSize;
+		}
+	}
 }
 
 bool CDictionaryAction::Run( const CMatchContext& context ) const
 {
 	vector<string> words;
 	words.emplace_back();
-	for( CPatternWordCondition::TValue i = 0; i < condition.Offsets.Size(); i++ ) {
-		const CPatternWordCondition::TValue offset = condition.Offsets[i];
+	for( CPatternWordCondition::TValue i = 0; i < offsets.Size(); i++ ) {
+		const CPatternWordCondition::TValue offset = offsets[i];
 		if( offset == CPatternWordCondition::Max ) {
 			debug_check_logic( !words.back().empty() );
 			words.back().pop_back();
@@ -261,7 +285,7 @@ bool CDictionaryAction::Run( const CMatchContext& context ) const
 	words.back().pop_back();
 
 #ifdef _DEBUG
-	cout << "dictionary{" << condition.Param << "}(";
+	cout << "dictionary{" << dictionary << "}(";
 	bool first = true;
 	for( const string& word : words ) {
 		if( first ) {
