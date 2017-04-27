@@ -315,7 +315,9 @@ CConfigurationPtr LoadConfigurationFromFile( const char* filename,
 			debug_check_logic( added );
 		}
 		if( wordSignObject.HasMember( "values" ) ) {
-			attribute.Values.Add( "null" );
+			if( attribute.Type == WST_Enum ) {
+				attribute.Values.Add( "" );
+			}
 			Value valueArray = wordSignObject["values"].GetArray();
 			for( rapidjson::SizeType vi = 0; vi < valueArray.Size(); vi++ ) {
 				const bool added = attribute.Values.Add( valueArray[vi].GetString() );
