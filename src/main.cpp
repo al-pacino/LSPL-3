@@ -52,6 +52,7 @@ int main( int argc, const char* argv[] )
 				CPatternBuildContext buildContext( patterns );
 				CPatternVariants variants;
 				pattern.Build( buildContext, variants, 12 );
+				variants.Print( patterns, cout );
 				states = move( variants.Build( patterns ) );
 			}
 			{
