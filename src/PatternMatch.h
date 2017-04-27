@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Text.h>
+#include <Configuration.h>
 #include <FixedSizeArray.h>
 
 namespace Lspl {
@@ -8,31 +9,8 @@ namespace Pattern {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef size_t TDictionary;
-
-///////////////////////////////////////////////////////////////////////////////
-
 typedef uint8_t TVariantSize;
 const TVariantSize MaxVariantSize = numeric_limits<TVariantSize>::max();
-
-typedef size_t TParam;
-
-///////////////////////////////////////////////////////////////////////////////
-
-struct CPatternWordCondition {
-	typedef uint8_t TValue;
-	static const TValue Max = numeric_limits<TValue>::max();
-
-	CPatternWordCondition( const TValue offset, const TParam param );
-	CPatternWordCondition( const TValue offset,
-		const vector<TValue>& words, const TParam param );
-
-	void Print( ostream& out ) const;
-
-	bool Strong;
-	TParam Param;
-	CFixedSizeArray<TValue, TValue> Offsets;
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -114,17 +92,24 @@ class IAction {
 public:
 	virtual ~IAction() = 0 {}
 	virtual bool Run( const CMatchContext& context ) const = 0;
+	virtual void Print( const Configuration::CConfiguration& configuration,
+		ostream& out ) const = 0;
 };
+
+typedef shared_ptr<IAction> CActionPtr;
 
 ///////////////////////////////////////////////////////////////////////////////
 
 class CActions {
 public:
-	void Add( shared_ptr<IAction> action );
+	CActions() = default;
+	void Add( CActionPtr action );
 	bool Run( const CMatchContext& context ) const;
+	void Print( const Configuration::CConfiguration& configuration,
+		ostream& out ) const;
 
 private:
-	vector<shared_ptr<IAction>> actions;
+	vector<CActionPtr> actions;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -171,6 +156,8 @@ public:
 
 	~CAgreementAction() override {}
 	bool Run( const CMatchContext& context ) const override;
+	void Print( const Configuration::CConfiguration& configuration,
+		ostream& out ) const override;
 
 private:
 	const bool strong;
@@ -182,14 +169,16 @@ private:
 
 class CDictionaryAction : public IAction {
 public:
-	CDictionaryAction( const TDictionary dictionary,
+	CDictionaryAction( const Configuration::TDictionary dictionary,
 		const TVariantSize offset, const vector<TVariantSize>& words );
 
 	~CDictionaryAction() override {}
 	bool Run( const CMatchContext& context ) const override;
+	void Print( const Configuration::CConfiguration& configuration,
+		ostream& out ) const override;
 
 private:
-	const TDictionary dictionary;
+	const Configuration::TDictionary dictionary;
 	CFixedSizeArray<TVariantSize, TVariantSize> offsets;
 };
 
@@ -200,9 +189,11 @@ public:
 	explicit CPrintAction( ostream& out );
 	~CPrintAction() override {}
 	bool Run( const CMatchContext& context ) const override;
+	void Print( const Configuration::CConfiguration& configuration,
+		ostream& out ) const override;
 
 private:
-	ostream& out;
+	ostream& output;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

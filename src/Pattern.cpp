@@ -243,9 +243,9 @@ void CCondition::Print( const CPatterns& context, ostream& out ) const
 CConditions::CConditions( vector<CCondition>&& conditions ) :
 	data( move( conditions ) )
 {
-	for( TValue i = 0; i < data.size(); i++ ) {
+	for( TVariantSize i = 0; i < data.size(); i++ ) {
 		const CPatternArguments& arguments = data[i].Arguments();
-		for( TValue j = 0; j < arguments.size(); j++ ) {
+		for( TVariantSize j = 0; j < arguments.size(); j++ ) {
 			CPatternArgument argument = arguments[j];
 			if( argument.Defined() ) {
 				argument.RemoveSign();
@@ -262,14 +262,14 @@ bool CConditions::buildLinks( CPatternVariant& variant, CLinks& links ) const
 		return false;
 	}
 
-	for( TValue wi = 0; wi < variant.size(); wi++ ) {
+	for( TVariantSize wi = 0; wi < variant.size(); wi++ ) {
 		if( !variant[wi].Id.Defined() ) {
 			continue;
 		}
 
 		auto range = indices.equal_range( variant[wi].Id );
 		for( auto ci = range.first; ci != range.second; ++ci ) {
-			const pair<TValue, TValue> ciai = ci->second;
+			const pair<TVariantSize, TVariantSize> ciai = ci->second;
 			if( data[ciai.first].Agreement() ) {
 				auto pair = links.insert( { ciai.first, wi, ciai.second } );
 				debug_check_logic( pair.second );
@@ -295,7 +295,7 @@ void CConditions::Apply( CPatternVariant& variant ) const
 	while( i != links.cend() ) {
 		const CCondition& condition = data[( *i )[0]];
 		if( condition.Agreement() ) {
-			const TSign sign = condition.Arguments().front().Sign;
+			const TAttribute sign = condition.Arguments().front().Sign;
 			if( condition.Strong() ) {
 				debug_check_logic( ( *i )[2] <= 1 );
 				auto j = i;
@@ -303,58 +303,60 @@ void CConditions::Apply( CPatternVariant& variant ) const
 					debug_check_logic( ( *j )[2] <= 1 );
 					const CLinks::value_type& di = *i;
 					const CLinks::value_type& dj = *j;
-					variant[dj[1]].Conditions.emplace_back( dj[1] - di[1], sign );
+					variant[dj[1]].Actions.Add( CActionPtr(
+						new CAgreementAction( sign, dj[1] - di[1] ) ) );
 					i++;
 				}
 				i = j;
 			} else if( condition.SelfAgreement() ) {
 				debug_check_logic( ( *i )[2] == 0 );
-				vector<TValue> words;
+				vector<TVariantSize> words;
 				words.push_back( ( *i )[1] );
 				auto j = i;
 				while( ++j != links.cend() && ( *j )[0] == ( *i )[0] ) {
 					debug_check_logic( ( *j )[2] == 0 );
-					const TValue offset = ( *j )[1];
-					variant[offset].Conditions.emplace_back( offset, words, sign );
+					const TVariantSize offset = ( *j )[1];
+					variant[offset].Actions.Add( CActionPtr(
+						new CAgreementAction( sign, offset, words ) ) );
 					words.push_back( offset );
 				}
 				i = j;
 			} else {
 				debug_check_logic( ( *i )[2] <= 1 );
-				array<vector<TValue>, 2> words;
+				array<vector<TVariantSize>, 2> words;
 				words[( *i )[2]].push_back( ( *i )[1] );
 				auto j = i;
 				while( ++j != links.cend() && ( *j )[0] == ( *i )[0] ) {
 					debug_check_logic( ( *j )[2] <= 1 );
-					const TValue offset = ( *j )[1];
-					const TValue another = ( *j )[2] == 0 ? 1 : 0;
+					const TVariantSize offset = ( *j )[1];
+					const TVariantSize another = ( *j )[2] == 0 ? 1 : 0;
 					if( !words[another].empty() ) {
-						variant[offset].Conditions.emplace_back( offset,
-							words[another], sign );
+						variant[offset].Actions.Add( CActionPtr(
+							new CAgreementAction( sign, offset, words[another] ) ) );
 					}
 					words[( *j )[2]].push_back( offset );
 				}
 				i = j;
 			}
 		} else {
-			const TSign sign = 99;
-			TValue maxOffset = ( *i )[2];
-			vector<TValue> words;
+			TVariantSize maxOffset = ( *i )[2];
+			vector<TVariantSize> words;
 			words.push_back( maxOffset );
 			auto j = i;
 			while( ++j != links.cend() && ( *j )[0] == ( *i )[0] ) {
 				if( ( *j )[1] - ( *i )[1] > 1 ) {
-					words.push_back( CPatternWordCondition::Max );
+					words.push_back( MaxVariantSize );
 				}
-				const TValue offset = ( *j )[2];
+				const TVariantSize offset = ( *j )[2];
 				words.push_back( offset );
 				maxOffset = max( offset, maxOffset );
 				i++;
 			}
 			i = j;
-
 			// TODO: check condition
-			variant[maxOffset].Conditions.emplace_back( maxOffset, words, sign );
+			const TDictionary dictionary = 999;
+			variant[maxOffset].Actions.Add( CActionPtr(
+				new CDictionaryAction( dictionary, maxOffset, words ) ) );
 		}
 	}
 }
@@ -1014,20 +1016,7 @@ void CPatternWord::Print( const CPatterns& context, ostream& out ) const
 			Id.Print( context, out );
 		}
 		SignRestrictions.Print( context, out );
-
-		if( !Conditions.empty() ) {
-			out << "<<";
-			bool first = true;
-			for( const CPatternWordCondition& condition : Conditions ) {
-				if( first ) {
-					first = false;
-				} else {
-					out << "|";
-				}
-				condition.Print( out );
-			}
-			out << ">>";
-		}
+		Actions.Print( context.Configuration(), out );
 	}
 }
 

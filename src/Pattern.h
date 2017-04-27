@@ -129,16 +129,15 @@ public:
 
 private:
 	vector<CCondition> data;
-	typedef CPatternWordCondition::TValue TValue;
 	typedef unordered_multimap<
-		CPatternArgument, pair<TValue, TValue>,
+		CPatternArgument, pair<TVariantSize, TVariantSize>,
 		CPatternArgument::Hasher,
 		CPatternArgument::Comparator> CIndices;
 	CIndices indices;
 
 	// Agreement Link : condition_index, word_index, argument_index
 	// Dictionary Link : condition_index, argument_index, word_index
-	typedef set<array<TValue, 3>> CLinks;
+	typedef set<array<TVariantSize, 3>> CLinks;
 
 	bool buildLinks( CPatternVariant& variant, CLinks& links ) const;
 };
@@ -374,7 +373,7 @@ struct CPatternWord {
 	CPatternArgument Id;
 	const string* Regexp;
 	CSignRestrictions SignRestrictions;
-	list<CPatternWordCondition> Conditions;
+	CActions Actions;
 
 	explicit CPatternWord( const string* const regexp );
 	CPatternWord( const CPatternArgument id,

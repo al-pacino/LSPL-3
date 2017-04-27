@@ -4,48 +4,10 @@
 #include <PatternMatch.h>
 
 using namespace Lspl::Text;
+using namespace Lspl::Configuration;
 
 namespace Lspl {
 namespace Pattern {
-
-///////////////////////////////////////////////////////////////////////////////
-
-CPatternWordCondition::CPatternWordCondition( const TValue offset,
-		const TParam param ) :
-	Strong( true ),
-	Param( param ),
-	Offsets( 1 )
-{
-	Offsets[0] = offset;
-}
-
-CPatternWordCondition::CPatternWordCondition( const TValue offset,
-		const vector<TValue>& words, const TParam param ) :
-	Strong( false ),
-	Param( param ),
-	Offsets( Cast<TValue>( words.size() ) )
-{
-	debug_check_logic( !words.empty() );
-	debug_check_logic( words.size() < Max );
-	for( TValue i = 0; i < Offsets.Size(); i++ ) {
-		if( words[i] < Max ) {
-			debug_check_logic( words[i] <= offset );
-			Offsets[i] = offset - words[i];
-		} else {
-			Offsets[i] = Max;
-		}
-	}
-}
-
-void CPatternWordCondition::Print( ostream& out ) const
-{
-	out << Param
-		<< ( Strong ? "==" : "=" )
-		<< static_cast<uint32_t>( Offsets[0] );
-	for( TValue i = 1; i < Offsets.Size(); i++ ) {
-		out << "," << static_cast<uint32_t>( Offsets[i] );
-	}
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -127,7 +89,7 @@ bool CAttributesTransition::Match( const CWord& word,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void CActions::Add( shared_ptr<IAction> action )
+void CActions::Add( CActionPtr action )
 {
 	actions.emplace_back( action );
 }
@@ -140,6 +102,13 @@ bool CActions::Run( const CMatchContext& context ) const
 		}
 	}
 	return true;
+}
+
+void CActions::Print( const CConfiguration& configuration, ostream& out ) const
+{
+	for( const shared_ptr<IAction>& action : actions ) {
+		action->Print( configuration, out );
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -227,8 +196,8 @@ bool CAgreementAction::Run( const CMatchContext& context ) const
 	const CAnnotationIndices& indices2 = editor.Value( index2 );
 
 	CArgreements::CKey key{ { 0, context.Word() }, attribute };
-	for( CPatternWordCondition::TValue i = 0; i < offsets.Size(); i++ ) {
-		const CPatternWordCondition::TValue offset = offsets[i];
+	for( TVariantSize i = 0; i < offsets.Size(); i++ ) {
+		const TVariantSize offset = offsets[i];
 		debug_check_logic( offset < index2 );
 		const TWordIndex index1 = index2 - offset;
 		const CAnnotationIndices& indices1 = editor.Value( index1 );
@@ -245,6 +214,21 @@ bool CAgreementAction::Run( const CMatchContext& context ) const
 		editor.Set( index2, move( agr.second ) );
 	}
 	return true;
+}
+
+void CAgreementAction::Print( const CConfiguration& configuration,
+	ostream& out ) const
+{
+	out << "<<"
+		<< configuration.Attributes()[attribute].Names.Value( 0 )
+		<< ( strong ? "==" : "=" );
+	for( TVariantSize i = 0; i < offsets.Size(); i++ ) {
+		if( i > 0 ) {
+			out << ",";
+		}
+		out << Cast<uint32_t>( offsets[i] );
+	}
+	out << ">>";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -269,9 +253,9 @@ bool CDictionaryAction::Run( const CMatchContext& context ) const
 {
 	vector<string> words;
 	words.emplace_back();
-	for( CPatternWordCondition::TValue i = 0; i < offsets.Size(); i++ ) {
-		const CPatternWordCondition::TValue offset = offsets[i];
-		if( offset == CPatternWordCondition::Max ) {
+	for( TVariantSize i = 0; i < offsets.Size(); i++ ) {
+		const TVariantSize offset = offsets[i];
+		if( offset == MaxVariantSize ) {
 			debug_check_logic( !words.back().empty() );
 			words.back().pop_back();
 			words.emplace_back();
@@ -301,10 +285,32 @@ bool CDictionaryAction::Run( const CMatchContext& context ) const
 	return true;
 }
 
+void CDictionaryAction::Print(
+	const Configuration::CConfiguration& /*configuration*/,
+	ostream& out ) const
+{
+	out << "<<" << dictionary << "(";
+	bool first = true;
+	for( TVariantSize i = 0; i < offsets.Size(); i++ ) {
+		if( first ) {
+			first = false;
+		} else {
+			out << " ";
+		}
+		if( offsets[i] == MaxVariantSize ) {
+			out << ",";
+			first = true;
+		} else {
+			out << Cast<uint32_t>( offsets[i] );
+		}
+	}
+	out << ")>>";
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
-CPrintAction::CPrintAction( ostream& _out ) :
-	out( _out )
+CPrintAction::CPrintAction( ostream& out ) :
+	output( out )
 {
 }
 
@@ -313,13 +319,19 @@ bool CPrintAction::Run( const CMatchContext& context ) const
 	const TWordIndex begin = context.InitialWord();
 	const TWordIndex end = context.Word();
 
-	out << "{";
+	output << "{";
 	for( TWordIndex wi = begin; wi < end; wi++ ) {
-		out << context.Text().Word( wi ).text << " ";
+		output << context.Text().Word( wi ).text << " ";
 	}
-	out << context.Text().Word( end ).text << "}" << endl;
+	output << context.Text().Word( end ).text << "}" << endl;
 
 	return true;
+}
+
+void CPrintAction::Print( const Configuration::CConfiguration& /*configuration*/,
+	ostream& out ) const
+{
+	out << "<<Save>>";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
