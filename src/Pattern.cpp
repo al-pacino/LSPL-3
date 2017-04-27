@@ -339,6 +339,9 @@ void CConditions::Apply( CPatternVariant& variant ) const
 				i = j;
 			}
 		} else {
+#pragma message( "not implemented yet" )
+			check_logic( false );
+#if 0
 			TVariantSize maxOffset = ( *i )[2];
 			vector<TVariantSize> words;
 			words.push_back( maxOffset );
@@ -357,6 +360,7 @@ void CConditions::Apply( CPatternVariant& variant ) const
 			const TDictionary dictionary = 999;
 			variant[maxOffset].Actions.Add( CActionPtr(
 				new CDictionaryAction( dictionary, maxOffset, words ) ) );
+#endif
 		}
 	}
 }
