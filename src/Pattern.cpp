@@ -606,7 +606,7 @@ void CSignRestriction::Print( const CPatterns& context, ostream& out ) const
 		if( i > 0 ) {
 			out << "|";
 		}
-		out << context.AttributeStringValue( sign, i );
+		out << context.AttributeStringValue( sign, values.Value( i ) );
 	}
 }
 
@@ -793,7 +793,7 @@ void CPatternReference::Build( CPatternBuildContext& context,
 					break;
 				}
 			} else {
-				debug_check_logic( word.Id.Type == PAT_None );
+				word.Id = CPatternArgument();
 			}
 		}
 		if( !isEmpty ) {
@@ -862,7 +862,6 @@ void CPattern::Build( CPatternBuildContext& context,
 	for( CPatternVariant& variant : variants ) {
 		for( CPatternWord& word : variant ) {
 			if( word.Id.Type != PAT_Element ) {
-				word.Id = CPatternArgument();
 				continue;
 			}
 			for( CPatternArguments::size_type i = 0; i < arguments.size(); i++ ) {
@@ -872,9 +871,6 @@ void CPattern::Build( CPatternBuildContext& context,
 					word.Id.Reference = reference;
 					break;
 				}
-			}
-			if( word.Id.Type == PAT_Element ) {
-				word.Id = CPatternArgument();
 			}
 		}
 	}
