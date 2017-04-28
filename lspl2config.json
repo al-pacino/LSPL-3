@@ -6,11 +6,11 @@
       "values": [ "W", "N", "A", "V", "Pa", "Ap", "Pn", "Av", "Cn", "Pr", "Pt", "Int", "Num" ]
     },
     {
-      "names": [ "stem", "st" ],
+      "names": [ "lemma", "b" ],
       "type": "string"
     },
     {
-      "names": [ "lemma" ],
+      "names": [ "stem", "st" ],
       "type": "string"
     },
     {
