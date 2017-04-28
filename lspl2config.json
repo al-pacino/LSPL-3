@@ -16,7 +16,7 @@
     {
       "names": [ "case", "c" ],
       "type": "enum",
-      "values": [ "nom", "gen", "dat", "acc", "ins", "prep", "un" ],
+      "values": [ "nom", "gen", "dat", "acc", "ins", "prep", "uninf" ],
       "consistent": true
     },
     {
@@ -64,7 +64,7 @@
     {
       "names": [ "person", "p" ],
       "type": "enum",
-      "values": [ "ind", "imp", "conj", "cond" ],
+      "values": [ "first", "second", "third" ],
       "consistent": true
     },
     {
