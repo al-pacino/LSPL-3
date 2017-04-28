@@ -315,7 +315,7 @@ CConfigurationPtr LoadConfigurationFromFile( const char* filename,
 			debug_check_logic( added );
 		}
 		if( wordSignObject.HasMember( "values" ) ) {
-			if( attribute.Type == WST_Enum ) {
+			if( attribute.Type == WST_Enum || attribute.Type == WST_Main ) {
 				attribute.Values.Add( "" );
 			}
 			Value valueArray = wordSignObject["values"].GetArray();
