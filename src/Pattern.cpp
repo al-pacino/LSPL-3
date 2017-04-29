@@ -983,10 +983,7 @@ void CPatternWord::Build( CStatesBuildContext& context ) const
 
 	const TStateIndex nextStateIndex = context.States.size();
 	context.States.emplace_back();
-#pragma message( "not implemented" )
-	/*for( const CPatternWordCondition& condition : Conditions ) {
-		// TODO: build
-	}*/
+	context.States.back().Actions = Actions;
 
 	CTransitionPtr transition;
 	if( Regexp != nullptr ) {
