@@ -47,7 +47,6 @@ int main( int argc, const char* argv[] )
 		const CPatterns patterns = patternsBuilder.Save();
 		patterns.Print( cout );
 
-		argv[3] = "_text1.json";
 		CWords words;
 		LoadText( patterns, argv[3], words );
 		CText text( move( words ) );
