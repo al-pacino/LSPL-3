@@ -131,7 +131,7 @@ public:
 	const Text::CText& Text() const { return text; }
 	const CDataEditor& DataEditor() const;
 	const Text::TWordIndex InitialWord() const { return initialWordIndex; }
-	const Text::TWordIndex Shift() const { return data.size(); }
+	const Text::TWordIndex Shift() const;
 	const Text::TWordIndex Word() const;
 	void Match( const Text::TWordIndex initialWordIndex );
 

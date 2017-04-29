@@ -127,10 +127,15 @@ const CDataEditor& CMatchContext::DataEditor() const
 	return editors.top();
 }
 
+const Text::TWordIndex CMatchContext::Shift() const
+{
+	debug_check_logic( !data.empty() );
+	return ( data.size() - 1 );
+}
+
 const Text::TWordIndex CMatchContext::Word() const
 {
-	debug_check_logic( Shift() > 0 );
-	return ( InitialWord() + Shift() - 1 );
+	return ( InitialWord() + Shift() );
 }
 
 void CMatchContext::Match( const TWordIndex _initialWordIndex )
@@ -148,7 +153,7 @@ void CMatchContext::match( const TStateIndex stateIndex )
 
 	if( !state.Actions.Run( *this ) // conditions are not met
 		|| transitions.empty() // leaf
-		|| !( ( InitialWord() + Shift() ) < Text().Length() ) )
+		|| !( ( InitialWord() + data.size() ) < Text().Length() ) )
 	{
 		return;
 	}
@@ -198,7 +203,7 @@ bool CAgreementAction::Run( const CMatchContext& context ) const
 	CArgreements::CKey key{ { 0, context.Word() }, attribute };
 	for( TVariantSize i = 0; i < offsets.Size(); i++ ) {
 		const TVariantSize offset = offsets[i];
-		debug_check_logic( offset < index2 );
+		debug_check_logic( offset <= index2 );
 		const TWordIndex index1 = index2 - offset;
 		const CAnnotationIndices& indices1 = editor.Value( index1 );
 		key.first.first = context.Word() - offset;
