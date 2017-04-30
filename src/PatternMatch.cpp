@@ -476,14 +476,19 @@ CPrintAction::CPrintAction( ostream& out ) :
 
 bool CPrintAction::Run( const CMatchContext& context ) const
 {
+	const CDataEditor& data = context.DataEditor();
 	const TWordIndex begin = context.InitialWord();
 	const TWordIndex end = context.Word();
 
 	output << "{";
-	for( TWordIndex wi = begin; wi < end; wi++ ) {
-		output << context.Text().Word( wi ).text << " ";
+	for( TWordIndex wi = begin; wi <= end; wi++ ) {
+		if( wi > begin ) {
+			output << " ";
+		}
+		output << context.Text().Word( wi ).text << ":";
+		data.Get( wi - begin ).Indices.Print<uint32_t>( output, "," );
 	}
-	output << context.Text().Word( end ).text << "}" << endl;
+	output << "}" << endl;
 
 	return true;
 }
