@@ -22,29 +22,11 @@ struct CEdges {
 		Text::TAttribute Attribute;
 		Text::TAnnotationIndex Index2;
 	};
-	struct CEdgeLessComparator {
-		bool operator()( const CEdge& e1, const CEdge& e2 ) const
-		{
-			if( e1.Index1 < e2.Index1 ) {
-				return true;
-			} else if( e2.Index1 < e1.Index1 ) {
-				return false;
-			}
-			if( e1.Word2 < e2.Word2 ) {
-				return true;
-			} else if( e2.Word2 < e1.Word2 ) {
-				return false;
-			}
-			if( e1.Attribute < e2.Attribute ) {
-				return true;
-			} else if( e2.Attribute < e1.Attribute ) {
-				return false;
-			}
-			return ( e1.Index2 < e2.Index2 );
-		}
+	struct CEdgeLess {
+		bool operator()( const CEdge& e1, const CEdge& e2 ) const;
 	};
 	Text::CAnnotationIndices Indices;
-	typedef set<CEdge, CEdgeLessComparator> CEdgeSet;
+	typedef set<CEdge, CEdgeLess> CEdgeSet;
 	CEdgeSet EdgeSet;
 
 	static void AddEdge( const CDataEditor& graph,
