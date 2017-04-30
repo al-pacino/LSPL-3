@@ -15,13 +15,10 @@ public:
 	void Empty() { values.clear(); }
 	bool IsEmpty() const { return values.empty(); }
 	SizeType Size() const { return values.size(); }
-	const ValueType& Value( const SizeType index ) const
-	{
-		debug_check_logic( index < Size() );
-		return values[index];
-	}
+	const ValueType& Value( const SizeType index ) const;
 	bool Add( const ValueType& value );
 	bool Has( const ValueType& value ) const;
+	bool Erase( const ValueType& value );
 	bool Find( const ValueType& value, SizeType& index ) const;
 	void Print( ostream& out, const char* const delimiter ) const;
 
@@ -32,6 +29,13 @@ public:
 private:
 	vector<ValueType> values;
 };
+
+template<typename VALUE_TYPE>
+const VALUE_TYPE& COrderedList<VALUE_TYPE>::Value( const SizeType index ) const
+{
+	debug_check_logic( index < Size() );
+	return values[index];
+}
 
 template<typename VALUE_TYPE>
 bool COrderedList<VALUE_TYPE>::Add( const ValueType& value )
@@ -48,6 +52,17 @@ template<typename VALUE_TYPE>
 bool COrderedList<VALUE_TYPE>::Has( const ValueType& value ) const
 {
 	return binary_search( values.cbegin(), values.cend(), value );
+}
+
+template<typename VALUE_TYPE>
+bool COrderedList<VALUE_TYPE>::Erase( const ValueType& value )
+{
+	auto i = lower_bound( values.cbegin(), values.cend(), value );
+	if( i != values.cend() && *i == value ) {
+		values.erase( i );
+		return true;
+	}
+	return false;
 }
 
 template<typename VALUE_TYPE>
