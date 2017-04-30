@@ -14,16 +14,54 @@ const TVariantSize MaxVariantSize = numeric_limits<TVariantSize>::max();
 
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef vector<Text::CAnnotationIndices> CData;
+class CDataEditor;
+struct CEdges {
+	struct CEdge {
+		Text::TAnnotationIndex Index1;
+		TVariantSize Word2;
+		Text::TAnnotationIndex Index2;
+	};
+	struct CEdgeComparator {
+		bool operator()( const CEdge& e1, const CEdge& e2 ) const
+		{
+			if( e1.Index1 < e2.Index1 ) {
+				return true;
+			} else if( e2.Index1 < e1.Index1 ) {
+				return false;
+			}
+			if( e1.Word2 < e2.Word2 ) {
+				return true;
+			} else if( e2.Word2 < e1.Word2 ) {
+				return false;
+			}
+			return ( e1.Index2 < e2.Index2 );
+		}
+	};
+	Text::CAnnotationIndices Indices;
+	typedef set<CEdge, CEdgeComparator> CEdgeSet;
+	CEdgeSet EdgeSet;
+
+	static void AddEdge( const CDataEditor& graph,
+		const TVariantSize word1, const Text::TAnnotationIndex index1,
+		const TVariantSize word2, const Text::TAnnotationIndex index2 );
+	static bool RemoveEdge( const CDataEditor& graph,
+		const TVariantSize word1, const Text::TAnnotationIndex index1,
+		const TVariantSize word2, const Text::TAnnotationIndex index2 );
+	static bool RemoveVertex( const CDataEditor& graph,
+		const TVariantSize word1, const Text::TAnnotationIndex index1 );
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+typedef vector<CEdges> CData;
 
 class CDataEditor {
 public:
 	explicit CDataEditor( CData& data );
 	~CDataEditor();
 
-	const CData::value_type& Value( const CData::size_type index ) const;
-	void Set( const CData::size_type index,
-		CData::value_type&& value ) const;
+	const CData::value_type& Get( const CData::size_type index ) const;
+	CData::value_type& GetForEdit( const CData::size_type index ) const;
 	void Restore();
 
 private:
@@ -131,15 +169,15 @@ public:
 	const Text::CText& Text() const { return text; }
 	const CDataEditor& DataEditor() const;
 	const Text::TWordIndex InitialWord() const { return initialWordIndex; }
-	const Text::TWordIndex Shift() const;
 	const Text::TWordIndex Word() const;
+	const TVariantSize Shift() const;
 	void Match( const Text::TWordIndex initialWordIndex );
 
 private:
 	const Text::CText& text;
 	const CStates& states;
 	Text::TWordIndex initialWordIndex;
-	vector<Text::CAnnotationIndices> data;
+	CData data;
 	stack<CDataEditor> editors;
 
 	void match( const TStateIndex stateIndex );
@@ -163,6 +201,9 @@ private:
 	const bool strong;
 	const Text::TAttribute attribute;
 	CFixedSizeArray<TVariantSize, TVariantSize> offsets;
+
+	bool agree( const CMatchContext& context,
+		const TVariantSize word1, const TVariantSize word2 ) const;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

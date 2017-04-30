@@ -93,46 +93,8 @@ bool CWord::MatchAttributes( const CAttributesRestriction& attributesRestriction
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CArgreements::CArgreements( const CWords& text ) :
-	words( text )
-{
-}
-
-const CAgreement& CArgreements::Agreement( const CKey& key, const bool strong ) const
-{
-	debug_check_logic( key.first.first < key.first.second );
-	debug_check_logic( key.first.second < words.size() );
-	auto pair = cache.insert( make_pair( key, CAgreementPair() ) );
-	CAgreementPair& agreementsPair = pair.first->second;
-	if( pair.second ) {
-		const CAnnotations& annotations1 = words[key.first.first].Annotations();
-		const CAnnotations& annotations2 = words[key.first.second].Annotations();
-
-		for( TAnnotationIndex i1 = 0; i1 < annotations1.size(); i1++ ) {
-			for( TAnnotationIndex i2 = 0; i2 < annotations2.size(); i2++ ) {
-				switch( annotations1[i1].Agreement( annotations2[i2], key.second ) ) {
-					case AP_None:
-						break;
-					case AP_Strong:
-						agreementsPair.first.first.Add( i1 );
-						agreementsPair.first.second.Add( i2 );
-						// break missed correctly
-					case AP_Weak:
-						agreementsPair.second.first.Add( i1 );
-						agreementsPair.second.second.Add( i2 );
-						break;
-				}
-			}
-		}
-	}
-	return ( strong ? agreementsPair.first : agreementsPair.second );
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 CText::CText( CWords&& _words ) :
-	words( move( _words ) ),
-	argreements( words )
+	words( move( _words ) )
 {
 }
 

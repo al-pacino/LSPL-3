@@ -11,6 +11,87 @@ namespace Pattern {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void CEdges::AddEdge( const CDataEditor& graph,
+	const TVariantSize word1, const TAnnotationIndex index1,
+	const TVariantSize word2, const TAnnotationIndex index2 )
+{
+	CEdges& data1 = graph.GetForEdit( word1 );
+	debug_check_logic( data1.Indices.Has( index1 ) );
+	const auto pair1 = data1.EdgeSet.insert( { index1, word2, index2 } );
+	debug_check_logic( pair1.second );
+
+	CEdges& data2 = graph.GetForEdit( word2 );
+	debug_check_logic( data2.Indices.Has( index2 ) );
+	const auto pair2 = data2.EdgeSet.insert( { index2, word1, index1 } );
+	debug_check_logic( pair2.second );
+}
+
+bool CEdges::RemoveEdge( const CDataEditor& graph,
+	const TVariantSize word1, const TAnnotationIndex index1,
+	const TVariantSize word2, const TAnnotationIndex index2 )
+{
+	CEdges& data = graph.GetForEdit( word1 );
+	CEdgeSet& edges = data.EdgeSet;
+	const CEdgeSet::iterator e = edges.find( { index1, word2, index2 } );
+	if( e == edges.end() ) {
+		return true;
+	}
+
+	bool removeVertex = true;
+	if( e != edges.begin() ) {
+		auto be = prev( e );
+		if( be->Index1 == e->Index1 && be->Word2 == e->Word2 ) {
+			removeVertex = false;
+		}
+	}
+	if( removeVertex ) {
+		auto ae = next( e );
+		if( ae != edges.end() && ae->Index1 == e->Index1 && ae->Word2 == e->Word2 ) {
+			removeVertex = false;
+		}
+	}
+	edges.erase( e );
+	if( removeVertex ) {
+		return RemoveVertex( graph, word1, index1 );
+	}
+	return true;
+}
+
+bool CEdges::RemoveVertex( const CDataEditor& graph,
+	const TVariantSize word1, const TAnnotationIndex index1 )
+{
+	CEdges& data = graph.GetForEdit( word1 );
+	CEdgeSet& edges = data.EdgeSet;
+	if( !data.Indices.Has( index1 ) ) {
+		return true;
+	}
+
+	struct {
+		bool operator()( const CEdge& edge, const TAnnotationIndex index ) const
+		{
+			return ( edge.Index1 < index );
+		}
+	} comp;
+	const CEdgeSet::iterator e = lower_bound( edges.begin(), edges.end(), index1, comp );
+
+	const bool erased = data.Indices.Erase( index1 );
+	debug_check_logic( erased );
+
+	if( data.Indices.IsEmpty() ) {
+		return false;
+	}
+
+	CEdgeSet::iterator j = e;
+	while( j != edges.end() && j->Index1 == index1 ) {
+		RemoveEdge( graph, j->Word2, j->Index2, word1, j->Index1 );
+		++j;
+	}
+	edges.erase( e, j );
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 CDataEditor::CDataEditor( CData& _data ) :
 	data( _data )
 {
@@ -21,18 +102,19 @@ CDataEditor::~CDataEditor()
 	Restore();
 }
 
-const CData::value_type& CDataEditor::Value( const CData::size_type index ) const
+const CData::value_type& CDataEditor::Get( const CData::size_type index ) const
 {
 	debug_check_logic( index < data.size() );
 	return data[index];
 }
 
-void CDataEditor::Set( const CData::size_type index,
-	CData::value_type&& value ) const
+CData::value_type& CDataEditor::GetForEdit( const CData::size_type index ) const
 {
 	debug_check_logic( index < data.size() );
-	dump.insert( make_pair( index, data[index] ) );
-	data[index] = value;
+	if( ( index + 1 ) < data.size() ) { // do not save last element
+		dump.insert( make_pair( index, data[index] ) );
+	}
+	return data[index];
 }
 
 void CDataEditor::Restore()
@@ -127,10 +209,10 @@ const CDataEditor& CMatchContext::DataEditor() const
 	return editors.top();
 }
 
-const Text::TWordIndex CMatchContext::Shift() const
+const TVariantSize CMatchContext::Shift() const
 {
 	debug_check_logic( !data.empty() );
-	return ( data.size() - 1 );
+	return Cast<TVariantSize>( data.size() - 1 );
 }
 
 const Text::TWordIndex CMatchContext::Word() const
@@ -161,7 +243,7 @@ void CMatchContext::match( const TStateIndex stateIndex )
 	data.emplace_back();
 	editors.emplace( data );
 	for( const CTransitionPtr& transition : transitions ) {
-		if( transition->Match( Text().Word( Word() ), data.back() ) ) {
+		if( transition->Match( Text().Word( Word() ), data.back().Indices ) ) {
 			match( transition->NextState() );
 		}
 	}
@@ -195,29 +277,73 @@ CAgreementAction::CAgreementAction( const TAttribute _attribute,
 
 bool CAgreementAction::Run( const CMatchContext& context ) const
 {
-	const CDataEditor& editor = context.DataEditor();
-	const CArgreements& agreements = context.Text().Argreements();
-	const TWordIndex index2 = context.Shift();
-	const CAnnotationIndices& indices2 = editor.Value( index2 );
-
-	CArgreements::CKey key{ { 0, context.Word() }, attribute };
+	const TVariantSize word2 = context.Shift();
 	for( TVariantSize i = 0; i < offsets.Size(); i++ ) {
-		const TVariantSize offset = offsets[i];
-		debug_check_logic( offset <= index2 );
-		const TWordIndex index1 = index2 - offset;
-		const CAnnotationIndices& indices1 = editor.Value( index1 );
-		key.first.first = context.Word() - offset;
-		CAgreement agr = agreements.Agreement( key, strong );
-		agr.first = CAnnotationIndices::Intersection( agr.first, indices1 );
-		agr.second = CAnnotationIndices::Intersection( agr.second, indices2 );
-
-		if( agr.first.IsEmpty() || agr.second.IsEmpty() ) {
+		debug_check_logic( offsets[i] > 0 );
+		debug_check_logic( offsets[i] <= word2 );
+		if( !agree( context, word2 - offsets[i], word2 ) ) {
 			return false;
 		}
-
-		editor.Set( index1, move( agr.first ) );
-		editor.Set( index2, move( agr.second ) );
 	}
+	return true;
+}
+
+bool CAgreementAction::agree( const CMatchContext& context,
+	const TVariantSize word1, const TVariantSize word2 ) const
+{
+	debug_check_logic( word1 < word2 );
+
+	const CDataEditor& editor = context.DataEditor();
+	CEdges& edges1 = editor.GetForEdit( word1 );
+	CEdges& edges2 = editor.GetForEdit( word2 );
+
+	const CAnnotations wa1
+		= context.Text().Word( context.InitialWord() + word1 ).Annotations();
+	const CAnnotations wa2
+		= context.Text().Word( context.InitialWord() + word2 ).Annotations();
+
+	bool added = false;
+	CAnnotationIndices unused1 = edges1.Indices;
+	CAnnotationIndices unused2 = edges2.Indices;
+
+	for( CAnnotationIndices::SizeType i1 = 0; i1 < edges1.Indices.Size(); i1++ ) {
+		for( CAnnotationIndices::SizeType i2 = 0; i2 < edges2.Indices.Size(); i2++ ) {
+			const TAnnotationIndex index1 = edges1.Indices.Value( i1 );
+			const TAnnotationIndex index2 = edges2.Indices.Value( i2 );
+
+			switch( wa1[index1].Agreement( wa2[index2], attribute ) ) {
+				case AP_None:
+					continue;
+				case AP_Strong:
+					break;
+				case AP_Weak:
+					if( strong ) {
+						continue;
+					}
+					break;
+			}
+			added = true;
+			unused1.Erase( index1 );
+			unused2.Erase( index2 );
+			CEdges::AddEdge( editor, word1, index1, word2, index2 );
+		}
+	}
+
+	if( !added ) {
+		return false;
+	}
+
+	for( TAnnotationIndex i = 0; i < unused1.Size(); i++ ) {
+		if( !CEdges::RemoveVertex( editor, word1, unused1.Value( i ) ) ) {
+			return false;
+		}
+	}
+	for( TAnnotationIndex i = 0; i < unused2.Size(); i++ ) {
+		if( !CEdges::RemoveVertex( editor, word2, unused2.Value( i ) ) ) {
+			return false;
+		}
+	}
+
 	return true;
 }
 

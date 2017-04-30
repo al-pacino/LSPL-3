@@ -84,23 +84,6 @@ typedef CWords::size_type TWordIndex;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef pair<CAnnotationIndices, CAnnotationIndices> CAgreement;
-
-class CArgreements {
-public:
-	typedef pair<pair<TWordIndex, TWordIndex>, TAttribute> CKey;
-
-	explicit CArgreements( const CWords& text );
-	const CAgreement& Agreement( const CKey& key, const bool strong ) const;
-
-private:
-	const CWords& words;
-	typedef pair<CAgreement, CAgreement> CAgreementPair;
-	mutable unordered_map<CKey, CAgreementPair> cache;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-
 class CText {
 	CText( const CText& ) = delete;
 	CText& operator=( const CText& ) = delete;
@@ -110,11 +93,9 @@ public:
 
 	const CWord& Word( const TWordIndex index ) const;
 	const TWordIndex Length() const { return words.size(); }
-	const CArgreements& Argreements() const { return argreements; }
 
 private:
 	CWords words;
-	CArgreements argreements;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
