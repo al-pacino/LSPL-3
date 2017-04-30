@@ -20,6 +20,7 @@ public:
 	bool Has( const ValueType& value ) const;
 	bool Erase( const ValueType& value );
 	bool Find( const ValueType& value, SizeType& index ) const;
+	template<typename CAST_TYPE = VALUE_TYPE>
 	void Print( ostream& out, const char* const delimiter ) const;
 
 	static COrderedList Union( const COrderedList&, const COrderedList& );
@@ -78,14 +79,15 @@ bool COrderedList<VALUE_TYPE>::Find( const ValueType& value,
 }
 
 template<typename VALUE_TYPE>
+template<typename CAST_TYPE>
 void COrderedList<VALUE_TYPE>::Print( ostream& out,
 	const char* const delimiter ) const
 {
 	auto i = values.cbegin();
 	if( i != values.cend() ) {
-		out << *i;
+		out << static_cast<CAST_TYPE>( *i );
 		for( ++i; i != values.cend(); ++i ) {
-			out << delimiter << *i;
+			out << delimiter << static_cast<CAST_TYPE>( *i );
 		}
 	}
 }
