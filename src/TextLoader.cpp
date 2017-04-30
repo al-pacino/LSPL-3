@@ -101,7 +101,12 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 							valueIndex = attribute.Values.Size();
 						}
 					}
-					// TODO: check redefinition attribute value
+					if( attributes.Get( index ) != NullAttributeValue ) {
+						cerr << "bad 'word' #" << wi
+							<< " 'annotation' #" << ai
+							<< " redefinition of value" << endl;
+						return false;
+					}
 					attributes.Set( index, valueIndex );
 				}
 			}
