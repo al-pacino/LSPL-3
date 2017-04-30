@@ -19,9 +19,10 @@ struct CEdges {
 	struct CEdge {
 		Text::TAnnotationIndex Index1;
 		TVariantSize Word2;
+		Text::TAttribute Attribute;
 		Text::TAnnotationIndex Index2;
 	};
-	struct CEdgeComparator {
+	struct CEdgeLessComparator {
 		bool operator()( const CEdge& e1, const CEdge& e2 ) const
 		{
 			if( e1.Index1 < e2.Index1 ) {
@@ -34,19 +35,26 @@ struct CEdges {
 			} else if( e2.Word2 < e1.Word2 ) {
 				return false;
 			}
+			if( e1.Attribute < e2.Attribute ) {
+				return true;
+			} else if( e2.Attribute < e1.Attribute ) {
+				return false;
+			}
 			return ( e1.Index2 < e2.Index2 );
 		}
 	};
 	Text::CAnnotationIndices Indices;
-	typedef set<CEdge, CEdgeComparator> CEdgeSet;
+	typedef set<CEdge, CEdgeLessComparator> CEdgeSet;
 	CEdgeSet EdgeSet;
 
 	static void AddEdge( const CDataEditor& graph,
 		const TVariantSize word1, const Text::TAnnotationIndex index1,
-		const TVariantSize word2, const Text::TAnnotationIndex index2 );
+		const TVariantSize word2, const Text::TAnnotationIndex index2,
+		const Text::TAttribute attribute );
 	static bool RemoveEdge( const CDataEditor& graph,
 		const TVariantSize word1, const Text::TAnnotationIndex index1,
-		const TVariantSize word2, const Text::TAnnotationIndex index2 );
+		const TVariantSize word2, const Text::TAnnotationIndex index2,
+		const Text::TAttribute attribute );
 	static bool RemoveVertex( const CDataEditor& graph,
 		const TVariantSize word1, const Text::TAnnotationIndex index1 );
 };

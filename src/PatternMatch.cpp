@@ -13,26 +13,28 @@ namespace Pattern {
 
 void CEdges::AddEdge( const CDataEditor& graph,
 	const TVariantSize word1, const TAnnotationIndex index1,
-	const TVariantSize word2, const TAnnotationIndex index2 )
+	const TVariantSize word2, const TAnnotationIndex index2,
+	const TAttribute attribute )
 {
 	CEdges& data1 = graph.GetForEdit( word1 );
 	debug_check_logic( data1.Indices.Has( index1 ) );
-	const auto pair1 = data1.EdgeSet.insert( { index1, word2, index2 } );
+	const auto pair1 = data1.EdgeSet.insert( { index1, word2, attribute, index2 } );
 	debug_check_logic( pair1.second );
 
 	CEdges& data2 = graph.GetForEdit( word2 );
 	debug_check_logic( data2.Indices.Has( index2 ) );
-	const auto pair2 = data2.EdgeSet.insert( { index2, word1, index1 } );
+	const auto pair2 = data2.EdgeSet.insert( { index2, word1, attribute, index1 } );
 	debug_check_logic( pair2.second );
 }
 
 bool CEdges::RemoveEdge( const CDataEditor& graph,
 	const TVariantSize word1, const TAnnotationIndex index1,
-	const TVariantSize word2, const TAnnotationIndex index2 )
+	const TVariantSize word2, const TAnnotationIndex index2,
+	const TAttribute attribute )
 {
 	CEdges& data = graph.GetForEdit( word1 );
 	CEdgeSet& edges = data.EdgeSet;
-	const CEdgeSet::iterator e = edges.find( { index1, word2, index2 } );
+	const CEdgeSet::iterator e = edges.find( { index1, word2, attribute, index2 } );
 	if( e == edges.end() ) {
 		return true;
 	}
@@ -40,13 +42,20 @@ bool CEdges::RemoveEdge( const CDataEditor& graph,
 	bool removeVertex = true;
 	if( e != edges.begin() ) {
 		auto be = prev( e );
-		if( be->Index1 == e->Index1 && be->Word2 == e->Word2 ) {
+		if( be->Index1 == e->Index1
+			&& be->Word2 == e->Word2
+			&& be->Attribute == e->Attribute )
+		{
 			removeVertex = false;
 		}
 	}
 	if( removeVertex ) {
 		auto ae = next( e );
-		if( ae != edges.end() && ae->Index1 == e->Index1 && ae->Word2 == e->Word2 ) {
+		if( ae != edges.end()
+			&& ae->Index1 == e->Index1
+			&& ae->Word2 == e->Word2
+			&& ae->Attribute == e->Attribute )
+		{
 			removeVertex = false;
 		}
 	}
@@ -83,7 +92,7 @@ bool CEdges::RemoveVertex( const CDataEditor& graph,
 
 	CEdgeSet::iterator j = e;
 	while( j != edges.end() && j->Index1 == index1 ) {
-		RemoveEdge( graph, j->Word2, j->Index2, word1, j->Index1 );
+		RemoveEdge( graph, j->Word2, j->Index2, word1, j->Index1, j->Attribute );
 		++j;
 	}
 	edges.erase( e, j );
@@ -325,7 +334,7 @@ bool CAgreementAction::agree( const CMatchContext& context,
 			added = true;
 			unused1.Erase( index1 );
 			unused2.Erase( index2 );
-			CEdges::AddEdge( editor, word1, index1, word2, index2 );
+			CEdges::AddEdge( editor, word1, index1, word2, index2, attribute );
 		}
 	}
 
