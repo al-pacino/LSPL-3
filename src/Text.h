@@ -59,8 +59,10 @@ private:
 	static TAttribute agreementBegin;
 };
 
+typedef uint8_t TAnnotationIndex;
+const TAnnotationIndex MaxAnnotation = numeric_limits<TAnnotationIndex>::max();
+
 typedef vector<CAnnotation> CAnnotations;
-typedef CAnnotations::size_type TAnnotationIndex;
 typedef COrderedList<TAnnotationIndex> CAnnotationIndices;
 
 ///////////////////////////////////////////////////////////////////////////////

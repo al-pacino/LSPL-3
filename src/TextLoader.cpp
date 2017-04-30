@@ -118,7 +118,14 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 				return false;
 			}
 
-			words.back().annotations.emplace_back( move( attributes ) );
+			if( words.back().annotations.size() <= MaxAnnotation ) {
+				words.back().annotations.emplace_back( move( attributes ) );
+			} else {
+				cerr << "bad 'word' #" << wi
+					<< " 'annotation' #" << ai
+					<< " too much annotations" << endl;
+				return false;
+			}
 		}
 	}
 
