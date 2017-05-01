@@ -1,0 +1,36 @@
+{
+pattern           = pattern_name '=' alternatives text_patterns.
+pattern_name      = ident [ pattern_params ].
+pattern_arguments = '(' name { ',' name } ')'.
+name              = ident [ '.' ident ].
+
+alternatives      = permutation { '|' permutation } [ conditions ].
+permutation       = elements { '~' elements }.
+elements          = element { element }
+element           = simple | complex | optional | repeat.
+simple            = regexp | word.
+complex           = '(' alternatives ')'.
+optional          = '[' alternatives ']'.
+repeat            = '{' alternatives '}' [ '<' number [ ',' number ] '>' ].
+
+word              = ident [ '<' attribute { ',' attribute } '>' ].
+attribute         = [ [ ident ] comparison ] value { '|' value }.
+comparison        = '=' | '!='.
+value             = ident | regexp.
+regexp            = '"' cpp_regular_expression '"'.
+
+conditions        = '<<' condition { ',' condition } '>>'.
+condition         = agreement | dictionary.
+agreement         = name { agreement_type name }.
+agreement_type    = '=' | '=='.
+dictionary        = ident '(' arguments ')'.
+arguments         = names { ',' names }
+names             = ident { ident }.
+
+text_patterns     = '=text>' text_pattern { ',' text_patterns }.
+text_pattern      = text_words [ '<<' text_agreements '>>' ].
+text_words        = text_word { text_word }.
+text_word         = ident { ident '=' value } | '#' ident | regexp.
+text_agreements   = text_agreement { ',' text_agreement }.
+text_agreement    = name '~>' name.
+}
