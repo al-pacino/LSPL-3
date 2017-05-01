@@ -10,10 +10,11 @@ element           = simple | complex | optional | repeat.
 simple            = regexp | word.
 complex           = '(' alternatives ')'.
 optional          = '[' alternatives ']'.
-repeat            = '{' alternatives '}' [ '<' number [ ',' number ] '>' ].
+repeat            = '{' alternatives '}' [ repeat_count ].
+repeat_count      = '<' number [ ',' number ] '>'.
 
 word              = ident [ attributes ].
-attributes        = '<' attribute { ',' attribute } '>'
+attributes        = '<' attribute { ',' attribute } '>'.
 attribute         = [ [ ident ] comparison ] value { '|' value }.
 comparison        = '=' | '!='.
 value             = ident | regexp.
@@ -31,7 +32,7 @@ text_patterns     = '=text>' text_pattern { ',' text_patterns }.
 text_pattern      = text_words [ '<<' text_agreements '>>' ].
 text_words        = text_word { text_word }.
 text_word         = ident [ text_attributes ] | '#' ident | regexp.
-text_attributes   = '<' text_attribute { ',' text_attribute } '>'
+text_attributes   = '<' text_attribute { ',' text_attribute } '>'.
 text_attribute    = ident '=' value.
 text_agreements   = text_agreement { ',' text_agreement }.
 text_agreement    = name '~>' name.
