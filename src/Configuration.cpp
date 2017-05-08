@@ -183,13 +183,13 @@ bool CWordAttributes::Initialize( vector<CWordAttribute>&& attributes,
 				tmp.emplace( tmp.begin(), move( attribute ) );
 			}
 		} else if( attribute.Agreement() ) {
+			tmp.emplace_back( move( attribute ) );
+		} else {
 			if( hasMain ) {
 				tmp.emplace( next( tmp.begin() ), move( attribute ) );
 			} else {
 				tmp.emplace( tmp.begin(), move( attribute ) );
 			}
-		} else {
-			tmp.emplace_back( move( attribute ) );
 		}
 	}
 	attributes.clear();
