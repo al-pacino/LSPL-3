@@ -48,7 +48,7 @@ private:
 	bool agreement;
 	bool default;
 	vector<string> names;
-	vector<string> values;
+	mutable vector<string> values;
 	typedef unordered_map<string, Text::TAttributeValue> CValueIndices;
 	mutable CValueIndices valueIndices;
 };

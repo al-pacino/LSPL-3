@@ -94,6 +94,9 @@ const bool CWordAttribute::FindValue( const string& value,
 		const TAttributeValue valueIndex = Cast<TAttributeValue>( values.size() );
 		const auto pair = valueIndices.insert( make_pair( value, valueIndex ) );
 		valueIterator = pair.first;
+		if( pair.second ) {
+			values.push_back( value );
+		}
 	} else {
 		valueIterator = valueIndices.find( value );
 	}
@@ -431,7 +434,8 @@ const char* JsonConfigurationSchemeText()
           \"type\": \"string\",                                            \n\
           \"pattern\": \"^enum$\"                                          \n\
         },                                                                 \n\
-        \"consistent\": { \"type\": \"boolean\" }                          \n\
+        \"consistent\": { \"type\": \"boolean\" },                         \n\
+        \"default\": { \"type\": \"boolean\" }                             \n\
       },                                                                   \n\
       \"required\": [\"names\", \"type\", \"values\"],                     \n\
       \"additionalProperties\": false                                      \n\
@@ -444,7 +448,8 @@ const char* JsonConfigurationSchemeText()
           \"type\": \"string\",                                            \n\
           \"pattern\": \"^string$\"                                        \n\
         },                                                                 \n\
-        \"consistent\": { \"type\": \"boolean\" }                          \n\
+        \"consistent\": { \"type\": \"boolean\" },                         \n\
+        \"default\": { \"type\": \"boolean\" }                             \n\
       },                                                                   \n\
       \"required\": [\"names\", \"type\"],                                 \n\
       \"additionalProperties\": false                                      \n\
