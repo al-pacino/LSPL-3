@@ -380,7 +380,7 @@ void CAgreementAction::Print( const CConfiguration& configuration,
 	ostream& out ) const
 {
 	out << "<<"
-		<< configuration.Attributes()[attribute].Names.Value( 0 )
+		<< configuration.Attributes()[attribute].Name( 0 )
 		<< ( strong ? "==" : "=" );
 	for( TVariantSize i = 0; i < offsets.Size(); i++ ) {
 		if( i > 0 ) {

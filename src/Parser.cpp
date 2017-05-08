@@ -578,11 +578,11 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 	const CWordAttribute& main = attributes.Main();
 
 	const CIndexedName name( extendedName.first );
-	COrderedStrings::SizeType index = 0;
-	const bool element = main.Values.Find( name.Name, index );
+	Text::TAttributeValue index = Text::NullAttributeValue;
+	const bool element = main.FindValue( name.Name, index );
 
 	if( element ) {
-		index += name.Index * main.Values.Size(); // correct element index
+		index += name.Index * main.ValuesCount(); // correct element index
 		if( static_cast<bool>( extendedName.second ) ) {
 			CIndexedName subName;
 			Text::TAttribute subIndex = 0;
@@ -590,7 +590,7 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 				&& attributes.Find( subName.Name, subIndex );
 
 			if( found ) {
-				if( attributes[subIndex].Type != Configuration::WST_Main ) {
+				if( attributes[subIndex].Type() != Configuration::WAT_Main ) {
 					return CPatternArgument( index, PAT_ElementSign, subIndex );
 				} else {
 					ErrorProcessor.AddError( CError( *extendedName.second,
@@ -610,15 +610,15 @@ CPatternArgument CPatternsBuilder::CheckExtendedName(
 			CPatternArgument arg
 				= PatternDefs[pi->second]->Argument( subName.Index, *this );
 			arg.Reference += name.Index * PatternDefs.size(); // correct reference
-			if( main.Values.Find( subName.Name, index ) ) {
-				index += subName.Index * main.Values.Size(); // correct element index
+			if( main.FindValue( subName.Name, index ) ) {
+				index += subName.Index * main.ValuesCount(); // correct element index
 				if( arg.Type == PAT_ReferenceElement && arg.Element == index ) {
 					return arg;
 				}
 			} else {
 				TSign subIndex;
 				if( attributes.Find( subName.Name, subIndex )
-					&& attributes[subIndex].Type != Configuration::WST_Main )
+					&& attributes[subIndex].Type() != Configuration::WAT_Main )
 				{
 					if( arg.Type == PAT_ReferenceElementSign
 						&& arg.Sign == subIndex )
@@ -650,8 +650,9 @@ void CPatternsBuilder::CheckPatternExists( const CTokenPtr& reference ) const
 
 bool CPatternsBuilder::IsPatternReference( const CTokenPtr& reference ) const
 {
-	return !Configuration().Attributes().Main().Values.Has(
-		CIndexedName( reference ).Name );
+	Text::TAttributeValue unused;
+	return !Configuration().Attributes().Main().
+		FindValue( CIndexedName( reference ).Name, unused );
 }
 
 CPatternBasePtr CPatternsBuilder::BuildElement( const CTokenPtr& reference,
@@ -660,9 +661,9 @@ CPatternBasePtr CPatternsBuilder::BuildElement( const CTokenPtr& reference,
 	const CWordAttribute& main = Configuration().Attributes().Main();
 
 	CIndexedName name( reference );
-	COrderedStrings::SizeType index;
-	if( main.Values.Find( name.Name, index ) ) {
-		const TElement element = index + name.Index * main.Values.Size();
+	Text::TAttributeValue index = Text::NullAttributeValue;
+	if( main.FindValue( name.Name, index ) ) {
+		const TElement element = index + name.Index * main.ValuesCount();
 		{
 			CSignValues values;
 			values.Add( index );
@@ -860,38 +861,27 @@ void CElementCondition::Check( CPatternsBuilder& context,
 		return;
 	}
 
-	CSignValues signValues;
+	CSignValues attributeValues;
 	const CWordAttribute& attribute = attributes[arg.Sign];
-	if( attribute.Type == Configuration::WST_String ) {
-		for( const CTokenPtr& value : Values ) {
-			debug_check_logic( value->Type == TT_Identifier || value->Type == TT_Regexp );
-			/*if( tokenPtr->Type != TT_Regexp ) {
-				context.ErrorProcessor.AddError( CError( *tokenPtr,
-					"string constant expected" ) );
-			}*/
-			signValues.Add( context.StringValue( value->Text ) );
-		}
-	} else {
-		for( const CTokenPtr& value : Values ) {
-			debug_check_logic( value->Type == TT_Identifier || value->Type == TT_Regexp );
-			CSignValues::ValueType signValue;
-			if( attribute.Values.Find( value->Text, signValue ) ) {
-				if( !signValues.Add( signValue ) ) {
-					context.ErrorProcessor.AddError( CError( *value,
-						"duplicate word sign value" ) );
-				}
-			} else {
+	for( const CTokenPtr& value : Values ) {
+		debug_check_logic( value->Type == TT_Identifier || value->Type == TT_Regexp );
+		Text::TAttributeValue attributeValue;
+		if( attribute.FindValue( value->Text, attributeValue ) ) {
+			if( !attributeValues.Add( attributeValue ) ) {
 				context.ErrorProcessor.AddError( CError( *value,
-					"there is no such word sign value for the word sign in configuration" ) );
+					"duplicate word attribute value" ) );
 			}
+		} else {
+			context.ErrorProcessor.AddError( CError( *value,
+				"there is no such word attribute value for the word attribute in configuration" ) );
 		}
 	}
 
-	if( arg.Type != PAT_None && !signValues.IsEmpty() ) {
+	if( arg.Type != PAT_None && !attributeValues.IsEmpty() ) {
 		const bool exclude = static_cast<bool>( EqualSign )
 			&& ( EqualSign->Type == TT_ExclamationPointEqualSign );
 		CSignRestriction restrictions( arg.Element, arg.Sign,
-			move( signValues ), exclude );
+			move( attributeValues ), exclude );
 		if( restrictions.IsEmpty( context ) ) {
 			context.AddComplexError( collectTokens(),
 				"words matching the condition, do not exist" );
@@ -963,9 +953,9 @@ CPatternArgument CPatternDefinition::Argument( const size_t argIndex,
 		const CWordAttribute& main = attributes.Main();
 
 		const CIndexedName name( extendedName.first );
-		size_t index = 0;
-		const bool valid = main.Values.Find( name.Name, index );
-		index += argIndex * main.Values.Size(); // correct
+		Text::TAttributeValue index = Text::NullAttributeValue;
+		const bool valid = main.FindValue( name.Name, index );
+		index += argIndex * main.ValuesCount(); // correct
 
 		if( valid ) {
 			if( static_cast<bool>( extendedName.second ) ) {
@@ -973,8 +963,8 @@ CPatternArgument CPatternDefinition::Argument( const size_t argIndex,
 
 				TSign subIndex;
 				if( !subName.Parse( extendedName.second ) // name without index
-					&& attributes.Find( subName.Name, subIndex ) // sign existst
-					&& attributes[subIndex].Type != Configuration::WST_Main ) // sign isn't main
+					&& attributes.Find( subName.Name, subIndex ) // attribute existst
+					&& attributes[subIndex].Type() != Configuration::WAT_Main ) // attribute isn't main
 				{
 					return CPatternArgument( index, PAT_ReferenceElementSign,
 						subIndex, context.GetReference( Name ) );

@@ -16,68 +16,239 @@ namespace Configuration {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static const char* WordSignTypeString( const TWordSignType type )
+CWordAttribute::CWordAttribute( const TWordAttributeType _type,
+		const bool _agreement, const bool _default ) :
+	type( _type ),
+	agreement( _agreement ),
+	default( _default )
 {
-	switch( type ) {
-		case WST_None:
-			break;
-		case WST_Main:
-			return "main";
-		case WST_Enum:
-			return "enum";
-		case WST_String:
-			return "string";
+	if( type == WAT_Main ) {
+		debug_check_logic( !agreement && !default );
 	}
-	return "none";
+
+	if( type == WAT_Enum ) {
+		AddValue( "null" );
+	} else {
+		AddValue( "" );
+	}
 }
 
-///////////////////////////////////////////////////////////////////////////////
+void CWordAttribute::AddName( const string& name )
+{
+	debug_check_logic( find( names.cbegin(), names.cend(), name ) == names.cend() );
+	names.push_back( name );
+	debug_check_logic( names.size() <= MaxAttributeNameIndex );
+}
+
+void CWordAttribute::AddValue( const string& value )
+{
+	const TAttributeValue valueIndex = Cast<TAttributeValue>( values.size() );
+	const auto pair = valueIndices.insert( make_pair( value, valueIndex ) );
+	debug_check_logic( pair.second );
+	values.push_back( value );
+}
+
+const TWordAttributeType CWordAttribute::Type() const
+{
+	return type;
+}
+
+const bool CWordAttribute::Agreement() const
+{
+	return agreement;
+}
+
+const bool CWordAttribute::Default() const
+{
+	return default;
+}
+
+const TAttributeNameIndex CWordAttribute::NamesCount() const
+{
+	return Cast<TAttributeNameIndex>( names.size() );
+}
+
+const string& CWordAttribute::Name( const TAttributeNameIndex index ) const
+{
+	debug_check_logic( index < names.size() );
+	return names[index];
+}
+
+const TAttributeValue CWordAttribute::ValuesCount() const
+{
+	return Cast<TAttributeValue>( values.size() );
+}
+
+const string& CWordAttribute::Value( const TAttributeValue index ) const
+{
+	debug_check_logic( index < values.size() );
+	return values[index];
+}
+
+const bool CWordAttribute::FindValue( const string& value,
+	TAttributeValue& index ) const
+{
+	CValueIndices::const_iterator valueIterator;
+
+	if( type == WAT_String ) {
+		const TAttributeValue valueIndex = Cast<TAttributeValue>( values.size() );
+		const auto pair = valueIndices.insert( make_pair( value, valueIndex ) );
+		valueIterator = pair.first;
+	} else {
+		valueIterator = valueIndices.find( value );
+	}
+
+	if( valueIterator != valueIndices.cend() ) {
+		index = valueIterator->second;
+		return true;
+	}
+	return false;
+}
 
 void CWordAttribute::Print( ostream& out ) const
 {
-	out << ( Consistent ? "consistent " : "" )
-		<< WordSignTypeString( Type )
-		<< " word sign"
-		<< endl;
+	if( agreement ) {
+		out << "agreement ";
+	}
 
-	if( !Names.IsEmpty() ) {
+	if( default ) {
+		out << "default ";
+	}
+
+	switch( type ) {
+		case WAT_Main:
+			out << "main ";
+			break;
+		case WAT_Enum:
+			out << "enum ";
+			break;
+		case WAT_String:
+			out << "string ";
+			break;
+	}
+
+	out << "word attribute" << endl;
+
+	{
+		debug_check_logic( !names.empty() );
 		out << "  names: ";
-		Names.Print( out, ", " );
+		for( TAttributeNameIndex i = 0; i < NamesCount(); i++ ) {
+			if( i > 0 ) {
+				out << ", ";
+			}
+			out << Name( i );
+		}
 		out << endl;
 	}
-	if( !Values.IsEmpty() ) {
+
+	if( type != WAT_String ) {
 		out << "  values: ";
-		Values.Print( out, ", " );
+		for( TAttributeValue i = 1; i < ValuesCount(); i++ ) {
+			if( i > 1 ) {
+				out << ", ";
+			}
+			out << Value( i );
+		}
 		out << endl;
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool CWordAttributes::IsEmpty() const
+bool CWordAttributes::Initialize( vector<CWordAttribute>&& attributes,
+	ostream& err )
 {
-	return data.empty();
+	bool success = true;
+
+	if( MaxAttribute < attributes.size() ) {
+		success = false;
+		err << "Configuration error: "
+			<< "more than 255 word attributes are not allowed!";
+	}
+
+	bool hasMain = false;
+	vector<CWordAttribute> tmp;
+	tmp.reserve( attributes.size() );
+	for( CWordAttribute& attribute : attributes ) {
+		if( attribute.Type() == WAT_Main ) {
+			if( hasMain ) {
+				success = false;
+				err << "Configuration error: "
+					<< "must be exactly one main word attribute!";
+			} else {
+				hasMain = true;
+				tmp.emplace( tmp.begin(), move( attribute ) );
+			}
+		} else if( attribute.Agreement() ) {
+			if( hasMain ) {
+				tmp.emplace( next( tmp.begin() ), move( attribute ) );
+			} else {
+				tmp.emplace( tmp.begin(), move( attribute ) );
+			}
+		} else {
+			tmp.emplace_back( move( attribute ) );
+		}
+	}
+	attributes.clear();
+
+	TAttribute attributeIndex = 0;
+	CNameIndices tmpIndices;
+	for( const CWordAttribute& attribute : tmp ) {
+		debug_check_logic( attribute.NamesCount() > 0 );
+		for( TAttributeNameIndex i = 0; i < attribute.NamesCount(); i++ ) {
+			const auto pair = tmpIndices.insert(
+				make_pair( attribute.Name( i ), attributeIndex ) );
+			if( !pair.second ) {
+				success = false;
+				err << "Configuration error: "
+					<< "redefinition of word attribute name '"
+					<< pair.first->first << "'!" << endl;
+			}
+		}
+		if( attribute.Default() ) {
+			if( defaultAttribute == MainAttribute ) {
+				defaultAttribute = attributeIndex;
+			} else {
+				err << "Configuration error: "
+					<< "more than one default attribute is not allowed" << endl;
+			}
+		}
+		attributeIndex++;
+	}
+
+	if( success ) {
+		data = move( tmp );
+		nameIndices = move( tmpIndices );
+	}
+	return success;
 }
 
-Text::TAttribute CWordAttributes::Size() const
+bool CWordAttributes::Valid( ) const
+{
+	return !data.empty();
+}
+
+TAttribute CWordAttributes::Size() const
 {
 	return Cast<Text::TAttribute>( data.size() );
 }
 
 const CWordAttribute& CWordAttributes::Main() const
 {
-	debug_check_logic( !IsEmpty() );
+	debug_check_logic( Valid() );
 	return data[Text::MainAttribute];
 }
 
-const CWordAttribute& CWordAttributes::operator[]( Text::TAttribute index ) const
+const CWordAttribute& CWordAttributes::operator[]( TAttribute index ) const
 {
+	debug_check_logic( Valid() );
 	debug_check_logic( index < data.size() );
 	return data[index];
 }
 
-bool CWordAttributes::Find( const string& name, Text::TAttribute& index ) const
+bool CWordAttributes::Find( const string& name, TAttribute& index ) const
 {
+	debug_check_logic( Valid() );
 	auto i = nameIndices.find( name );
 	if( i != nameIndices.cend() ) {
 		index = i->second;
@@ -86,8 +257,19 @@ bool CWordAttributes::Find( const string& name, Text::TAttribute& index ) const
 	return false;
 }
 
+bool CWordAttributes::FindDefault( TAttribute& index ) const
+{
+	debug_check_logic( Valid() );
+	if( defaultAttribute != MainAttribute ) {
+		index = defaultAttribute;
+		return true;
+	}
+	return false;
+}
+
 void CWordAttributes::Print( ostream& out ) const
 {
+	debug_check_logic( Valid() );
 	for( const CWordAttribute& wordAttribute : data ) {
 		wordAttribute.Print( out );
 		out << endl;
@@ -96,89 +278,113 @@ void CWordAttributes::Print( ostream& out ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CWordAttributesBuilder::CWordAttributesBuilder( const Text::TAttribute count )
+const CWordAttributes& CConfiguration::Attributes() const
 {
-	mains.reserve( count );
-	consistents.reserve( count );
-	notConsistents.reserve( count );
+	return wordAttributes;
 }
 
-void CWordAttributesBuilder::Add( CWordAttribute&& wordAttribute )
+bool CConfiguration::LoadFromFile( const char* filename,
+	ostream& out, ostream& err )
 {
-	if( wordAttribute.Type == WST_Main ) {
-		mains.push_back( wordAttribute );
-	} else if( wordAttribute.Consistent ) {
-		consistents.push_back( wordAttribute );
-	} else {
-		notConsistents.push_back( wordAttribute );
+	using namespace rapidjson;
+
+	out << "Loading configuration validation scheme..." << endl;
+
+	Document schemeDocument;
+	schemeDocument.Parse( JsonConfigurationSchemeText() );
+	check_logic( !schemeDocument.HasParseError() );
+	SchemaDocument scheme( schemeDocument );
+
+	out << "Loading configuration from file '" << filename << "'..." << endl;
+
+	ifstream ifs1( filename );
+	IStreamWrapper isw1( ifs1 );
+
+	Document configDocument;
+	configDocument.ParseStream( isw1 );
+
+	if( configDocument.HasParseError() ) {
+		err << "Parse config '" << filename << "' error at char "
+			<< configDocument.GetErrorOffset() << ": "
+			<< GetParseError_En( configDocument.GetParseError() ) << endl;
+		return false;
 	}
-}
 
-bool CWordAttributesBuilder::Build( ostream& errorStream, CWordAttributes& dest )
-{
-	// MUST be exactly one main word sign
-	// All word sign names MUST be unique
-	bool success = true;
+	out << "Validating configuration by scheme..." << endl;
 
-	if( mains.size() != 1 ) {
-		success = false;
-		errorStream << "Configuration error: MUST be exactly one main word sign!" << endl;
+	SchemaValidator schemeValidator( scheme );
+	if( !configDocument.Accept( schemeValidator ) ) {
+		StringBuffer sb;
+		schemeValidator.GetInvalidSchemaPointer().StringifyUriFragment( sb );
+		err << "Invalid schema: " << sb.GetString() << endl;
+		err << "Invalid keyword: "
+			<< schemeValidator.GetInvalidSchemaKeyword() << endl;
+		sb.Clear();
+		schemeValidator.GetInvalidDocumentPointer().StringifyUriFragment( sb );
+		err << "Invalid document: " << sb.GetString() << endl;
+		return false;
 	}
 
-	vector<CWordAttribute> data = move( mains );
-	data.insert( data.end(), notConsistents.cbegin(), notConsistents.cend() );
-	data.insert( data.end(), consistents.cbegin(), consistents.cend() );
+	out << "Building configuration..." << endl;
 
-	CWordAttributes::CNameIndices nameIndices;
-	for( Text::TAttribute index = 0; index < data.size(); index++ ) {
-		const CWordAttribute& attribute = data[index];
+	Value wordSignArray = configDocument["word_signs"].GetArray();
+	vector<CWordAttribute> attributes;
+	attributes.reserve( wordSignArray.Size() );
 
-		check_logic( attribute.Type == WST_Enum
-			|| attribute.Type == WST_String
-			|| attribute.Type == WST_Main );
-		check_logic( !attribute.Names.IsEmpty() );
-		check_logic( attribute.Type != WST_String || attribute.Values.IsEmpty() );
-		check_logic( attribute.Type != WST_Main || !attribute.Consistent );
+	for( rapidjson::SizeType i = 0; i < wordSignArray.Size(); i++ ) {
+		Value wordSignObject = wordSignArray[i].GetObject();
 
-		for( COrderedStrings::SizeType i = 0; i < attribute.Names.Size(); i++ ) {
-			auto pair = nameIndices.insert(
-				make_pair( attribute.Names.Value( i ), index ) );
-			if( !pair.second ) {
-				success = false;
-				errorStream
-					<< "Configuration error: redefinition of word sign name '"
-					<< pair.first->first << "'!" << endl;
+		TWordAttributeType type = WAT_Main;
+		{
+			const string typeString = wordSignObject["type"].GetString();
+			if( typeString == "enum" ) {
+				type = WAT_Enum;
+			} else if( typeString == "string" ) {
+				type = WAT_String;
+			} else {
+				debug_check_logic( typeString == "main" );
+			}
+		}
+
+		bool agreement = false;
+		if( wordSignObject.HasMember( "consistent" ) ) {
+			agreement = wordSignObject["consistent"].GetBool();
+		}
+
+		bool default = false;
+		if( wordSignObject.HasMember( "default" ) ) {
+			default = wordSignObject["default"].GetBool();
+		}
+
+		attributes.emplace_back( type, agreement, default );
+
+		Value nameArray = wordSignObject["names"].GetArray();
+		for( rapidjson::SizeType ni = 0; ni < nameArray.Size(); ni++ ) {
+			attributes.back().AddName( nameArray[ni].GetString() );
+		}
+
+		if( wordSignObject.HasMember( "values" ) ) {
+			Value valueArray = wordSignObject["values"].GetArray();
+			for( rapidjson::SizeType vi = 0; vi < valueArray.Size(); vi++ ) {
+				attributes.back().AddValue( valueArray[vi].GetString() );
 			}
 		}
 	}
 
-	if( success ) {
-		dest.data = move( data );
-		dest.nameIndices = move( nameIndices );
+	if( !wordAttributes.Initialize( move( attributes ), err ) ) {
+		return false;
 	}
-	return success;
+
+	debug_check_logic( Attributes()[0].Type() == WAT_Main );
+
+	out << endl;
+	Attributes().Print( out );
+	out << "Configuration was successfully initialized!" << endl << endl;
+
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-void CConfiguration::SetAttributes( CWordAttributes&& attributes )
-{
-	wordAttributes = move( attributes );
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-static TWordSignType ParseWordSignType( const string& typeStr )
-{
-	if( typeStr == "enum" ) {
-		return WST_Enum;
-	} else if( typeStr == "string" ) {
-		return WST_String;
-	} else if( typeStr == "main" ) {
-		return WST_Main;
-	}
-	return WST_None;
-}
 
 const char* JsonConfigurationSchemeText()
 {
@@ -255,92 +461,6 @@ const char* JsonConfigurationSchemeText()
   }                                                                        \n\
 }                                                                          \n";
 	return SchemeText;
-}
-
-CConfigurationPtr LoadConfigurationFromFile( const char* filename,
-	ostream& errorStream, ostream& logStream )
-{
-	using namespace rapidjson;
-
-	logStream << "Loading configuration validation scheme..." << endl;
-
-	Document schemeDocument;
-	schemeDocument.Parse( JsonConfigurationSchemeText() );
-	check_logic( !schemeDocument.HasParseError() );
-	SchemaDocument scheme( schemeDocument );
-
-	logStream << "Loading configuration from file '" << filename << "'..." << endl;
-
-	ifstream ifs1( filename );
-	IStreamWrapper isw1( ifs1 );
-
-	Document configDocument;
-	configDocument.ParseStream( isw1 );
-
-	if( configDocument.HasParseError() ) {
-		errorStream << "Parse config '" << filename << "' error at char "
-			<< configDocument.GetErrorOffset() << ": "
-			<< GetParseError_En( configDocument.GetParseError() ) << endl;
-		return CConfigurationPtr();
-	}
-
-	logStream << "Validating configuration by scheme..." << endl;
-
-	SchemaValidator schemeValidator( scheme );
-	if( !configDocument.Accept( schemeValidator ) ) {
-		StringBuffer sb;
-		schemeValidator.GetInvalidSchemaPointer().StringifyUriFragment( sb );
-		errorStream << "Invalid schema: " << sb.GetString() << endl;
-		errorStream << "Invalid keyword: "
-			<< schemeValidator.GetInvalidSchemaKeyword() << endl;
-		sb.Clear();
-		schemeValidator.GetInvalidDocumentPointer().StringifyUriFragment( sb );
-		errorStream << "Invalid document: " << sb.GetString() << endl;
-		return CConfigurationPtr();
-	}
-
-	logStream << "Building configuration..." << endl;
-
-	Value wordSignArray = configDocument["word_signs"].GetArray();
-	CWordAttributesBuilder attributesBuilder( Cast<TAttribute>( wordSignArray.Size() ) );
-	for( rapidjson::SizeType i = 0; i < wordSignArray.Size(); i++ ) {
-		CWordAttribute attribute;
-		Value wordSignObject = wordSignArray[i].GetObject();
-		attribute.Type = ParseWordSignType( wordSignObject["type"].GetString() );
-		debug_check_logic( attribute.Type != WST_None );
-
-		Value nameArray = wordSignObject["names"].GetArray();
-		for( rapidjson::SizeType ni = 0; ni < nameArray.Size(); ni++ ) {
-			const bool added = attribute.Names.Add( nameArray[ni].GetString() );
-			debug_check_logic( added );
-		}
-		if( wordSignObject.HasMember( "values" ) ) {
-			if( attribute.Type == WST_Enum || attribute.Type == WST_Main ) {
-				attribute.Values.Add( "" );
-			}
-			Value valueArray = wordSignObject["values"].GetArray();
-			for( rapidjson::SizeType vi = 0; vi < valueArray.Size(); vi++ ) {
-				const bool added = attribute.Values.Add( valueArray[vi].GetString() );
-				debug_check_logic( added );
-			}
-		}
-		if( wordSignObject.HasMember( "consistent" ) ) {
-			attribute.Consistent = wordSignObject["consistent"].GetBool();
-		}
-		attributesBuilder.Add( move( attribute ) );
-	}
-
-	CWordAttributes wordAttributes;
-	if( !attributesBuilder.Build( errorStream, wordAttributes ) ) {
-		return CConfigurationPtr();
-	}
-
-	logStream << endl;
-	CConfigurationPtr configuration( new CConfiguration );
-	configuration->SetAttributes( move( wordAttributes ) );
-	configuration->Attributes().Print( logStream );
-	logStream << "Configuration was successfully built!" << endl << endl;
-	return configuration;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -12,34 +12,50 @@ typedef size_t TDictionary;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-enum TWordSignType {
-	WST_None,
-	WST_Main,
-	WST_Enum,
-	WST_String
+enum TWordAttributeType {
+	WAT_Main,
+	WAT_Enum,
+	WAT_String
 };
 
-typedef COrderedList<string> COrderedStrings;
+typedef uint8_t TAttributeNameIndex;
+const TAttributeNameIndex MaxAttributeNameIndex
+	= numeric_limits<TAttributeNameIndex>::max();
 
-struct CWordAttribute {
-	bool Consistent;
-	TWordSignType Type;
-	COrderedStrings Names;
-	COrderedStrings Values;
+class CWordAttribute {
+public:
+	explicit CWordAttribute( const TWordAttributeType type,
+		const bool agreement = false, const bool default = false );
+	CWordAttribute( CWordAttribute&& ) = default;
+	CWordAttribute& operator=( CWordAttribute&& ) = default;
 
-	CWordAttribute() :
-		Consistent( false ),
-		Type( WST_None )
-	{
-	}
+	void AddName( const string& name );
+	void AddValue( const string& value );
 
+	const TWordAttributeType Type() const;
+	const bool Agreement() const;
+	const bool Default() const;
+	const TAttributeNameIndex NamesCount() const;
+	const string& Name( const TAttributeNameIndex index ) const;
+	const Text::TAttributeValue ValuesCount() const;
+	const string& Value( const Text::TAttributeValue index ) const;
+	const bool FindValue( const string& value,
+		Text::TAttributeValue& index ) const;
 	void Print( ostream& out ) const;
+
+private:
+	TWordAttributeType type;
+	bool agreement;
+	bool default;
+	vector<string> names;
+	vector<string> values;
+	typedef unordered_map<string, Text::TAttributeValue> CValueIndices;
+	mutable CValueIndices valueIndices;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
 class CWordAttributes {
-	friend class CWordAttributesBuilder;
 	CWordAttributes( const CWordAttributes& ) = delete;
 	CWordAttributes& operator=( const CWordAttributes& ) = delete;
 
@@ -47,31 +63,22 @@ public:
 	CWordAttributes() = default;
 	CWordAttributes( CWordAttributes&& ) = default;
 	CWordAttributes& operator=( CWordAttributes&& ) = default;
-	bool IsEmpty() const;
+
+	bool Initialize( vector<CWordAttribute>&& attributes, ostream& err );
+
+	bool Valid() const;
 	Text::TAttribute Size() const;
 	const CWordAttribute& Main() const;
 	const CWordAttribute& operator[]( Text::TAttribute index ) const;
 	bool Find( const string& name, Text::TAttribute& index ) const;
+	bool FindDefault( Text::TAttribute& index ) const;
 	void Print( ostream& out ) const;
 
 private:
 	vector<CWordAttribute> data;
+	Text::TAttribute defaultAttribute = Text::MainAttribute;
 	typedef unordered_map<string, Text::TAttribute> CNameIndices;
 	CNameIndices nameIndices;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-
-class CWordAttributesBuilder {
-public:
-	explicit CWordAttributesBuilder( const Text::TAttribute size );
-	void Add( CWordAttribute&& wordAttribute );
-	bool Build( ostream& errorStream, CWordAttributes& wordSigns );
-
-private:
-	vector<CWordAttribute> mains;
-	vector<CWordAttribute> consistents;
-	vector<CWordAttribute> notConsistents;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -83,8 +90,8 @@ class CConfiguration {
 public:
 	CConfiguration() = default;
 
-	const CWordAttributes& Attributes() const { return wordAttributes; }
-	void SetAttributes( CWordAttributes&& attributes );
+	const CWordAttributes& Attributes() const;
+	bool LoadFromFile( const char* filename, ostream& out, ostream& err );
 
 private:
 	CWordAttributes wordAttributes;
@@ -95,9 +102,6 @@ typedef shared_ptr<CConfiguration> CConfigurationPtr;
 ///////////////////////////////////////////////////////////////////////////////
 
 const char* JsonConfigurationSchemeText();
-
-CConfigurationPtr LoadConfigurationFromFile( const char* filename,
-	ostream& errorStream, ostream& logStream );
 
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -76,7 +76,7 @@ void CPatternArgument::Print( const CPatterns& context, ostream& out ) const
 	}
 	out << context.Element( Element );
 	if( HasSign() ) {
-		out << "." << context.Configuration().Attributes()[Sign].Names.Value( 0 );
+		out << "." << context.Configuration().Attributes()[Sign].Name( 0 );
 	}
 }
 
@@ -583,12 +583,7 @@ bool CSignRestriction::IsEmpty( const CPatterns& context ) const
 {
 	const CWordAttribute& attribute = context.Configuration().Attributes()[sign];
 	if( exclude ) {
-		if( attribute.Type == WST_String ) {
-			// todo: check
-			return false;
-		} else {
-			return ( values.Size() == attribute.Values.Size() );
-		}
+		return ( values.Size() == attribute.ValuesCount() );
 	} else {
 		return values.IsEmpty();
 	}
@@ -604,13 +599,14 @@ void CSignRestriction::Build( CAttributesRestrictionBuilder& builder ) const
 
 void CSignRestriction::Print( const CPatterns& context, ostream& out ) const
 {
-	out << context.Configuration().Attributes()[sign].Names.Value( 0 );
+	const CWordAttribute& attribute = context.Configuration().Attributes()[sign];
+	out << attribute.Name( 0 );
 	out << ( exclude ? "!=" : "=" );
-	for( CSignValues::SizeType i = 0; i < values.Size(); i++ ) {
+	for( TAttributeValue i = 0; i < values.Size(); i++ ) {
 		if( i > 0 ) {
 			out << "|";
 		}
-		out << context.AttributeStringValue( sign, values.Value( i ) );
+		out << attribute.Value( values.Value( i ) );
 	}
 }
 
@@ -861,8 +857,8 @@ void CPattern::Build( CPatternBuildContext& context,
 	}
 
 	// correct ids
-	const COrderedStrings::SizeType mainSize
-		= context.Patterns().Configuration().Attributes().Main().Values.Size();
+	const TElement mainSize =
+		context.Patterns().Configuration().Attributes().Main().ValuesCount();
 	for( CPatternVariant& variant : variants ) {
 		for( CPatternWord& word : variant ) {
 			if( word.Id.Type != PAT_Element ) {
@@ -886,8 +882,6 @@ CPatterns::CPatterns( Configuration::CConfigurationPtr _configuration ) :
 	configuration( _configuration )
 {
 	check_logic( static_cast<bool>( configuration ) );
-	const TAttributeValue emptyStringAttributeValue = StringValue( "" );
-	debug_check_logic( emptyStringAttributeValue == NullAttributeValue );
 }
 
 const CPattern& CPatterns::Pattern( const TReference reference ) const
@@ -905,10 +899,10 @@ void CPatterns::Print( ostream& out ) const
 
 string CPatterns::Element( const TElement element ) const
 {
-	const COrderedStrings& values = Configuration().Attributes().Main().Values;
+	const CWordAttribute& main = Configuration().Attributes().Main();
 	CIndexedName name;
-	name.Index = element / values.Size();
-	name.Name = values.Value( element % values.Size() );
+	name.Index = element / main.ValuesCount();
+	name.Name = main.Value( element % main.ValuesCount() );
 	return name.Normalize();
 }
 
@@ -920,18 +914,6 @@ string CPatterns::Reference( const TReference reference ) const
 	return refName.Normalize();
 }
 
-string CPatterns::AttributeStringValue( const TAttribute attribute,
-	const TAttributeValue attributeValue ) const
-{
-	const CWordAttribute& wordAttribute = Configuration().Attributes()[attribute];
-	if( wordAttribute.Type == WST_String ) {
-		debug_check_logic( attributeValue < Strings.size() );
-		return Strings[attributeValue];
-	} else {
-		return wordAttribute.Values.Value( attributeValue );
-	}
-}
-
 TReference CPatterns::PatternReference( const string& name,
 	const TReference nameIndex ) const
 {
@@ -940,15 +922,6 @@ TReference CPatterns::PatternReference( const string& name,
 		return numeric_limits<TSign>::max();
 	}
 	return ( pi->second + nameIndex * Names.size() );
-}
-
-TAttributeValue CPatterns::StringValue( const string& str ) const
-{
-	auto pair = StringIndices.insert( make_pair( str, Strings.size() ) );
-	if( pair.second ) {
-		Strings.push_back( str );
-	}
-	return pair.first->second;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

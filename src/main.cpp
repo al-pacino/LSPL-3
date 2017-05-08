@@ -21,14 +21,13 @@ int main( int argc, const char* argv[] )
 			return 1;
 		}
 
-		CConfigurationPtr conf = LoadConfigurationFromFile( argv[1], cerr, cout );
-
-		if( !static_cast<bool>( conf ) ) {
+		CConfigurationPtr conf( new CConfiguration );
+		if( !conf->LoadFromFile( argv[1], cout, cerr ) ) {
 			return 1;
 		}
 
 		for( TAttribute a = 0; a < conf->Attributes().Size(); a++ ) {
-			if( conf->Attributes()[a].Consistent ) {
+			if( conf->Attributes()[a].Agreement() ) {
 				CAnnotation::SetArgreementBegin( a );
 				break;
 			}

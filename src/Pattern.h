@@ -338,18 +338,12 @@ public:
 	void Print( ostream& out ) const;
 	string Element( const TElement element ) const;
 	string Reference( const TReference reference ) const;
-	string AttributeStringValue( const Text::TAttribute attribute,
-		const Text::TAttributeValue attributeValue ) const;
 	TReference PatternReference( const string& name,
 		const TReference nameIndex = 0 ) const;
-	Text::TAttributeValue StringValue( const string& str ) const;
 
 protected:
 	vector<CPattern> Patterns;
 	unordered_map<string, TReference> Names;
-
-	mutable vector<string> Strings;
-	mutable unordered_map<string, Text::TAttributeValue> StringIndices;
 
 	explicit CPatterns( Configuration::CConfigurationPtr configuration );
 

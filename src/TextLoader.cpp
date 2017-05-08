@@ -93,21 +93,17 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 				if( wordAttributes.Find( attr->name.GetString(), index ) ) {
 					const CWordAttribute& attribute = wordAttributes[index];
 					const string value = attr->value.GetString();
-					COrderedStrings::SizeType valueIndex;
-					if( attribute.Type == WST_String ) {
-						valueIndex = context.StringValue( value );
-					} else {
-						if( !attribute.Values.Find( value, valueIndex ) ) {
-							valueIndex = attribute.Values.Size();
+					TAttributeValue attrValue = NullAttributeValue;
+					if( attribute.FindValue( value, attrValue ) ) {
+						if( attributes.Get( index ) == NullAttributeValue ) {
+							attributes.Set( index, attrValue );
+						} else {
+							cerr << "bad 'word' #" << wi
+								<< " 'annotation' #" << ai
+								<< " redefinition of value" << endl;
+							return false;
 						}
 					}
-					if( attributes.Get( index ) != NullAttributeValue ) {
-						cerr << "bad 'word' #" << wi
-							<< " 'annotation' #" << ai
-							<< " redefinition of value" << endl;
-						return false;
-					}
-					attributes.Set( index, valueIndex );
 				}
 			}
 
