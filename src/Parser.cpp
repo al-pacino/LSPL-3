@@ -853,20 +853,30 @@ void CElementCondition::Check( CPatternsBuilder& context,
 		}
 		if( arg.Sign == Text::MainAttribute ) {
 			context.ErrorProcessor.AddError( CError( *Name,
-				"main word sign is not allowed here" ) );
+				"main word attribute is not allowed here" ) );
+		}
+	} else if( attributes.FindDefault( arg.Sign ) ) {
+		const CIndexedName tmp( element );
+		Text::TAttributeValue value = Text::NullAttributeValue;
+		if( attributes.Main().FindValue( tmp.Name, value ) ) {
+			arg.Element = value + tmp.Index * attributes.Main().ValuesCount();
+		} else {
+			context.AddComplexError( collectTokens(),
+				"default word attribute is not allowed for pattern reference" );
+			return;
 		}
 	} else {
 		context.AddComplexError( collectTokens(),
-			"there is no default word sign in configuration" );
+			"there is no default word attribute in configuration" );
 		return;
 	}
 
 	CSignValues attributeValues;
-	const CWordAttribute& attribute = attributes[arg.Sign];
+	const CWordAttribute& wordAttribute = attributes[arg.Sign];
 	for( const CTokenPtr& value : Values ) {
 		debug_check_logic( value->Type == TT_Identifier || value->Type == TT_Regexp );
 		Text::TAttributeValue attributeValue;
-		if( attribute.FindValue( value->Text, attributeValue ) ) {
+		if( wordAttribute.FindValue( value->Text, attributeValue ) ) {
 			if( !attributeValues.Add( attributeValue ) ) {
 				context.ErrorProcessor.AddError( CError( *value,
 					"duplicate word attribute value" ) );
@@ -877,7 +887,7 @@ void CElementCondition::Check( CPatternsBuilder& context,
 		}
 	}
 
-	if( arg.Type != PAT_None && !attributeValues.IsEmpty() ) {
+	if( !attributeValues.IsEmpty() ) {
 		const bool exclude = static_cast<bool>( EqualSign )
 			&& ( EqualSign->Type == TT_ExclamationPointEqualSign );
 		CSignRestriction restrictions( arg.Element, arg.Sign,
