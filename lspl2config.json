@@ -7,7 +7,8 @@
     },
     {
       "names": [ "lemma", "b" ],
-      "type": "string"
+      "type": "string",
+      "default": true
     },
     {
       "names": [ "stem", "st" ],

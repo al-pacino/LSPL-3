@@ -40,7 +40,8 @@
           "type": "string",
           "pattern": "^enum$"
         },
-        "consistent": { "type": "boolean" }
+        "consistent": { "type": "boolean" },
+        "default": { "type": "boolean" }
       },
       "required": ["names", "type", "values"],
       "additionalProperties": false
@@ -53,7 +54,8 @@
           "type": "string",
           "pattern": "^string$"
         },
-        "consistent": { "type": "boolean" }
+        "consistent": { "type": "boolean" },
+        "default": { "type": "boolean" }
       },
       "required": ["names", "type"],
       "additionalProperties": false
