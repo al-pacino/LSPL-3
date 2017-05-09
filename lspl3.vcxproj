@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{07C6419E-1DCD-4224-82D0-12C518B03411}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>lspl2</RootNamespace>
+    <RootNamespace>lspl3</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
