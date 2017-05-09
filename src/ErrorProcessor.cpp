@@ -77,20 +77,14 @@ string CError::highlightSymbols() const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CErrorProcessor::CErrorProcessor()
+CErrorProcessor::CErrorProcessor() :
+	hasErrors( false ),
+	hasCriticalErrors( false )
 {
-	Reset();
 }
 
 CErrorProcessor::~CErrorProcessor()
 {
-}
-
-void CErrorProcessor::Reset()
-{
-	hasErrors = false;
-	hasCriticalErrors = false;
-	errors.clear();
 }
 
 bool CErrorProcessor::HasAnyErrors() const

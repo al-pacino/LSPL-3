@@ -62,7 +62,6 @@ public:
 	CErrorProcessor();
 	~CErrorProcessor();
 
-	void Reset();
 	void AddError( CError&& error );
 	void PrintErrors( ostream& out, const string& filename = "" ) const;
 	bool HasAnyErrors() const;
