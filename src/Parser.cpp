@@ -487,6 +487,13 @@ void CAlternativeConditions::Print( ostream& out ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CPatternsBuilder::CPatternsBuilder( Configuration::CConfigurationPtr conf,
+		CErrorProcessor& errorProcessor ) :
+	Pattern::CPatterns( conf ),
+	ErrorProcessor( errorProcessor )
+{
+}
+
 void CPatternsBuilder::Read( const char* filename )
 {
 	check_logic( !ErrorProcessor.HasAnyErrors() );

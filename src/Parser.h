@@ -289,11 +289,7 @@ public:
 class CPatternsBuilder : public Pattern::CPatterns {
 public:
 	CPatternsBuilder( Configuration::CConfigurationPtr configuration,
-		CErrorProcessor& errorProcessor ) :
-		Pattern::CPatterns( configuration ),
-		ErrorProcessor( errorProcessor )
-	{
-	}
+		CErrorProcessor& errorProcessor );
 
 	void Read( const char* filename );
 	void Check();
