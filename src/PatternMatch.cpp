@@ -200,14 +200,14 @@ bool CAttributesTransition::Match( const CWord& word,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void CActions::Add( CActionPtr action )
+void CActions::Add( const CActionPtr action )
 {
 	actions.emplace_back( action );
 }
 
 bool CActions::Run( const CMatchContext& context ) const
 {
-	for( const shared_ptr<IAction>& action : actions ) {
+	for( const CActionPtr& action : actions ) {
 		if( !action->Run( context ) ) {
 			return false;
 		}
@@ -217,7 +217,7 @@ bool CActions::Run( const CMatchContext& context ) const
 
 void CActions::Print( const CConfiguration& configuration, ostream& out ) const
 {
-	for( const shared_ptr<IAction>& action : actions ) {
+	for( const CActionPtr& action : actions ) {
 		action->Print( configuration, out );
 	}
 }
@@ -469,12 +469,12 @@ void CDictionaryAction::Print(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CPrintAction::CPrintAction( ostream& out ) :
+CSaveAction::CSaveAction( ostream& out ) :
 	output( out )
 {
 }
 
-bool CPrintAction::Run( const CMatchContext& context ) const
+bool CSaveAction::Run( const CMatchContext& context ) const
 {
 	const CDataEditor& data = context.DataEditor();
 	const TWordIndex begin = context.InitialWord();
@@ -493,7 +493,7 @@ bool CPrintAction::Run( const CMatchContext& context ) const
 	return true;
 }
 
-void CPrintAction::Print( const Configuration::CConfiguration& /*configuration*/,
+void CSaveAction::Print( const Configuration::CConfiguration& /*configuration*/,
 	ostream& out ) const
 {
 	out << "<<Save>>";

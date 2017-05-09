@@ -494,7 +494,7 @@ CPatternsBuilder::CPatternsBuilder( Configuration::CConfigurationPtr conf,
 {
 }
 
-void CPatternsBuilder::Read( const char* filename )
+void CPatternsBuilder::ReadFromFile( const string& filename )
 {
 	check_logic( !ErrorProcessor.HasAnyErrors() );
 
@@ -525,7 +525,7 @@ void CPatternsBuilder::Read( const char* filename )
 	}
 }
 
-void CPatternsBuilder::Check()
+void CPatternsBuilder::CheckAndBuildIfPossible()
 {
 	if( ErrorProcessor.HasAnyErrors() ) {
 		return;
@@ -540,7 +540,7 @@ void CPatternsBuilder::Check()
 	}
 }
 
-Pattern::CPatterns CPatternsBuilder::Save()
+Pattern::CPatterns CPatternsBuilder::GetResult()
 {
 	check_logic( !ErrorProcessor.HasAnyErrors() );
 	return move( *this );

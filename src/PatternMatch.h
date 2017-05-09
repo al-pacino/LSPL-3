@@ -131,7 +131,7 @@ typedef shared_ptr<IAction> CActionPtr;
 class CActions {
 public:
 	CActions() = default;
-	void Add( CActionPtr action );
+	void Add( const CActionPtr action );
 	bool Run( const CMatchContext& context ) const;
 	void Print( const Configuration::CConfiguration& configuration,
 		ostream& out ) const;
@@ -215,10 +215,10 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CPrintAction : public IAction {
+class CSaveAction : public IAction {
 public:
-	explicit CPrintAction( ostream& out );
-	~CPrintAction() override {}
+	explicit CSaveAction( ostream& out );
+	~CSaveAction() override {}
 	bool Run( const CMatchContext& context ) const override;
 	void Print( const Configuration::CConfiguration& configuration,
 		ostream& out ) const override;

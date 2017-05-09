@@ -353,16 +353,6 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-struct CStatesBuildContext {
-	const CPatterns& Patterns;
-	CStates States;
-	vector<pair<string, TStateIndex>> LastVariant;
-
-	explicit CStatesBuildContext( const CPatterns& patterns );
-};
-
-///////////////////////////////////////////////////////////////////////////////
-
 struct CPatternWord {
 	CPatternArgument Id;
 	const string* Regexp;
@@ -373,7 +363,7 @@ struct CPatternWord {
 	CPatternWord( const CPatternArgument id,
 		const CSignRestrictions& signRestrictions );
 
-	void Build( CStatesBuildContext& context ) const;
+	void Build( CPatternBuildContext& context ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 };
 
@@ -387,7 +377,7 @@ public:
 		return *this;
 	}
 
-	void Build( CStatesBuildContext& context ) const;
+	void Build( CPatternBuildContext& context ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 };
 
@@ -396,7 +386,7 @@ public:
 class CPatternVariants : public vector<CPatternVariant> {
 public:
 	void SortAndRemoveDuplicates( const CPatterns& context );
-	CStates Build( const CPatterns& context ) const;
+	void Build( CPatternBuildContext& context ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
 };
 
@@ -404,6 +394,9 @@ public:
 
 class CPatternBuildContext {
 public:
+	CStates States;
+	vector<pair<string, TStateIndex>> LastVariant;
+
 	explicit CPatternBuildContext( const CPatterns& patterns );
 
 	const CPatterns& Patterns() const { return patterns; }

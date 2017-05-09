@@ -926,14 +926,6 @@ TReference CPatterns::PatternReference( const string& name,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CStatesBuildContext::CStatesBuildContext( const CPatterns& patterns ) :
-	Patterns( patterns )
-{
-	States.emplace_back();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 CPatternWord::CPatternWord( const string* const regexp ) :
 	Regexp( regexp )
 {
@@ -949,7 +941,7 @@ CPatternWord::CPatternWord( const CPatternArgument id,
 	debug_check_logic( Id.Type == PAT_Element );
 }
 
-void CPatternWord::Build( CStatesBuildContext& context ) const
+void CPatternWord::Build( CPatternBuildContext& context ) const
 {
 	const TStateIndex state = context.LastVariant.empty()
 		? 0 : context.LastVariant.back().second;
@@ -965,14 +957,14 @@ void CPatternWord::Build( CStatesBuildContext& context ) const
 			nextStateIndex ) );
 	} else {
 		transition.reset( new CAttributesTransition(
-			SignRestrictions.Build( context.Patterns.Configuration() ),
+			SignRestrictions.Build( context.Patterns().Configuration() ),
 			nextStateIndex ) );
 	}
 
 	context.States[state].Transitions.emplace_back( transition.release() );
 
 	ostringstream oss;
-	Print( context.Patterns, oss );
+	Print( context.Patterns(), oss );
 	context.LastVariant.push_back( make_pair( oss.str(), nextStateIndex ) );
 }
 
@@ -990,14 +982,14 @@ void CPatternWord::Print( const CPatterns& context, ostream& out ) const
 	}
 }
 
-void CPatternVariant::Build( CStatesBuildContext& context ) const
+void CPatternVariant::Build( CPatternBuildContext& context ) const
 {
 	auto i = this->cbegin();
 	auto j = context.LastVariant.begin();
 
 	while( i != this->cend() && j != context.LastVariant.end() ) {
 		ostringstream oss;
-		i->Print( context.Patterns, oss );
+		i->Print( context.Patterns(), oss );
 		if( j->first != oss.str() ) {
 			break;
 		}
@@ -1012,7 +1004,7 @@ void CPatternVariant::Build( CStatesBuildContext& context ) const
 	}
 
 	context.States[context.LastVariant.back().second].Actions.Add(
-		shared_ptr<IAction>( new CPrintAction( cout ) ) );
+		CActionPtr( new CSaveAction( cout ) ) );
 }
 
 void CPatternVariant::Print( const CPatterns& context, ostream& out ) const
@@ -1068,15 +1060,11 @@ void CPatternVariants::SortAndRemoveDuplicates( const CPatterns& context )
 	}
 }
 
-CStates CPatternVariants::Build( const CPatterns& context ) const
+void CPatternVariants::Build( CPatternBuildContext& context ) const
 {
-	CStatesBuildContext statesBuildContext( context );
-
 	for( const CPatternVariant& variant : *this ) {
-		variant.Build( statesBuildContext );
+		variant.Build( context );
 	}
-
-	return move( statesBuildContext.States );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1085,6 +1073,7 @@ CPatternBuildContext::CPatternBuildContext( const CPatterns& _patterns ) :
 	patterns( _patterns )
 {
 	data.resize( patterns.Size() );
+	States.emplace_back();
 }
 
 TVariantSize CPatternBuildContext::PushMaxSize( const TReference reference,

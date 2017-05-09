@@ -291,9 +291,9 @@ public:
 	CPatternsBuilder( Configuration::CConfigurationPtr configuration,
 		CErrorProcessor& errorProcessor );
 
-	void Read( const char* filename );
-	void Check();
-	Pattern::CPatterns Save();
+	void ReadFromFile( const string& filename );
+	void CheckAndBuildIfPossible();
+	Pattern::CPatterns GetResult();
 
 	// nullptr used to seperate line segments
 	void AddComplexError( const vector<CTokenPtr>& tokens,
