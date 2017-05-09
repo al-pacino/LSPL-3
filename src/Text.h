@@ -2,6 +2,7 @@
 
 #include <OrderedList.h>
 #include <Attributes.h>
+#include <Configuration.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -91,12 +92,13 @@ class CText {
 	CText& operator=( const CText& ) = delete;
 
 public:
-	explicit CText( CWords&& words );
-
-	const CWord& Word( const TWordIndex index ) const;
+	explicit CText( const Configuration::CConfigurationPtr configuration );
+	bool LoadFromFile( const string& filename, ostream& errStream );
 	const TWordIndex Length() const { return words.size(); }
+	const CWord& Word( const TWordIndex index ) const;
 
 private:
+	Configuration::CConfigurationPtr configuration;
 	CWords words;
 };
 

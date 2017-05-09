@@ -93,9 +93,10 @@ bool CWord::MatchAttributes( const CAttributesRestriction& attributesRestriction
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CText::CText( CWords&& _words ) :
-	words( move( _words ) )
+CText::CText( const Configuration::CConfigurationPtr _configuration ) :
+	configuration( _configuration )
 {
+	check_logic( static_cast<bool>( configuration ) );
 }
 
 const CWord& CText::Word( const TWordIndex index ) const

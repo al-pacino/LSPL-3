@@ -170,7 +170,6 @@
     <ClInclude Include="src\Pattern.h" />
     <ClInclude Include="src\SharedFileLine.h" />
     <ClInclude Include="src\Text.h" />
-    <ClInclude Include="src\TextLoader.h" />
     <ClInclude Include="src\Tokenizer.h" />
     <ClInclude Include="src\Tools.h" />
     <ClInclude Include="src\TranspositionSupport.h" />

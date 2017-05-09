@@ -1,5 +1,5 @@
 #include <common.h>
-#include <TextLoader.h>
+#include <Text.h>
 
 #define RAPIDJSON_ASSERT debug_check_logic
 #include <rapidjson/rapidjson.h>
@@ -8,7 +8,7 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/istreamwrapper.h>
 
-using namespace Lspl::Pattern;
+using namespace rapidjson;
 using namespace Lspl::Configuration;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,10 +18,9 @@ namespace Text {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
+bool CText::LoadFromFile( const string& filename, ostream& err )
 {
-	_words.clear();
-	using namespace rapidjson;
+	words.clear();
 
 	Document textDocument;
 	{
@@ -30,7 +29,7 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 		textDocument.ParseStream( isw1 );
 	}
 	if( textDocument.HasParseError() ) {
-		cerr << "Parse text '" << filename << "' error at char "
+		err << "Parse text '" << filename << "' error at char "
 			<< textDocument.GetErrorOffset() << ": "
 			<< GetParseError_En( textDocument.GetParseError() ) << endl;
 		return false;
@@ -40,15 +39,15 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 		|| !textDocument.HasMember( "text" )
 		|| !textDocument["text"].IsArray() )
 	{
-		cerr << "bad 'text' element" << endl;
+		err << "bad 'text' element" << endl;
 		return false;
 	}
 
-	const CConfiguration& configuration = context.Configuration();
-	const CWordAttributes& wordAttributes = configuration.Attributes();
+	const CWordAttributes& wordAttributes = configuration->Attributes();
 
-	CWords words;
+	CWords tempWords;
 	Value wordsArray = textDocument["text"].GetArray();
+	tempWords.reserve( wordsArray.Size() );
 	for( rapidjson::SizeType wi = 0; wi < wordsArray.Size(); wi++ ) {
 		if( !wordsArray[wi].IsObject()
 			|| !wordsArray[wi].HasMember( "word" )
@@ -57,20 +56,27 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 			|| !wordsArray[wi]["annotations"].IsArray()
 			|| wordsArray[wi]["annotations"].GetArray().Size() == 0 )
 		{
-			cerr << "bad 'word' #" << wi << " element" << endl;
+			err << "bad 'word' #" << wi << " element" << endl;
 			return false;
 		}
 
 		Value wordObject = wordsArray[wi].GetObject();
 
-		words.emplace_back();
-		words.back().text = wordObject["word"].GetString();
-		words.back().word = ToStringEx( words.back().text );
+		tempWords.emplace_back();
+		tempWords.back().text = wordObject["word"].GetString();
+		tempWords.back().word = ToStringEx( tempWords.back().text );
 
 		Value annotations = wordObject["annotations"].GetArray();
+		if( MaxAnnotation < annotations.Size() ) {
+			err << "bad 'word' #" << wi
+				<< " too much annotations" << endl;
+			return false;
+		}
+		tempWords.back().annotations.reserve( annotations.Size() );
+
 		for( rapidjson::SizeType ai = 0; ai < annotations.Size(); ai++ ) {
 			if( !annotations[ai].IsObject() ) {
-				cerr << "bad 'word' #" << wi
+				err << "bad 'word' #" << wi
 					<< " 'annotation' #" << ai
 					<< " element" << endl;
 				return false;
@@ -83,7 +89,7 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 				attr != attrObject.MemberEnd(); ++attr )
 			{
 				if( !attr->value.IsString() ) {
-					cerr << "bad 'word' #" << wi
+					err << "bad 'word' #" << wi
 						<< " 'annotation' #" << ai
 						<< " attribute value" << endl;
 					return false;
@@ -98,7 +104,7 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 						if( attributes.Get( index ) == NullAttributeValue ) {
 							attributes.Set( index, attrValue );
 						} else {
-							cerr << "bad 'word' #" << wi
+							err << "bad 'word' #" << wi
 								<< " 'annotation' #" << ai
 								<< " redefinition of value" << endl;
 							return false;
@@ -108,24 +114,17 @@ bool LoadText( const CPatterns& context, const char* filename, CWords& _words )
 			}
 
 			if( attributes.Get( MainAttribute ) == NullAttributeValue ) {
-				cerr << "bad 'word' #" << wi
+				err << "bad 'word' #" << wi
 					<< " 'annotation' #" << ai
 					<< " has no main attribute" << endl;
 				return false;
 			}
 
-			if( words.back().annotations.size() <= MaxAnnotation ) {
-				words.back().annotations.emplace_back( move( attributes ) );
-			} else {
-				cerr << "bad 'word' #" << wi
-					<< " 'annotation' #" << ai
-					<< " too much annotations" << endl;
-				return false;
-			}
+			tempWords.back().annotations.emplace_back( move( attributes ) );
 		}
 	}
 
-	_words = move( words );
+	words = move( tempWords );
 	return true;
 }
 

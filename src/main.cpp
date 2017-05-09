@@ -1,7 +1,6 @@
 #include <common.h>
 #include <Parser.h>
 #include <Tokenizer.h>
-#include <TextLoader.h>
 #include <PatternMatch.h>
 #include <Configuration.h>
 #include <ErrorProcessor.h>
@@ -47,9 +46,10 @@ int main( int argc, const char* argv[] )
 		const CPatterns patterns = patternsBuilder.GetResult();
 		patterns.Print( cout );
 
-		CWords words;
-		LoadText( patterns, argv[3], words );
-		CText text( move( words ) );
+		CText text( conf );
+		if( !text.LoadFromFile( argv[3], cerr ) ) {
+			return 1;
+		}
 
 		for( TReference ref = 0; ref < patterns.Size(); ref++ ) {
 			const CPattern& pattern = patterns.Pattern( ref );
