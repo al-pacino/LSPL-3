@@ -44,7 +44,7 @@ void CTranspositionSupport::fillSwaps( CSwaps& swaps, const size_t size )
 	CTransposition current = transpositions.front();
 	transpositions.pop_front();
 	while( !transpositions.empty() ) {
-		for( auto i = transpositions.cbegin(); i != transpositions.cend(); ++i ) {
+		for( auto i = transpositions.begin(); i != transpositions.end(); ++i ) {
 			if( connect( *i, current, swaps ) ) {
 				current = *i;
 				transpositions.erase( i );
