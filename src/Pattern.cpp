@@ -726,7 +726,8 @@ void CSignRestrictions::Print( const CPatterns& context, ostream& out ) const
 ///////////////////////////////////////////////////////////////////////////////
 
 CPatternElement::CPatternElement( const TElement _element ) :
-	element( _element )
+	element( _element ),
+	signs()
 {
 }
 
@@ -762,7 +763,8 @@ void CPatternElement::Build( CPatternBuildContext& /*context*/,
 ///////////////////////////////////////////////////////////////////////////////
 
 CPatternReference::CPatternReference( const TReference _reference ) :
-	reference( _reference )
+	reference( _reference ),
+	signs()
 {
 }
 
