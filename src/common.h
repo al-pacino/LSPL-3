@@ -12,7 +12,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#ifdef _WIN32
 #include <codecvt>
+#endif
 #include <fstream>
 #include <sstream>
 #include <iostream>
