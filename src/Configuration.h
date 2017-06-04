@@ -25,7 +25,7 @@ const TAttributeNameIndex MaxAttributeNameIndex
 class CWordAttribute {
 public:
 	explicit CWordAttribute( const TWordAttributeType type,
-		const bool agreement = false, const bool default = false );
+		const bool agreement = false, const bool byDefault = false );
 	CWordAttribute( CWordAttribute&& ) = default;
 	CWordAttribute& operator=( CWordAttribute&& ) = default;
 
@@ -46,7 +46,7 @@ public:
 private:
 	TWordAttributeType type;
 	bool agreement;
-	bool default;
+	bool byDefault;
 	vector<string> names;
 	mutable vector<string> values;
 	typedef unordered_map<string, Text::TAttributeValue> CValueIndices;

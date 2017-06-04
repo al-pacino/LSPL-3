@@ -17,13 +17,13 @@ namespace Configuration {
 ///////////////////////////////////////////////////////////////////////////////
 
 CWordAttribute::CWordAttribute( const TWordAttributeType _type,
-		const bool _agreement, const bool _default ) :
+		const bool _agreement, const bool _byDefault ) :
 	type( _type ),
 	agreement( _agreement ),
-	default( _default )
+	byDefault( _byDefault )
 {
 	if( type == WAT_Main ) {
-		debug_check_logic( !agreement && !default );
+		debug_check_logic( !agreement && !byDefault );
 	}
 
 	if( type == WAT_Enum ) {
@@ -60,7 +60,7 @@ const bool CWordAttribute::Agreement() const
 
 const bool CWordAttribute::Default() const
 {
-	return default;
+	return byDefault;
 }
 
 const TAttributeNameIndex CWordAttribute::NamesCount() const
@@ -114,7 +114,7 @@ void CWordAttribute::Print( ostream& out ) const
 		out << "agreement ";
 	}
 
-	if( default ) {
+	if( byDefault ) {
 		out << "default ";
 	}
 
@@ -354,12 +354,12 @@ bool CConfiguration::LoadFromFile( const char* filename,
 			agreement = wordSignObject["consistent"].GetBool();
 		}
 
-		bool default = false;
+		bool byDefault = false;
 		if( wordSignObject.HasMember( "default" ) ) {
-			default = wordSignObject["default"].GetBool();
+			byDefault = wordSignObject["default"].GetBool();
 		}
 
-		attributes.emplace_back( type, agreement, default );
+		attributes.emplace_back( type, agreement, byDefault );
 
 		Value nameArray = wordSignObject["names"].GetArray();
 		for( rapidjson::SizeType ni = 0; ni < nameArray.Size(); ni++ ) {
