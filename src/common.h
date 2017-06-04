@@ -38,5 +38,5 @@ using namespace std;
 #ifdef _DEBUG
 #define debug_check_logic check_logic
 #else
-#define debug_check_logic
+#define debug_check_logic( condition ) { ( condition ) ) }
 #endif
