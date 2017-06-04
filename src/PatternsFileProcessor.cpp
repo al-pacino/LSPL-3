@@ -114,7 +114,7 @@ void CPatternsFileProcessor::readLine()
 
 	// support windows EOL style "\r\n"
 	if( !line.empty() && line.back() == '\r' ) {
-		line.pop_back();
+		line.erase( prev( line.end() ) ); // line.pop_back();
 	}
 
 	const string::size_type invalidByteOffset = IsValidUtf8( line );
