@@ -60,7 +60,7 @@ class CWordAttributes {
 	CWordAttributes& operator=( const CWordAttributes& ) = delete;
 
 public:
-	CWordAttributes() = default;
+	CWordAttributes();
 	CWordAttributes( CWordAttributes&& ) = default;
 	CWordAttributes& operator=( CWordAttributes&& ) = default;
 
@@ -76,7 +76,7 @@ public:
 
 private:
 	vector<CWordAttribute> data;
-	Text::TAttribute defaultAttribute = Text::MainAttribute;
+	Text::TAttribute defaultAttribute;
 	typedef unordered_map<string, Text::TAttribute> CNameIndices;
 	CNameIndices nameIndices;
 };

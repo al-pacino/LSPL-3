@@ -158,6 +158,11 @@ void CWordAttribute::Print( ostream& out ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CWordAttributes::CWordAttributes() :
+	defaultAttribute( Text::MainAttribute )
+{
+}
+
 bool CWordAttributes::Initialize( vector<CWordAttribute>&& attributes,
 	ostream& err )
 {
