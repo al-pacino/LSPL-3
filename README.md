@@ -28,7 +28,7 @@ cmake -G "Unix Makefiles" ../
 make
 ```
 
-## Using
+## Usage
 
 Run program `lspl3`:
 ```sh
