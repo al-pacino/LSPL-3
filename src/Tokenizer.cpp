@@ -262,8 +262,8 @@ void CTokenizer::initialState( char c )
 				state = &CTokenizer::indentifierState;
 				text.assign( 1, c );
 			} else {
-				errorProcessor.AddError( CError( CLineSegment( offset ),
-					line, "unknown character " + c, ES_CriticalError ) );
+				errorProcessor.AddError( CError( CLineSegment( offset ), line,
+					"unknown character " + string( 1, c ), ES_CriticalError ) );
 			}
 			break;
 	}
