@@ -71,8 +71,8 @@ private:
 	//static_assert( sizeof( TSmall ) == 1, "bad CAttributesRestriction" );
 	//static_assert( sizeof( CHeader ) == 2, "bad CAttributesRestriction" );
 	struct CHeader {
-		const TAttribute Attribute : 8;
-		const bool Exclude : 1;
+		TAttribute Attribute : 8;
+		bool Exclude : 1;
 		bool Wide : 1;
 		uint8_t Length : 6;
 
