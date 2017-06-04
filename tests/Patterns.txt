@@ -1,0 +1,1 @@
+AdjNoun = A1 N1 <<A1=N1,A1.c==N1.c,A1.n==N1.n>>

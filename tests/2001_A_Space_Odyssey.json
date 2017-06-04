@@ -1,0 +1,1895 @@
+{ "text": [
+  { "word":"На", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"на", "st":"на" } ] },
+  { "word":"протяжении", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"протяжение", "st":"протяжен", "c":"prep", "n":"sing", "g":"neut" } ] },
+  { "word":"более", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"более", "st":"более" },
+    { "sp":"Num", "b":"много", "st":"", "doc":"com" } ] },
+  { "word":"чем", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"чем", "st":"чем" },
+    { "sp":"Pn", "b":"что", "st":"ч", "c":"ins", "n":"sing", "g":"neut" },
+    { "sp":"Pn", "b":"что", "st":"ч", "c":"prep", "n":"sing", "g":"neut" } ] },
+  { "word":"двух", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Num", "b":"два", "st":"дв", "c":"gen", "g":"masc" },
+    { "sp":"Num", "b":"два", "st":"дв", "c":"acc", "g":"masc" },
+    { "sp":"Num", "b":"два", "st":"дв", "c":"prep", "g":"masc" },
+    { "sp":"Num", "b":"два", "st":"дв", "c":"gen", "g":"fem" },
+    { "sp":"Num", "b":"два", "st":"дв", "c":"acc", "g":"fem" },
+    { "sp":"Num", "b":"два", "st":"дв", "c":"prep", "g":"fem" },
+    { "sp":"Num", "b":"два", "st":"дв", "c":"gen", "g":"neut" },
+    { "sp":"Num", "b":"два", "st":"дв", "c":"prep", "g":"neut" } ] },
+  { "word":"часов", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"часы", "st":"час", "c":"gen", "n":"plur" },
+    { "sp":"N", "b":"час", "st":"час", "c":"gen", "n":"plur", "g":"masc" } ] },
+  { "word":"перед", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"перед", "st":"пер", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"перед", "st":"пер", "c":"acc", "n":"sing", "g":"masc" },
+    { "sp":"Pr", "b":"перед", "st":"перед" } ] },
+  { "word":"зрителем", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"зритель", "st":"зрител", "c":"ins", "n":"sing", "g":"masc" } ] },
+  { "word":"разворачивается", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"разворачиваться", "st":"разворачива", "n":"sing", "t":"pres", "p":"3" } ] },
+  { "word":"весьма", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"весьма", "st":"весьма" } ] },
+  { "word":"неторопливый", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"неторопливый", "st":"нетороплив", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"неторопливый", "st":"нетороплив", "c":"acc", "n":"sing", "g":"masc", "a":"inan" } ] },
+  { "word":"сюжет", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"сюжет", "st":"сюжет", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"сюжет", "st":"сюжет", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":"фильма", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"фильм", "st":"фильм", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"построенный", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"построить", "st":"постро", "c":"nom", "n":"sing", "g":"masc", "t":"past", "a":"anim" },
+    { "sp":"Pa", "b":"построить", "st":"постро", "c":"acc", "n":"sing", "g":"masc", "t":"past", "a":"inan" } ] },
+  { "word":"вокруг", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"вокруг", "st":"вокруг" },
+    { "sp":"Pr", "b":"вокруг", "st":"вокруг" } ] },
+  { "word":"иноземных", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"иноземный", "st":"инозем", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"иноземный", "st":"инозем", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"иноземный", "st":"инозем", "c":"prep", "n":"plur", "a":"anim" } ] },
+  { "word":"артефактов", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"артефакт", "st":"артефакт", "c":"gen", "n":"plur", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"позднее", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"поздний", "st":"поз", "c":"nom", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"A", "b":"поздний", "st":"поз", "c":"acc", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"A", "b":"поздний", "st":"поз", "doc":"com", "a":"anim" } ] },
+  { "word":"названных", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"назвать", "st":"наз", "c":"gen", "n":"plur", "t":"past", "a":"anim" },
+    { "sp":"Pa", "b":"назвать", "st":"наз", "c":"acc", "n":"plur", "t":"past", "a":"anim" },
+    { "sp":"Pa", "b":"назвать", "st":"наз", "c":"prep", "n":"plur", "t":"past", "a":"anim" } ] },
+  { "word":"«", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"монолитами", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"ins", "n":"plur", "g":"masc" } ] },
+  { "word":"»", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Первый", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Num", "b":"первый", "st":"перв", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Num", "b":"первый", "st":"перв", "c":"acc", "n":"sing", "g":"masc", "a":"inan" } ] },
+  { "word":"из", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"из", "st":"из" },
+    { "sp":"N", "b":"иза", "st":"из", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"иза", "st":"из", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"них", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"они", "st":"", "c":"gen", "n":"plur", "p":"3" },
+    { "sp":"Pn", "b":"они", "st":"", "c":"acc", "n":"plur", "p":"3" },
+    { "sp":"Pn", "b":"они", "st":"", "c":"prep", "n":"plur", "p":"3" } ] },
+  { "word":"на", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"на", "st":"на" } ] },
+  { "word":"заре", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"зара", "st":"зар", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"зара", "st":"зар", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"заря", "st":"з", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"заря", "st":"з", "c":"prep", "n":"sing", "g":"fem" } ] },
+  { "word":"человечества", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"человечество", "st":"человечеств", "c":"gen", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"человечество", "st":"человечеств", "c":"nom", "n":"plur", "g":"neut" },
+    { "sp":"N", "b":"человечество", "st":"человечеств", "c":"acc", "n":"plur", "g":"neut" } ] },
+  { "word":"прибыл", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"прибыть", "st":"приб", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"на", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"на", "st":"на" } ] },
+  { "word":"Землю", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"земля", "st":"зем", "c":"acc", "n":"sing", "g":"fem" } ] },
+  { "word":"и", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"и", "st":"и" },
+    { "sp":"Cn", "b":"и", "st":"и" } ] },
+  { "word":"научил", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"научить", "st":"науч", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"древних", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"древний", "st":"древ", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"древний", "st":"древ", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"древний", "st":"древ", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"древние", "st":"древни", "c":"gen", "n":"plur" },
+    { "sp":"N", "b":"древние", "st":"древни", "c":"acc", "n":"plur" },
+    { "sp":"N", "b":"древние", "st":"древни", "c":"prep", "n":"plur" } ] },
+  { "word":"австралопитеков", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"австралопитек", "st":"австралопитек", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"австралопитек", "st":"австралопитек", "c":"acc", "n":"plur", "g":"masc" } ] },
+  { "word":"пользоваться", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"пользоваться", "st":"польз" } ] },
+  { "word":"предметами", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"предмет", "st":"предмет", "c":"ins", "n":"plur", "g":"masc" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"качестве", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"качество", "st":"качеств", "c":"prep", "n":"sing", "g":"neut" } ] },
+  { "word":"инструментов", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"инструмент", "st":"инструмент", "c":"gen", "n":"plur", "g":"masc" } ] },
+  { "word":"и", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"и", "st":"и" },
+    { "sp":"Cn", "b":"и", "st":"и" } ] },
+  { "word":"оружия", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"оружие", "st":"оруж", "c":"gen", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"оружие", "st":"оруж", "c":"nom", "n":"plur", "g":"neut" },
+    { "sp":"N", "b":"оружие", "st":"оруж", "c":"acc", "n":"plur", "g":"neut" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Он", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"nom", "n":"sing", "g":"masc", "p":"3" } ] },
+  { "word":"имел", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"иметь", "st":"име", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"правильную", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"правильный", "st":"правил", "c":"acc", "n":"sing", "g":"fem", "a":"anim" } ] },
+  { "word":"форму", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"форма", "st":"форм", "c":"acc", "n":"sing", "g":"fem" } ] },
+  { "word":"прямоугольного", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"прямоугольный", "st":"прямоугол", "c":"gen", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"прямоугольный", "st":"прямоугол", "c":"acc", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"прямоугольный", "st":"прямоугол", "c":"gen", "n":"sing", "g":"neut", "a":"anim" } ] },
+  { "word":"параллелепипеда", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"параллелепипед", "st":"параллелепипед", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":"с", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"с", "st":"с" } ] },
+  { "word":"соотношением", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"соотношение", "st":"соотношен", "c":"ins", "n":"sing", "g":"neut" } ] },
+  { "word":"сторон", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"сторона", "st":"сторон", "c":"gen", "n":"plur", "g":"fem" } ] },
+  { "word":"1", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"1", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":":", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"4", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"4", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":":", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"9", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"9", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"абсолютно", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"абсолютно", "st":"абсолютно" },
+    { "sp":"A", "b":"абсолютный", "st":"абсолют", "n":"sing", "g":"neut", "a":"anim" } ] },
+  { "word":"чёрный", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"N", "b":"чёрный", "st":"", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"N", "b":"чёрный", "st":"", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"чёрный", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"N", "b":"чёрный", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"цвет", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"цвет", "st":"цвет", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"цвет", "st":"цвет", "c":"acc", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"цвета", "st":"цвет", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"цвета", "st":"цвет", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"и", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"и", "st":"и" },
+    { "sp":"Cn", "b":"и", "st":"и" } ] },
+  { "word":"не", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pt", "b":"не", "st":"не" } ] },
+  { "word":"поддавался", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"поддаваться", "st":"подда", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"воздействию", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"воздействие", "st":"воздействи", "c":"dat", "n":"sing", "g":"neut" } ] },
+  { "word":"любых", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"любой", "st":"люб", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"Pn", "b":"любой", "st":"люб", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"Pn", "b":"любой", "st":"люб", "c":"prep", "n":"plur", "a":"anim" } ] },
+  { "word":"инструментов", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"инструмент", "st":"инструмент", "c":"gen", "n":"plur", "g":"masc" } ] },
+  { "word":"или", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"или", "st":"или" },
+    { "sp":"Pt", "b":"или", "st":"или" } ] },
+  { "word":"излучений", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"излучение", "st":"излучен", "c":"gen", "n":"plur", "g":"neut" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Когда", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"когда", "st":"когда" },
+    { "sp":"Av", "b":"когда", "st":"когда" } ] },
+  { "word":"технологии", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"технология", "st":"технологи", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"технология", "st":"технологи", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"технология", "st":"технологи", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"технология", "st":"технологи", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"технология", "st":"технологи", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"людей", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"человек", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"человек", "st":"", "c":"acc", "n":"plur", "g":"masc" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"конце", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"конец", "st":"кон", "c":"prep", "n":"sing", "g":"masc" } ] },
+  { "word":"XX", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"xx", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"века", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"веко", "st":"век", "c":"gen", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"век", "st":"век", "c":"gen", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"век", "st":"век", "c":"nom", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"век", "st":"век", "c":"acc", "n":"plur", "g":"masc" } ] },
+  { "word":"достигли", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"достигнуть", "st":"дости", "n":"plur", "t":"past" } ] },
+  { "word":"возможности", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"возможность", "st":"возможност", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"возможность", "st":"возможност", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"возможность", "st":"возможност", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"возможность", "st":"возможност", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"возможность", "st":"возможност", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"посещения", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"посещение", "st":"посещен", "c":"gen", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"посещение", "st":"посещен", "c":"nom", "n":"plur", "g":"neut" },
+    { "sp":"N", "b":"посещение", "st":"посещен", "c":"acc", "n":"plur", "g":"neut" } ] },
+  { "word":"Луны", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"луна", "st":"лун", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"луна", "st":"лун", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"луна", "st":"лун", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"на", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"на", "st":"на" } ] },
+  { "word":"Луне", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"лунь", "st":"лун", "c":"prep", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"луна", "st":"лун", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"луна", "st":"лун", "c":"prep", "n":"sing", "g":"fem" } ] },
+  { "word":"был", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"быть", "st":"", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"обнаружен", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"обнаружить", "st":"обнаруж", "n":"sing", "g":"masc", "t":"past", "a":"anim" } ] },
+  { "word":"такой", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"такой", "st":"так", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Pn", "b":"такой", "st":"так", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"Pn", "b":"такой", "st":"так", "c":"gen", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"Pn", "b":"такой", "st":"так", "c":"dat", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"Pn", "b":"такой", "st":"так", "c":"ins", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"Pn", "b":"такой", "st":"так", "c":"prep", "n":"sing", "g":"fem", "a":"anim" } ] },
+  { "word":"же", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"же", "st":"же" },
+    { "sp":"Pt", "b":"же", "st":"же" } ] },
+  { "word":"«", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"монолит", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":"»", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"погребённый", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"N", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"N", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"N", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"погребённый", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"N", "b":"погребённый", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"под", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"под", "st":"под", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"Pr", "b":"под", "st":"под" } ] },
+  { "word":"толщей", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"толща", "st":"толщ", "c":"ins", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"толщь", "st":"толщ", "c":"gen", "n":"plur", "g":"fem" } ] },
+  { "word":"лунного", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"лунный", "st":"лун", "c":"gen", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"лунный", "st":"лун", "c":"acc", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"лунный", "st":"лун", "c":"gen", "n":"sing", "g":"neut", "a":"anim" } ] },
+  { "word":"грунта", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"грунт", "st":"грунт", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"центре", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"центр", "st":"центр", "c":"prep", "n":"sing", "g":"masc" } ] },
+  { "word":"магнитной", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"магнитный", "st":"магнит", "c":"gen", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"магнитный", "st":"магнит", "c":"dat", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"магнитный", "st":"магнит", "c":"ins", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"магнитный", "st":"магнит", "c":"prep", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"N", "b":"магнитная", "st":"магнитн", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"магнитная", "st":"магнитн", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"магнитная", "st":"магнитн", "c":"ins", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"магнитная", "st":"магнитн", "c":"prep", "n":"sing", "g":"fem" } ] },
+  { "word":"аномалии", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"аномалия", "st":"аномали", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"аномалия", "st":"аномали", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"аномалия", "st":"аномали", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"аномалия", "st":"аномали", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"аномалия", "st":"аномали", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"ЛMA-1", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"лma-1", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"(", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Лунная", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"лунный", "st":"лун", "c":"nom", "n":"sing", "g":"fem", "a":"anim" } ] },
+  { "word":"магнитная", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"магнитный", "st":"магнит", "c":"nom", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"N", "b":"магнитная", "st":"магнитн", "c":"nom", "n":"sing", "g":"fem" } ] },
+  { "word":"аномалия", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"аномалия", "st":"аномали", "c":"nom", "n":"sing", "g":"fem" } ] },
+  { "word":")", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Он", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"nom", "n":"sing", "g":"masc", "p":"3" } ] },
+  { "word":"находился", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"находиться", "st":"нахо", "n":"sing", "g":"masc", "t":"past" },
+    { "sp":"V", "b":"находиться", "st":"нахо", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"под", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"под", "st":"под", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"Pr", "b":"под", "st":"под" } ] },
+  { "word":"поверхностью", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"поверхность", "st":"поверхност", "c":"ins", "n":"sing", "g":"fem" } ] },
+  { "word":"Луны", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"луна", "st":"лун", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"луна", "st":"лун", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"луна", "st":"лун", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"и", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"и", "st":"и" },
+    { "sp":"Cn", "b":"и", "st":"и" } ] },
+  { "word":"когда", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"когда", "st":"когда" },
+    { "sp":"Av", "b":"когда", "st":"когда" } ] },
+  { "word":"его", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"его", "st":"его", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"gen", "n":"sing", "g":"masc", "p":"3" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"acc", "n":"sing", "g":"masc", "p":"3" },
+    { "sp":"Pn", "b":"оно", "st":"", "c":"gen", "n":"sing", "g":"neut", "p":"3" },
+    { "sp":"Pn", "b":"оно", "st":"", "c":"acc", "n":"sing", "g":"neut", "p":"3" } ] },
+  { "word":"попытались", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"попытаться", "st":"попыта", "n":"plur", "t":"past" } ] },
+  { "word":"извлечь", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"извлечь", "st":"извл" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"лучах", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"луч", "st":"луч", "c":"prep", "n":"plur", "g":"masc" } ] },
+  { "word":"Солнца", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"солнце", "st":"солнц", "c":"gen", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"солнце", "st":"солнц", "c":"nom", "n":"plur", "g":"neut" },
+    { "sp":"N", "b":"солнце", "st":"солнц", "c":"acc", "n":"plur", "g":"neut" } ] },
+  { "word":"он", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"nom", "n":"sing", "g":"masc", "p":"3" } ] },
+  { "word":"неожиданно", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"неожиданно", "st":"неожиданно" },
+    { "sp":"A", "b":"неожиданный", "st":"неожидан", "n":"sing", "g":"neut", "a":"anim" } ] },
+  { "word":"послал", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"послать", "st":"по", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"мощный", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"мощный", "st":"мощ", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"мощный", "st":"мощ", "c":"acc", "n":"sing", "g":"masc", "a":"inan" } ] },
+  { "word":"сигнал", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"сигнал", "st":"сигнал", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"сигнал", "st":"сигнал", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":"во", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"во", "st":"во" } ] },
+  { "word":"внешний", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"внешний", "st":"внешн", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"внешний", "st":"внешн", "c":"acc", "n":"sing", "g":"masc", "a":"inan" } ] },
+  { "word":"космос", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"космос", "st":"космос", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"космос", "st":"космос", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"При", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"переть", "st":"п", "n":"sing", "m":"imp", "p":"2" },
+    { "sp":"N", "b":"пря", "st":"пр", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"пря", "st":"пр", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"пря", "st":"пр", "c":"acc", "n":"plur", "g":"fem" },
+    { "sp":"Pr", "b":"при", "st":"при" } ] },
+  { "word":"тщательном", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"тщательный", "st":"тщател", "c":"prep", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"тщательный", "st":"тщател", "c":"prep", "n":"sing", "g":"neut", "a":"anim" } ] },
+  { "word":"анализе", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"анализ", "st":"анализ", "c":"prep", "n":"sing", "g":"masc" } ] },
+  { "word":"направления", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"направление", "st":"направлен", "c":"gen", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"направление", "st":"направлен", "c":"nom", "n":"plur", "g":"neut" },
+    { "sp":"N", "b":"направление", "st":"направлен", "c":"acc", "n":"plur", "g":"neut" } ] },
+  { "word":"предполагаемого", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"предполагать", "st":"предполага", "c":"gen", "n":"sing", "g":"masc", "t":"pres", "a":"anim" },
+    { "sp":"Pa", "b":"предполагать", "st":"предполага", "c":"acc", "n":"sing", "g":"masc", "t":"pres", "a":"anim" },
+    { "sp":"Pa", "b":"предполагать", "st":"предполага", "c":"gen", "n":"sing", "g":"neut", "t":"pres", "a":"anim" } ] },
+  { "word":"места", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"место", "st":"мест", "c":"gen", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"место", "st":"мест", "c":"nom", "n":"plur", "g":"neut" },
+    { "sp":"N", "b":"место", "st":"мест", "c":"acc", "n":"plur", "g":"neut" } ] },
+  { "word":"назначения", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"назначение", "st":"назначен", "c":"gen", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"назначение", "st":"назначен", "c":"nom", "n":"plur", "g":"neut" },
+    { "sp":"N", "b":"назначение", "st":"назначен", "c":"acc", "n":"plur", "g":"neut" } ] },
+  { "word":"сигнала", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"сигнал", "st":"сигнал", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":"на", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"на", "st":"на" } ] },
+  { "word":"орбите", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"орбита", "st":"орбит", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"орбита", "st":"орбит", "c":"prep", "n":"sing", "g":"fem" } ] },
+  { "word":"Юпитера", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"юпитер", "st":"юпитер", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":"был", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"быть", "st":"", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"обнаружен", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"обнаружить", "st":"обнаруж", "n":"sing", "g":"masc", "t":"past", "a":"anim" } ] },
+  { "word":"ещё", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"ещё", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"один", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"один", "st":"од", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Pn", "b":"один", "st":"од", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"Num", "b":"один", "st":"од", "c":"nom", "g":"masc" },
+    { "sp":"Num", "b":"один", "st":"од", "c":"acc", "g":"masc" } ] },
+  { "word":"«", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"монолит", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":"»", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"гораздо", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"горазд", "st":"горазд", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"Av", "b":"гораздо", "st":"гораздо" } ] },
+  { "word":"больший", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"больший", "st":"больш", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"больший", "st":"больш", "c":"acc", "n":"sing", "g":"masc", "a":"inan" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"чем", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"чем", "st":"чем" },
+    { "sp":"Pn", "b":"что", "st":"ч", "c":"ins", "n":"sing", "g":"neut" },
+    { "sp":"Pn", "b":"что", "st":"ч", "c":"prep", "n":"sing", "g":"neut" } ] },
+  { "word":"лунный", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"лунный", "st":"лун", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"лунный", "st":"лун", "c":"acc", "n":"sing", "g":"masc", "a":"inan" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Чтобы", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"чтобы", "st":"чтобы" },
+    { "sp":"Pt", "b":"чтобы", "st":"чтобы" } ] },
+  { "word":"исследовать", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"исследовать", "st":"исслед" } ] },
+  { "word":"этот", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"этот", "st":"эт", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Pn", "b":"этот", "st":"эт", "c":"acc", "n":"sing", "g":"masc", "a":"inan" } ] },
+  { "word":"«", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"монолит", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":"»", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"было", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pt", "b":"было", "st":"было" },
+    { "sp":"V", "b":"быть", "st":"", "n":"sing", "g":"neut", "t":"past" } ] },
+  { "word":"решено", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"решить", "st":"реш", "n":"sing", "g":"neut", "t":"past", "a":"anim" } ] },
+  { "word":"использовать", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"использовать", "st":"использ" } ] },
+  { "word":"готовящуюся", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"готовиться", "st":"готов", "c":"acc", "n":"sing", "g":"fem", "t":"pres", "a":"anim" } ] },
+  { "word":"экспедицию", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"acc", "n":"sing", "g":"fem" } ] },
+  { "word":"«", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Дискавери", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"дискавери", "st":"", "c":"nom", "n":"sing", "g":"fem" } ] },
+  { "word":"»", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Так", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"так", "st":"так" },
+    { "sp":"Av", "b":"так", "st":"так" },
+    { "sp":"Pt", "b":"так", "st":"так" } ] },
+  { "word":"как", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"как", "st":"как" },
+    { "sp":"Av", "b":"как", "st":"как" },
+    { "sp":"Pt", "b":"как", "st":"как" } ] },
+  { "word":"к", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"к", "st":"к" } ] },
+  { "word":"тому", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"тот", "st":"т", "c":"dat", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Pn", "b":"тот", "st":"т", "c":"dat", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"N", "b":"тома", "st":"том", "c":"acc", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"том", "st":"том", "c":"dat", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"том", "st":"том", "c":"dat", "n":"sing", "g":"masc" } ] },
+  { "word":"времени", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"временить", "st":"времен", "n":"sing", "m":"imp", "p":"2" },
+    { "sp":"N", "b":"время", "st":"врем", "c":"gen", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"время", "st":"врем", "c":"dat", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"время", "st":"врем", "c":"prep", "n":"sing", "g":"neut" } ] },
+  { "word":"люди", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"человек", "st":"", "c":"nom", "n":"plur", "g":"masc" } ] },
+  { "word":"ещё", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"ещё", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"не", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pt", "b":"не", "st":"не" } ] },
+  { "word":"совершали", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"совершать", "st":"соверша", "n":"plur", "t":"past" } ] },
+  { "word":"столь", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"столь", "st":"столь" } ] },
+  { "word":"длительные", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"длительный", "st":"длител", "c":"nom", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"длительный", "st":"длител", "c":"acc", "n":"plur", "a":"inan" } ] },
+  { "word":"перелёты", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"перелёты", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"то", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"то", "st":"то" },
+    { "sp":"Pn", "b":"тот", "st":"т", "c":"nom", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"Pn", "b":"тот", "st":"т", "c":"acc", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"Pt", "b":"то", "st":"то" } ] },
+  { "word":"было", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pt", "b":"было", "st":"было" },
+    { "sp":"V", "b":"быть", "st":"", "n":"sing", "g":"neut", "t":"past" } ] },
+  { "word":"решено", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"решить", "st":"реш", "n":"sing", "g":"neut", "t":"past", "a":"anim" } ] },
+  { "word":"ввести", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"ввести", "st":"вв" } ] },
+  { "word":"команду", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"команда", "st":"команд", "c":"acc", "n":"sing", "g":"fem" } ] },
+  { "word":"исследователей", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"исследователь", "st":"исследовател", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"исследователь", "st":"исследовател", "c":"acc", "n":"plur", "g":"masc" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"состояние", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"состояние", "st":"состоян", "c":"nom", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"состояние", "st":"состоян", "c":"acc", "n":"sing", "g":"neut" } ] },
+  { "word":"анабиоза", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"анабиоз", "st":"анабиоз", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"а", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"а", "st":"а" },
+    { "sp":"Cn", "b":"а", "st":"а" },
+    { "sp":"Pt", "b":"а", "st":"а" } ] },
+  { "word":"полёт", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"полёт", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"доверить", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"доверить", "st":"довер" } ] },
+  { "word":"трём", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"трём", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"членам", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"член", "st":"член", "c":"dat", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"член", "st":"член", "c":"dat", "n":"plur", "g":"masc" } ] },
+  { "word":"экипажа", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"экипаж", "st":"экипаж", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":"—", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"двум", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Num", "b":"два", "st":"дв", "c":"dat", "g":"masc" },
+    { "sp":"Num", "b":"два", "st":"дв", "c":"dat", "g":"fem" },
+    { "sp":"Num", "b":"два", "st":"дв", "c":"dat", "g":"neut" } ] },
+  { "word":"пилотам", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"пилот", "st":"пилот", "c":"dat", "n":"plur", "g":"masc" } ] },
+  { "word":"НАСА", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"нас", "st":"", "c":"gen", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"нас", "st":"", "c":"acc", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"нас", "st":"", "c":"gen", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"нас", "st":"", "c":"acc", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"нас", "st":"", "c":"gen", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"нас", "st":"", "c":"acc", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"наса", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"и", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"и", "st":"и" },
+    { "sp":"Cn", "b":"и", "st":"и" } ] },
+  { "word":"новейшему", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"новый", "st":"нов", "c":"dat", "n":"sing", "g":"masc", "doc":"sup", "a":"anim" },
+    { "sp":"A", "b":"новый", "st":"нов", "c":"dat", "n":"sing", "g":"neut", "doc":"sup", "a":"anim" } ] },
+  { "word":"компьютеру", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"компьютер", "st":"компьютер", "c":"dat", "n":"sing", "g":"masc" } ] },
+  { "word":"с", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"с", "st":"с" } ] },
+  { "word":"искусственным", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"искусственный", "st":"искусствен", "c":"ins", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"искусственный", "st":"искусствен", "c":"ins", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"A", "b":"искусственный", "st":"искусствен", "c":"dat", "n":"plur", "a":"anim" } ] },
+  { "word":"интеллектом", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"интеллект", "st":"интеллект", "c":"ins", "n":"sing", "g":"masc" } ] },
+  { "word":"HAL", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"hal", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"9000", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"9000", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Однако", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"однако", "st":"однако" },
+    { "sp":"Cn", "b":"однако", "st":"однако" },
+    { "sp":"W", "b":"однако", "st":"однако" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"помимо", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"помимо", "st":"помимо" } ] },
+  { "word":"логических", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"логический", "st":"логическ", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"логический", "st":"логическ", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"логический", "st":"логическ", "c":"prep", "n":"plur", "a":"anim" } ] },
+  { "word":"построений", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"построение", "st":"построен", "c":"gen", "n":"plur", "g":"neut" } ] },
+  { "word":"и", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"и", "st":"и" },
+    { "sp":"Cn", "b":"и", "st":"и" } ] },
+  { "word":"имитации", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"имитация", "st":"имитаци", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"имитация", "st":"имитаци", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"имитация", "st":"имитаци", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"имитация", "st":"имитаци", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"имитация", "st":"имитаци", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"человеческих", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"человеческий", "st":"человеческ", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"человеческий", "st":"человеческ", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"человеческий", "st":"человеческ", "c":"prep", "n":"plur", "a":"anim" } ] },
+  { "word":"эмоций", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"эмоция", "st":"эмоци", "c":"gen", "n":"plur", "g":"fem" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"алгоритмы", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"алгоритм", "st":"алгоритм", "c":"nom", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"алгоритм", "st":"алгоритм", "c":"acc", "n":"plur", "g":"masc" } ] },
+  { "word":"работы", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"работа", "st":"работ", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"работа", "st":"работ", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"работа", "st":"работ", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"HAL", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"hal", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"9000", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"9000", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"были", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"быть", "st":"", "n":"plur", "t":"past" },
+    { "sp":"N", "b":"быль", "st":"был", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"быль", "st":"был", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"быль", "st":"был", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"быль", "st":"был", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"быль", "st":"был", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"привнесены", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"привнести", "st":"привн", "n":"plur", "t":"past", "a":"anim" } ] },
+  { "word":"жёсткие", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"жёсткий", "st":"", "c":"nom", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"жёсткий", "st":"", "c":"acc", "n":"plur", "a":"inan" },
+    { "sp":"N", "b":"жёсткие", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"инструкции", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"инструкция", "st":"инструкци", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"инструкция", "st":"инструкци", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"инструкция", "st":"инструкци", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"инструкция", "st":"инструкци", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"инструкция", "st":"инструкци", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"об", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"об", "st":"об" } ] },
+  { "word":"истинной", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"истинный", "st":"истин", "c":"gen", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"истинный", "st":"истин", "c":"dat", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"истинный", "st":"истин", "c":"ins", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"истинный", "st":"истин", "c":"prep", "n":"sing", "g":"fem", "a":"anim" } ] },
+  { "word":"цели", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"целить", "st":"цел", "n":"sing", "m":"imp", "p":"2" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"экспедиции", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"со", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"со", "st":"со" } ] },
+  { "word":"стороны", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"сторона", "st":"сторон", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"сторона", "st":"сторон", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"сторона", "st":"сторон", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"военных", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"военный", "st":"военн", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"военный", "st":"военн", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"военный", "st":"военн", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"A", "b":"военный", "st":"воен", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"военный", "st":"воен", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"военный", "st":"воен", "c":"prep", "n":"plur", "a":"anim" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"что", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"что", "st":"что" },
+    { "sp":"Pn", "b":"что", "st":"ч", "c":"nom", "n":"sing", "g":"neut" },
+    { "sp":"Pn", "b":"что", "st":"ч", "c":"acc", "n":"sing", "g":"neut" } ] },
+  { "word":"и", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"и", "st":"и" },
+    { "sp":"Cn", "b":"и", "st":"и" } ] },
+  { "word":"предопределило", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"предопределить", "st":"предопредел", "n":"sing", "g":"neut", "t":"past" } ] },
+  { "word":"трагический", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"трагический", "st":"трагическ", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"трагический", "st":"трагическ", "c":"acc", "n":"sing", "g":"masc", "a":"inan" } ] },
+  { "word":"исход", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"исход", "st":"исход", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"исход", "st":"исход", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":"экспедиции", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"HAL", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"hal", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"9000", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"9000", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"испытывая", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Ap", "b":"испытывать", "st":"испытыва", "t":"pres" } ] },
+  { "word":"необъяснимые", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"необъяснимый", "st":"необъясним", "c":"nom", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"необъяснимый", "st":"необъясним", "c":"acc", "n":"plur", "a":"inan" } ] },
+  { "word":"затруднения", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"затруднение", "st":"затруднен", "c":"gen", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"затруднение", "st":"затруднен", "c":"nom", "n":"plur", "g":"neut" },
+    { "sp":"N", "b":"затруднение", "st":"затруднен", "c":"acc", "n":"plur", "g":"neut" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"сокрытии", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"сокрытие", "st":"сокрыт", "c":"prep", "n":"sing", "g":"neut" } ] },
+  { "word":"истинной", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"истинный", "st":"истин", "c":"gen", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"истинный", "st":"истин", "c":"dat", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"истинный", "st":"истин", "c":"ins", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"истинный", "st":"истин", "c":"prep", "n":"sing", "g":"fem", "a":"anim" } ] },
+  { "word":"цели", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"целить", "st":"цел", "n":"sing", "m":"imp", "p":"2" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"экспедиции", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"(", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"о", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"о", "st":"о" },
+    { "sp":"Pr", "b":"о", "st":"о" } ] },
+  { "word":"«", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"монолите", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"prep", "n":"sing", "g":"masc" } ] },
+  { "word":"»", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"никто", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"никто", "st":"ник", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"из", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"из", "st":"из" },
+    { "sp":"N", "b":"иза", "st":"из", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"иза", "st":"из", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"экипажа", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"экипаж", "st":"экипаж", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":"не", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pt", "b":"не", "st":"не" } ] },
+  { "word":"должен", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"должен", "st":"долж", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"должный", "st":"долж", "n":"sing", "g":"masc", "a":"anim" } ] },
+  { "word":"был", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"быть", "st":"", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"узнать", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"узнать", "st":"узна" } ] },
+  { "word":"до", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"до", "st":"до" } ] },
+  { "word":"тех", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"тот", "st":"т", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"Pn", "b":"тот", "st":"т", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"Pn", "b":"тот", "st":"т", "c":"prep", "n":"plur", "a":"anim" } ] },
+  { "word":"пор", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"пора", "st":"пор", "c":"gen", "n":"plur", "g":"fem" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"пока", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"пока", "st":"пока" },
+    { "sp":"Cn", "b":"пока", "st":"пока" },
+    { "sp":"Pt", "b":"пока", "st":"пока" } ] },
+  { "word":"«", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Дискавери", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"дискавери", "st":"", "c":"nom", "n":"sing", "g":"fem" } ] },
+  { "word":"»", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"не", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pt", "b":"не", "st":"не" } ] },
+  { "word":"достигнет", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"достигнуть", "st":"дости", "n":"sing", "t":"fut", "p":"3" } ] },
+  { "word":"его", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"его", "st":"его", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"gen", "n":"sing", "g":"masc", "p":"3" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"acc", "n":"sing", "g":"masc", "p":"3" },
+    { "sp":"Pn", "b":"оно", "st":"", "c":"gen", "n":"sing", "g":"neut", "p":"3" },
+    { "sp":"Pn", "b":"оно", "st":"", "c":"acc", "n":"sing", "g":"neut", "p":"3" } ] },
+  { "word":")", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"сначала", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"сначала", "st":"сначала" } ] },
+  { "word":"солгал", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"солгать", "st":"сол", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"членам", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"член", "st":"член", "c":"dat", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"член", "st":"член", "c":"dat", "n":"plur", "g":"masc" } ] },
+  { "word":"экипажа", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"экипаж", "st":"экипаж", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":"о", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"о", "st":"о" },
+    { "sp":"Pr", "b":"о", "st":"о" } ] },
+  { "word":"неисправности", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"неисправность", "st":"неисправност", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"неисправность", "st":"неисправност", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"неисправность", "st":"неисправност", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"неисправность", "st":"неисправност", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"неисправность", "st":"неисправност", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"блока", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"блок", "st":"блок", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":"антенны", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"антенна", "st":"антенн", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"антенна", "st":"антенн", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"антенна", "st":"антенн", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"связи", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"связь", "st":"связ", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"связь", "st":"связ", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"связь", "st":"связ", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"связь", "st":"связ", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"связь", "st":"связ", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"с", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"с", "st":"с" } ] },
+  { "word":"Землёй", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"землёй", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"а", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"а", "st":"а" },
+    { "sp":"Cn", "b":"а", "st":"а" },
+    { "sp":"Pt", "b":"а", "st":"а" } ] },
+  { "word":"затем", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"затем", "st":"затем" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"ответ", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"ответ", "st":"ответ", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"ответ", "st":"ответ", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":"на", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"на", "st":"на" } ] },
+  { "word":"разговор", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"разговор", "st":"разговор", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"разговор", "st":"разговор", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":"пилотов", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"пилот", "st":"пилот", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"пилот", "st":"пилот", "c":"acc", "n":"plur", "g":"masc" } ] },
+  { "word":"о", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"о", "st":"о" },
+    { "sp":"Pr", "b":"о", "st":"о" } ] },
+  { "word":"недоверии", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"недоверие", "st":"недовер", "c":"prep", "n":"sing", "g":"neut" } ] },
+  { "word":"искусственному", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"искусственный", "st":"искусствен", "c":"dat", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"искусственный", "st":"искусствен", "c":"dat", "n":"sing", "g":"neut", "a":"anim" } ] },
+  { "word":"интеллекту", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"интеллект", "st":"интеллект", "c":"dat", "n":"sing", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"убил", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"убить", "st":"уб", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"одного", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Num", "b":"один", "st":"од", "c":"gen", "g":"masc" },
+    { "sp":"Num", "b":"один", "st":"од", "c":"acc", "g":"masc" },
+    { "sp":"Num", "b":"один", "st":"од", "c":"gen", "g":"neut" },
+    { "sp":"Pn", "b":"один", "st":"од", "c":"gen", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Pn", "b":"один", "st":"од", "c":"acc", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Pn", "b":"один", "st":"од", "c":"gen", "n":"sing", "g":"neut", "a":"anim" } ] },
+  { "word":"из", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"из", "st":"из" },
+    { "sp":"N", "b":"иза", "st":"из", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"иза", "st":"из", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"членов", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"член", "st":"член", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"член", "st":"член", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"член", "st":"член", "c":"gen", "n":"plur", "g":"masc" } ] },
+  { "word":"экипажа", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"экипаж", "st":"экипаж", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"открытом", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"открыть", "st":"откр", "c":"prep", "n":"sing", "g":"masc", "t":"past", "a":"anim" },
+    { "sp":"Pa", "b":"открыть", "st":"откр", "c":"prep", "n":"sing", "g":"neut", "t":"past", "a":"anim" },
+    { "sp":"A", "b":"открытый", "st":"открыт", "c":"prep", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"открытый", "st":"открыт", "c":"prep", "n":"sing", "g":"neut", "a":"anim" } ] },
+  { "word":"космосе", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"космос", "st":"космос", "c":"prep", "n":"sing", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"имитировав", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"имитировав", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"несчастный", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"несчастный", "st":"несчаст", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"несчастный", "st":"несчаст", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"N", "b":"несчастный", "st":"несчастн", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"случай", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"случать", "st":"случа", "n":"sing", "m":"imp", "p":"2" },
+    { "sp":"N", "b":"случай", "st":"случа", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"случай", "st":"случа", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"и", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"и", "st":"и" },
+    { "sp":"Cn", "b":"и", "st":"и" } ] },
+  { "word":"затем", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"затем", "st":"затем" } ] },
+  { "word":"отключил", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"отключить", "st":"отключ", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"системы", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"система", "st":"систем", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"система", "st":"систем", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"система", "st":"систем", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"жизнеобеспечения", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"жизнеобеспечение", "st":"жизнеобеспечен", "c":"gen", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"жизнеобеспечение", "st":"жизнеобеспечен", "c":"nom", "n":"plur", "g":"neut" },
+    { "sp":"N", "b":"жизнеобеспечение", "st":"жизнеобеспечен", "c":"acc", "n":"plur", "g":"neut" } ] },
+  { "word":"находящихся", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"находиться", "st":"нахо", "c":"gen", "n":"plur", "t":"pres", "a":"anim" },
+    { "sp":"Pa", "b":"находиться", "st":"нахо", "c":"acc", "n":"plur", "t":"pres", "a":"anim" },
+    { "sp":"Pa", "b":"находиться", "st":"нахо", "c":"prep", "n":"plur", "t":"pres", "a":"anim" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"анабиозе", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"анабиоз", "st":"анабиоз", "c":"prep", "n":"sing", "g":"masc" } ] },
+  { "word":"учёных", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёных", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёной", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёной", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёной", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"prep", "n":"plur", "g":"fem" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёной", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёной", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёной", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёной", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёной", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёной", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"prep", "n":"plur", "g":"fem" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёных", "st":"", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"prep", "n":"plur", "g":"fem" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"учёный", "st":"", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"prep", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"prep", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"acc", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"prep", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"prep", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"acc", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учёная", "st":"", "c":"prep", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"учён", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учён", "st":"", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учён", "st":"", "c":"prep", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"учёный", "st":"", "c":"prep", "n":"plur", "g":"masc" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Чудом", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"чудом", "st":"чудом" },
+    { "sp":"N", "b":"чудо", "st":"чуд", "c":"ins", "n":"sing", "g":"neut" } ] },
+  { "word":"выживший", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"выжить", "st":"выжи", "c":"nom", "n":"sing", "g":"masc", "t":"past", "a":"anim" },
+    { "sp":"Pa", "b":"выжить", "st":"выжи", "c":"acc", "n":"sing", "g":"masc", "t":"past", "a":"inan" },
+    { "sp":"Pa", "b":"выжить", "st":"выжи", "c":"nom", "n":"sing", "g":"masc", "t":"past", "a":"anim" },
+    { "sp":"Pa", "b":"выжить", "st":"выжи", "c":"acc", "n":"sing", "g":"masc", "t":"past", "a":"inan" } ] },
+  { "word":"Дейв", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"дейв", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"Боумен", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"боумный", "st":"", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"N", "b":"боумен", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"(", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Кир", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"кира", "st":"кир", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"кира", "st":"кир", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"Дулли", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"дулль", "st":"", "c":"nom", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"дулли", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":")", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"смог", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"смочь", "st":"смо", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"деактивировать", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"деактивировать", "st":"деактивир" } ] },
+  { "word":"HAL", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"hal", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"9000", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"9000", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"и", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"и", "st":"и" },
+    { "sp":"Cn", "b":"и", "st":"и" } ] },
+  { "word":"достичь", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"достигнуть", "st":"дости" } ] },
+  { "word":"Юпитера", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"юпитер", "st":"юпитер", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Там", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"там", "st":"там" },
+    { "sp":"Pt", "b":"там", "st":"там" } ] },
+  { "word":"ему", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"dat", "n":"sing", "g":"masc", "p":"3" },
+    { "sp":"Pn", "b":"оно", "st":"", "c":"dat", "n":"sing", "g":"neut", "p":"3" } ] },
+  { "word":"была", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"быть", "st":"", "n":"sing", "g":"fem", "t":"past" } ] },
+  { "word":"объяснена", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"объяснить", "st":"объясн", "n":"sing", "g":"fem", "t":"past", "a":"anim" } ] },
+  { "word":"истинная", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"истинный", "st":"истин", "c":"nom", "n":"sing", "g":"fem", "a":"anim" } ] },
+  { "word":"цель", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"nom", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"цель", "st":"цел", "c":"acc", "n":"sing", "g":"fem" },
+    { "sp":"V", "b":"целить", "st":"цел", "n":"sing", "m":"imp", "p":"2" } ] },
+  { "word":"экспедиции", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"экспедиция", "st":"экспедици", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"—", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"третий", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"третий", "st":"трет", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"Num", "b":"третий", "st":"трет", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Num", "b":"третий", "st":"трет", "c":"acc", "n":"sing", "g":"masc", "a":"inan" } ] },
+  { "word":"«", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"монолит", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":"»", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"но", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"но", "st":"но" },
+    { "sp":"Cn", "b":"но", "st":"но" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"когда", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"когда", "st":"когда" },
+    { "sp":"Av", "b":"когда", "st":"когда" } ] },
+  { "word":"Боумен", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"боумный", "st":"", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"N", "b":"боумен", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"попытался", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"попытаться", "st":"попыта", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"обследовать", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"обследовать", "st":"обслед" } ] },
+  { "word":"его", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"его", "st":"его", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"gen", "n":"sing", "g":"masc", "p":"3" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"acc", "n":"sing", "g":"masc", "p":"3" },
+    { "sp":"Pn", "b":"оно", "st":"", "c":"gen", "n":"sing", "g":"neut", "p":"3" },
+    { "sp":"Pn", "b":"оно", "st":"", "c":"acc", "n":"sing", "g":"neut", "p":"3" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"то", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"то", "st":"то" },
+    { "sp":"Pn", "b":"тот", "st":"т", "c":"nom", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"Pn", "b":"тот", "st":"т", "c":"acc", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"Pt", "b":"то", "st":"то" } ] },
+  { "word":"был", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"быть", "st":"", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"унесён", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"унесён", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"«", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"за", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"за", "st":"за" } ] },
+  { "word":"бесконечность", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"бесконечность", "st":"бесконечност", "c":"nom", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"бесконечность", "st":"бесконечност", "c":"acc", "n":"sing", "g":"fem" } ] },
+  { "word":"»", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"(", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"так", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Cn", "b":"так", "st":"так" },
+    { "sp":"Av", "b":"так", "st":"так" },
+    { "sp":"Pt", "b":"так", "st":"так" } ] },
+  { "word":"называется", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"называться", "st":"называ", "n":"sing", "t":"pres", "p":"3" } ] },
+  { "word":"последняя", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"последний", "st":"последн", "c":"nom", "n":"sing", "g":"fem", "a":"anim" } ] },
+  { "word":"глава", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"глава", "st":"глав", "c":"nom", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"глава", "st":"глав", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"фильма", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"фильм", "st":"фильм", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"(", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"англ", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"англ", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Beyond", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"beyond", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"the", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"the", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"Infinite", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"infinite", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":")", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"по", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"по", "st":"по" } ] },
+  { "word":"книге", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"книга", "st":"книг", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"книга", "st":"книг", "c":"prep", "n":"sing", "g":"fem" } ] },
+  { "word":"—", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"за", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"за", "st":"за" } ] },
+  { "word":"двадцать", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Num", "b":"двадцать", "st":"двадцат", "c":"nom" },
+    { "sp":"Num", "b":"двадцать", "st":"двадцат", "c":"acc" } ] },
+  { "word":"тысяч", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"тысяча", "st":"тысяч", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"Num", "b":"тысяча", "st":"тысяч", "c":"gen" } ] },
+  { "word":"световых", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"световой", "st":"светов", "c":"gen", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"световой", "st":"светов", "c":"acc", "n":"plur", "a":"anim" },
+    { "sp":"A", "b":"световой", "st":"светов", "c":"prep", "n":"plur", "a":"anim" },
+    { "sp":"N", "b":"светов", "st":"светов", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"светов", "st":"светов", "c":"acc", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"светов", "st":"светов", "c":"prep", "n":"plur", "g":"masc" } ] },
+  { "word":"лет", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"год", "st":"", "c":"gen", "n":"plur", "g":"masc" },
+    { "sp":"N", "b":"лет", "st":"л", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"лет", "st":"л", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":"от", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"от", "st":"от" } ] },
+  { "word":"Земли", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"земля", "st":"зем", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"земля", "st":"зем", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"земля", "st":"зем", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Боумен", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"боумный", "st":"", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"N", "b":"боумен", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"оказался", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"оказаться", "st":"ока", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"странной", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"странный", "st":"стран", "c":"gen", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"странный", "st":"стран", "c":"dat", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"странный", "st":"стран", "c":"ins", "n":"sing", "g":"fem", "a":"anim" },
+    { "sp":"A", "b":"странный", "st":"стран", "c":"prep", "n":"sing", "g":"fem", "a":"anim" } ] },
+  { "word":"комнате", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"комната", "st":"комнат", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"комната", "st":"комнат", "c":"prep", "n":"sing", "g":"fem" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"где", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"где", "st":"где" } ] },
+  { "word":"он", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"nom", "n":"sing", "g":"masc", "p":"3" } ] },
+  { "word":"быстро", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Av", "b":"быстро", "st":"быстро" },
+    { "sp":"A", "b":"быстрый", "st":"быстр", "n":"sing", "g":"neut", "a":"anim" } ] },
+  { "word":"постарел", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"постарелый", "st":"постарел", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"V", "b":"постареть", "st":"постаре", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"А", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Int", "b":"а", "st":"а" },
+    { "sp":"Cn", "b":"а", "st":"а" },
+    { "sp":"Pt", "b":"а", "st":"а" } ] },
+  { "word":"на", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"на", "st":"на" } ] },
+  { "word":"его", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pn", "b":"его", "st":"его", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"gen", "n":"sing", "g":"masc", "p":"3" },
+    { "sp":"Pn", "b":"он", "st":"", "c":"acc", "n":"sing", "g":"masc", "p":"3" },
+    { "sp":"Pn", "b":"оно", "st":"", "c":"gen", "n":"sing", "g":"neut", "p":"3" },
+    { "sp":"Pn", "b":"оно", "st":"", "c":"acc", "n":"sing", "g":"neut", "p":"3" } ] },
+  { "word":"смертном", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"смертный", "st":"смерт", "c":"prep", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"смертный", "st":"смерт", "c":"prep", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"N", "b":"смертный", "st":"смертн", "c":"prep", "n":"sing", "g":"masc" } ] },
+  { "word":"одре", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"одра", "st":"одр", "c":"dat", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"одра", "st":"одр", "c":"prep", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"одер", "st":"од", "c":"prep", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"одр", "st":"одр", "c":"prep", "n":"sing", "g":"masc" } ] },
+  { "word":"четвёртый", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"четвёртый", "st":"", "c":"nom", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"четвёртый", "st":"", "c":"acc", "n":"sing", "g":"masc", "a":"inan" },
+    { "sp":"N", "b":"четвёртый", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"«", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"монолит", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"nom", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"монолит", "st":"монолит", "c":"acc", "n":"sing", "g":"masc" } ] },
+  { "word":"»", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"превратил", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"превратить", "st":"превра", "n":"sing", "g":"masc", "t":"past" } ] },
+  { "word":"Боумена", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"боумен", "st":"", "c":"gen", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"боумена", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"«", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"Звёздное", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"звёздный", "st":"", "c":"nom", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"A", "b":"звёздный", "st":"", "c":"acc", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"N", "b":"звёздное", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"дитя", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"дитя", "st":"дитя", "c":"nom", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"дитя", "st":"дитя", "c":"acc", "n":"sing", "g":"neut" } ] },
+  { "word":"»", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"В", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"финале", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"финал", "st":"финал", "c":"prep", "n":"sing", "g":"masc" } ] },
+  { "word":"картины", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"картина", "st":"картин", "c":"gen", "n":"sing", "g":"fem" },
+    { "sp":"N", "b":"картина", "st":"картин", "c":"nom", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"картина", "st":"картин", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"зритель", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"зритель", "st":"зрител", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":"видит", "annotations" : [
+    { "sp":"W" },
+    { "sp":"V", "b":"видеть", "st":"ви", "n":"sing", "t":"pres", "p":"3" } ] },
+  { "word":"Боумена", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"боумен", "st":"", "c":"gen", "n":"sing", "g":"masc" },
+    { "sp":"N", "b":"боумена", "st":"", "c":"nom", "n":"sing", "g":"masc" } ] },
+  { "word":",", "annotations" : [
+    { "sp":"W" } ] },
+  { "word":"взирающим", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pa", "b":"взирать", "st":"взира", "c":"ins", "n":"sing", "g":"masc", "t":"pres", "a":"anim" },
+    { "sp":"Pa", "b":"взирать", "st":"взира", "c":"ins", "n":"sing", "g":"neut", "t":"pres", "a":"anim" },
+    { "sp":"Pa", "b":"взирать", "st":"взира", "c":"dat", "n":"plur", "t":"pres", "a":"anim" } ] },
+  { "word":"на", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"на", "st":"на" } ] },
+  { "word":"Землю", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"земля", "st":"зем", "c":"acc", "n":"sing", "g":"fem" } ] },
+  { "word":"из", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"из", "st":"из" },
+    { "sp":"N", "b":"иза", "st":"из", "c":"gen", "n":"plur", "g":"fem" },
+    { "sp":"N", "b":"иза", "st":"из", "c":"acc", "n":"plur", "g":"fem" } ] },
+  { "word":"космоса", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"космос", "st":"космос", "c":"gen", "n":"sing", "g":"masc" } ] },
+  { "word":"в", "annotations" : [
+    { "sp":"W" },
+    { "sp":"Pr", "b":"в", "st":"в" } ] },
+  { "word":"новом", "annotations" : [
+    { "sp":"W" },
+    { "sp":"A", "b":"новый", "st":"нов", "c":"prep", "n":"sing", "g":"masc", "a":"anim" },
+    { "sp":"A", "b":"новый", "st":"нов", "c":"prep", "n":"sing", "g":"neut", "a":"anim" },
+    { "sp":"N", "b":"новое", "st":"нов", "c":"prep", "n":"sing", "g":"neut" } ] },
+  { "word":"обличье", "annotations" : [
+    { "sp":"W" },
+    { "sp":"N", "b":"обличье", "st":"облич", "c":"nom", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"обличье", "st":"облич", "c":"acc", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"обличье", "st":"облич", "c":"prep", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"обличие", "st":"облич", "c":"nom", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"обличие", "st":"облич", "c":"acc", "n":"sing", "g":"neut" },
+    { "sp":"N", "b":"обличие", "st":"облич", "c":"prep", "n":"sing", "g":"neut" } ] },
+  { "word":".", "annotations" : [
+    { "sp":"W" } ] }
+] }
