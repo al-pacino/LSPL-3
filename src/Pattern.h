@@ -332,6 +332,7 @@ class CPatterns {
 
 public:
 	CPatterns( CPatterns&& ) = default;
+	CPatterns& operator=( CPatterns&& ) = default;
 
 	const Configuration::CConfiguration& Configuration() const { return *configuration; }
 

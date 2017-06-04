@@ -41,6 +41,7 @@ public:
 	explicit CAlternativeCondition( CExtendedNames&& names );
 	CAlternativeCondition( CTokenPtr dictionary, CExtendedNames&& names );
 	CAlternativeCondition( CAlternativeCondition&& ) = default;
+	CAlternativeCondition& operator=( CAlternativeCondition&& ) = default;
 
 	void Check( CConditionsCheckContext& context ) const;
 	void Print( ostream& out ) const;
