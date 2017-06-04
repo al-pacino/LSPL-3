@@ -58,8 +58,8 @@ bool COrderedList<VALUE_TYPE>::Has( const ValueType& value ) const
 template<typename VALUE_TYPE>
 bool COrderedList<VALUE_TYPE>::Erase( const ValueType& value )
 {
-	auto i = lower_bound( values.cbegin(), values.cend(), value );
-	if( i != values.cend() && *i == value ) {
+	auto i = lower_bound( values.begin(), values.end(), value );
+	if( i != values.end() && *i == value ) {
 		values.erase( i );
 		return true;
 	}
