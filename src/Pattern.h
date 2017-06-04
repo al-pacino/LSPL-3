@@ -247,6 +247,7 @@ private:
 
 class CSignRestrictions {
 public:
+	CSignRestrictions() = default;
 	// returns true if the sign restriction was added
 	bool Add( CSignRestriction&& signRestriction );
 	// returns true if an intersection is not empty

@@ -1007,7 +1007,7 @@ void CPatternVariant::Build( CPatternBuildContext& context ) const
 		++j;
 	}
 	debug_check_logic( i != this->cend() );
-	context.LastVariant.erase( j, context.LastVariant.cend() );
+	context.LastVariant.erase( j, context.LastVariant.end() );
 
 	for( ; i != this->cend(); ++i ) {
 		i->Build( context );
