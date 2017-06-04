@@ -427,7 +427,7 @@ bool CDictionaryAction::Run( const CMatchContext& context ) const
 		const TVariantSize offset = offsets[i];
 		if( offset == MaxVariantSize ) {
 			debug_check_logic( !words.back().empty() );
-			words.back().pop_back();
+			words.back().erase( prev( words.back().end() ) ); // words.back().pop_back();
 			words.emplace_back();
 		} else {
 			debug_check_logic( offset <= context.Shift() );
@@ -436,7 +436,7 @@ bool CDictionaryAction::Run( const CMatchContext& context ) const
 		}
 	}
 	debug_check_logic( !words.back().empty() );
-	words.back().pop_back();
+	words.back().erase( prev( words.back().end() ) ); // words.back().pop_back();
 
 #ifdef _DEBUG
 	cout << "dictionary{" << dictionary << "}(";
