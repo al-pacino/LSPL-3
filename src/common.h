@@ -23,6 +23,7 @@
 #include <forward_list>
 #include <unordered_map>
 #include <unordered_set>
+#include <cassert>
 
 using namespace std;
 
@@ -38,5 +39,5 @@ using namespace std;
 #ifdef _DEBUG
 #define debug_check_logic check_logic
 #else
-#define debug_check_logic( condition ) { ( condition ); }
+#define debug_check_logic( condition ) ((void)0)
 #endif
