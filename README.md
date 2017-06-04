@@ -16,16 +16,15 @@ Other UNIX-like operating systems may work too out of the box.
 
 - Download and install last version of [CMake](http://www.cmake.org/download/)
 - Clone this repository
-- Create Makefile for your platform:
+- Build using CMake:
 ```sh
 # Create `build` folder
 mkdir build; cd build
 
 # You can use all cmake generators available on your platform
 cmake -G "Unix Makefiles" ../
-```
-- Build
-```sh
+
+# Build executable
 make
 ```
 
