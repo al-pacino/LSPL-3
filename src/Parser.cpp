@@ -487,6 +487,16 @@ void CAlternativeConditions::Print( ostream& out ) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CBasePatternNode::CBasePatternNode()
+{
+}
+
+CBasePatternNode::~CBasePatternNode()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 CPatternsBuilder::CPatternsBuilder( Configuration::CConfigurationPtr conf,
 		CErrorProcessor& errorProcessor ) :
 	Pattern::CPatterns( conf ),

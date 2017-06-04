@@ -66,9 +66,10 @@ class IPatternBase {
 	IPatternBase& operator=( const IPatternBase& ) = delete;
 
 public:
-	IPatternBase() {}
+	IPatternBase();
+	virtual ~IPatternBase();
 	IPatternBase( IPatternBase&& ) = default;
-	virtual ~IPatternBase() = 0 {}
+	IPatternBase& operator=( IPatternBase&& ) = default;
 
 	virtual void Print( const CPatterns& context, ostream& out ) const = 0;
 	virtual TVariantSize MinSizePrediction() const = 0;

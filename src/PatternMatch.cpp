@@ -162,6 +162,10 @@ CBaseTransition::CBaseTransition( const TStateIndex _nextState ) :
 	debug_check_logic( nextState > 0 );
 }
 
+CBaseTransition::~CBaseTransition()
+{
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 CWordTransition::CWordTransition( RegexEx&& _wordRegex,
@@ -196,6 +200,12 @@ bool CAttributesTransition::Match( const CWord& word,
 	CAnnotationIndices& indices ) const
 {
 	return word.MatchAttributes( attributesRestriction, indices );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+IAction::~IAction()
+{
 }
 
 ///////////////////////////////////////////////////////////////////////////////

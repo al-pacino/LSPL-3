@@ -70,7 +70,7 @@ typedef CStates::size_type TStateIndex;
 class CBaseTransition {
 public:
 	explicit CBaseTransition( const TStateIndex nextState );
-	virtual ~CBaseTransition() = 0 {}
+	virtual ~CBaseTransition();
 
 	const TStateIndex NextState() const { return nextState; }
 	virtual bool Match( const Text::CWord& word,
@@ -118,7 +118,7 @@ class CMatchContext;
 
 class IAction {
 public:
-	virtual ~IAction() = 0 {}
+	virtual ~IAction();
 	virtual bool Run( const CMatchContext& context ) const = 0;
 	virtual void Print( const Configuration::CConfiguration& configuration,
 		ostream& out ) const = 0;

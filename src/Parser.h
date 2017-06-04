@@ -75,8 +75,8 @@ class CBasePatternNode {
 	CBasePatternNode& operator=( const CBasePatternNode& ) = delete;
 
 public:
-	CBasePatternNode() {}
-	virtual ~CBasePatternNode() = 0 {}
+	CBasePatternNode();
+	virtual ~CBasePatternNode();
 
 	// CBasePatternNode
 	virtual void Print( ostream& out ) const = 0;
@@ -88,9 +88,6 @@ public:
 
 template<typename ChildrenType = CBasePatternNode>
 class CPatternNodesSequence : public CBasePatternNode, public vector<unique_ptr<ChildrenType>> {
-public:
-	~CPatternNodesSequence() override = 0 {}
-
 protected:
 	void PrintAll( ostream& out, const char* delimiter ) const
 	{

@@ -98,6 +98,16 @@ bool CPatternArgument::Comparator::operator()(
 
 ///////////////////////////////////////////////////////////////////////////////
 
+IPatternBase::IPatternBase()
+{
+}
+
+IPatternBase::~IPatternBase()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 CPatternSequence::CPatternSequence( CPatternBasePtrs&& _elements,
 		const bool _transposition ) :
 	elements( move( _elements ) ),
