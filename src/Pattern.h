@@ -307,6 +307,7 @@ public:
 	CPattern( const string& name, CPatternBasePtr&& root,
 		const CPatternArguments& arguments );
 	CPattern( CPattern&& ) = default;
+	CPattern& operator=( CPattern&& ) = default;
 
 	const string& Name() const { return name; }
 	const CPatternArguments& Arguments() const { return arguments; }
@@ -374,7 +375,7 @@ class CPatternVariant : public vector<CPatternWord> {
 public:
 	CPatternVariant& operator+=( const CPatternVariant& variant )
 	{
-		this->insert( this->cend(), variant.cbegin(), variant.cend() );
+		this->insert( this->end(), variant.cbegin(), variant.cend() );
 		return *this;
 	}
 
