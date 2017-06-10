@@ -1094,7 +1094,9 @@ void CPatternVariant::Build( CPatternBuildContext& context ) const
 	}
 
 	context.States[context.LastVariant.back().second].Actions.Add(
-		CActionPtr( new CSaveAction( cout ) ) );
+		CActionPtr(
+			new CSaveAction(
+				CVariantParts( Parts.cbegin(), Parts.cend() ) ) ) );
 }
 
 void CPatternVariant::Print( const CPatterns& context, ostream& out ) const

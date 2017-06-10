@@ -235,7 +235,8 @@ void CActions::Print( const CConfiguration& configuration, ostream& out ) const
 CMatchContext::CMatchContext( const CText& text, const CStates& states ) :
 	text( text ),
 	states( states ),
-	initialWordIndex( 0 )
+	initialWordIndex( 0 ),
+	recognitionCallback( nullptr )
 {
 	data.reserve( 32 );
 }
@@ -286,6 +287,17 @@ void CMatchContext::match( const TStateIndex stateIndex )
 	}
 	editors.pop();
 	data.pop_back();
+}
+
+IRecognitionCallback* CMatchContext::RecognitionCallback() const
+{
+	return recognitionCallback;
+}
+
+void CMatchContext::SetRecognitionCallback(
+	IRecognitionCallback* _recognitionCallback )
+{
+	recognitionCallback = _recognitionCallback;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -477,26 +489,21 @@ void CDictionaryAction::Print(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CSaveAction::CSaveAction( ostream& out ) :
-	output( out )
+CSaveAction::CSaveAction( CVariantParts&& _parts ) :
+	parts( move( _parts ) )
 {
+	check_logic( !parts.empty() );
 }
 
 bool CSaveAction::Run( const CMatchContext& context ) const
 {
-	const CDataEditor& data = context.DataEditor();
-	const TWordIndex begin = context.InitialWord();
-	const TWordIndex end = context.Word();
-
-	output << "{";
-	for( TWordIndex wi = begin; wi <= end; wi++ ) {
-		if( wi > begin ) {
-			output << " ";
-		}
-		output << context.Text().Word( wi ).text << ":";
-		data.Get( wi - begin ).Indices.Print<uint32_t>( output, "," );
+	IRecognitionCallback* const callback = context.RecognitionCallback();
+	if( callback != nullptr ) {
+		const TWordIndex begin = context.InitialWord();
+		const TWordIndex end = context.Word();
+		const CText& text = context.Text();
+		callback->OnRecognized( begin, end, text, parts );
 	}
-	output << "}" << endl;
 
 	return true;
 }

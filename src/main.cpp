@@ -12,6 +12,47 @@ using namespace Lspl::Parser;
 using namespace Lspl::Pattern;
 using namespace Lspl::Configuration;
 
+///////////////////////////////////////////////////////////////////////////////
+
+namespace {
+
+class CRecognitionCallback : public IRecognitionCallback {
+public:
+	explicit CRecognitionCallback( const CPatterns& patterns );
+
+	void OnRecognized(
+		const Text::TWordIndex begin, const Text::TWordIndex end,
+		const Text::CText& text,
+		const CVariantParts& parts ) override;
+
+private:
+	const CPatterns& patterns;
+};
+
+CRecognitionCallback::CRecognitionCallback( const CPatterns& _patterns ) :
+	patterns( _patterns )
+{
+}
+
+void CRecognitionCallback::OnRecognized(
+	const Text::TWordIndex begin, const Text::TWordIndex end,
+	const Text::CText& text,
+	const CVariantParts& parts )
+{
+	cout << "{";
+	for( TWordIndex wi = begin; wi <= end; wi++ ) {
+		if( wi > begin ) {
+			cout << " ";
+		}
+		cout << text.Word( wi ).text;
+	}
+	cout << "}" << endl;
+}
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 int main( int argc, const char* argv[] )
 {
 	try {
@@ -51,6 +92,8 @@ int main( int argc, const char* argv[] )
 			return 1;
 		}
 
+		CRecognitionCallback recognitionCallback( patterns );
+
 		for( TReference ref = 0; ref < patterns.Size(); ref++ ) {
 			const CPattern& pattern = patterns.Pattern( ref );
 			cout << pattern.Name() << endl;
@@ -62,6 +105,7 @@ int main( int argc, const char* argv[] )
 			variants.Build( buildContext );
 
 			CMatchContext matchContext( text, buildContext.States );
+			matchContext.SetRecognitionCallback( &recognitionCallback );
 			for( TWordIndex wi = 0; wi < text.Length(); wi++ ) {
 				matchContext.Match( wi );
 			}

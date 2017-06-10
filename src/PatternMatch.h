@@ -9,6 +9,20 @@ namespace Pattern {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+class CBaseVariantPart;
+typedef vector<const CBaseVariantPart*> CVariantParts;
+
+class IRecognitionCallback {
+public:
+	virtual ~IRecognitionCallback() {}
+	virtual void OnRecognized(
+		const Text::TWordIndex begin, const Text::TWordIndex end,
+		const Text::CText& text,
+		const CVariantParts& parts ) = 0;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
 typedef uint8_t TVariantSize;
 const TVariantSize MaxVariantSize = numeric_limits<TVariantSize>::max();
 
@@ -162,6 +176,8 @@ public:
 	const Text::TWordIndex Word() const;
 	const TVariantSize Shift() const;
 	void Match( const Text::TWordIndex initialWordIndex );
+	IRecognitionCallback* RecognitionCallback() const;
+	void SetRecognitionCallback( IRecognitionCallback* recognitionCallback );
 
 private:
 	const Text::CText& text;
@@ -169,6 +185,7 @@ private:
 	Text::TWordIndex initialWordIndex;
 	CData data;
 	stack<CDataEditor> editors;
+	IRecognitionCallback* recognitionCallback;
 
 	void match( const TStateIndex stateIndex );
 };
@@ -217,14 +234,14 @@ private:
 
 class CSaveAction : public IAction {
 public:
-	explicit CSaveAction( ostream& out );
+	explicit CSaveAction( CVariantParts&& parts );
 	~CSaveAction() override {}
 	bool Run( const CMatchContext& context ) const override;
 	void Print( const Configuration::CConfiguration& configuration,
 		ostream& out ) const override;
 
 private:
-	ostream& output;
+	const CVariantParts parts;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
