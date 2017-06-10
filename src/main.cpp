@@ -35,18 +35,34 @@ CRecognitionCallback::CRecognitionCallback( const CPatterns& _patterns ) :
 }
 
 void CRecognitionCallback::OnRecognized(
-	const Text::TWordIndex begin, const Text::TWordIndex end,
-	const Text::CText& text,
+	const TWordIndex begin, const TWordIndex end,
+	const CText& text,
 	const CVariantParts& parts )
 {
-	cout << "{";
-	for( TWordIndex wi = begin; wi <= end; wi++ ) {
-		if( wi > begin ) {
-			cout << " ";
+	TWordIndex wi = begin;
+	for( const CBaseVariantPart* const vp : parts ) {
+		if( vp == nullptr ) {
+			cout << "} ";
+		} else {
+			switch( vp->Type() ) {
+				case VPR_Word:
+					cout << patterns.Element( vp->Word() ) << ":"
+						<< text.Word( wi ).text << " ";
+					wi++;
+					break;
+				case VPR_Regexp:
+					cout << vp->Regexp() << ":"
+						<< text.Word( wi ).text << " ";
+					wi++;
+					break;
+				case VPR_Instance:
+					cout << patterns.Reference( vp->Instance() ) << "{ ";
+					break;
+			}
 		}
-		cout << text.Word( wi ).text;
 	}
-	cout << "}" << endl;
+	check_logic( ( end + 1 ) == wi );
+	cout << endl;
 }
 
 }
