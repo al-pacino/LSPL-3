@@ -82,6 +82,24 @@ typedef vector<CPatternBasePtr> CPatternBasePtrs;
 
 ///////////////////////////////////////////////////////////////////////////////
 
+enum TVariantPartType {
+	VPR_Word,
+	VPR_Regexp,
+	VPR_Instance
+};
+
+class CBaseVariantPart {
+public:
+	CBaseVariantPart();
+	virtual ~CBaseVariantPart();
+	virtual TVariantPartType Type() const = 0;
+	virtual TElement Word() const;
+	virtual string Regexp() const;
+	virtual TReference Instance() const;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
 class CPatternSequence : public IPatternBase {
 public:
 	explicit CPatternSequence( CPatternBasePtrs&& elements,
@@ -203,7 +221,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CPatternRegexp : public IPatternBase {
+class CPatternRegexp : public IPatternBase, private CBaseVariantPart {
 public:
 	explicit CPatternRegexp( const string& regexp );
 	~CPatternRegexp() override {}
@@ -216,6 +234,10 @@ public:
 
 private:
 	string regexp;
+
+	// CBaseVariantPart
+	virtual TVariantPartType Type() const override;
+	virtual string Regexp() const override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -265,7 +287,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CPatternElement : public IPatternBase {
+class CPatternElement : public IPatternBase, private CBaseVariantPart {
 public:
 	explicit CPatternElement( const TElement element );
 	CPatternElement( const TElement element, CSignRestrictions&& signs );
@@ -280,11 +302,15 @@ public:
 private:
 	const TElement element;
 	const CSignRestrictions signs;
+
+	// CBaseVariantPart
+	virtual TVariantPartType Type() const override;
+	virtual TElement Word() const override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CPatternReference : public IPatternBase {
+class CPatternReference : public IPatternBase, private CBaseVariantPart {
 public:
 	explicit CPatternReference( const TReference reference );
 	CPatternReference( const TReference reference, CSignRestrictions&& signs );
@@ -299,11 +325,15 @@ public:
 private:
 	const TReference reference;
 	const CSignRestrictions signs;
+
+	// CBaseVariantPart
+	virtual TVariantPartType Type() const override;
+	virtual TReference Instance() const override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CPattern : public IPatternBase {
+class CPattern : public IPatternBase, private CBaseVariantPart {
 public:
 	CPattern( const string& name, CPatternBasePtr&& root,
 		const CPatternArguments& arguments );
@@ -311,6 +341,8 @@ public:
 	CPattern& operator=( CPattern&& ) = default;
 
 	const string& Name() const { return name; }
+	TReference Reference() const { return reference; }
+	void SetReference( const TReference reference );
 	const CPatternArguments& Arguments() const { return arguments; }
 
 	// IPatternBase
@@ -321,8 +353,13 @@ public:
 
 private:
 	string name;
+	TReference reference;
 	CPatternBasePtr root;
 	CPatternArguments arguments;
+
+	// CBaseVariantPart
+	virtual TVariantPartType Type() const override;
+	virtual TReference Instance() const override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -378,11 +415,14 @@ public:
 	CPatternVariant& operator+=( const CPatternVariant& variant )
 	{
 		this->insert( this->end(), variant.cbegin(), variant.cend() );
+		Parts.insert( Parts.end(), variant.Parts.cbegin(), variant.Parts.cend() );
 		return *this;
 	}
 
 	void Build( CPatternBuildContext& context ) const;
 	void Print( const CPatterns& context, ostream& out ) const;
+
+	list<const CBaseVariantPart*> Parts;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

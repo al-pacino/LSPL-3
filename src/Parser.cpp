@@ -546,6 +546,7 @@ void CPatternsBuilder::CheckAndBuildIfPossible()
 		CPatternBasePtr pattern = patternDef->Check( *this );
 		CPattern* rawPattern = dynamic_cast<CPattern*>( pattern.get() );
 		check_logic( rawPattern != nullptr );
+		rawPattern->SetReference( Patterns.size() );
 		Patterns.emplace_back( move( *rawPattern ) );
 	}
 }

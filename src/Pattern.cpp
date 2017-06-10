@@ -108,6 +108,34 @@ IPatternBase::~IPatternBase()
 
 ///////////////////////////////////////////////////////////////////////////////
 
+CBaseVariantPart::CBaseVariantPart()
+{
+}
+
+CBaseVariantPart::~CBaseVariantPart()
+{
+}
+
+TElement CBaseVariantPart::Word() const
+{
+	check_logic( false );
+	return 0;
+}
+
+string CBaseVariantPart::Regexp() const
+{
+	check_logic( false );
+	return "";
+}
+
+TReference CBaseVariantPart::Instance() const
+{
+	check_logic( false );
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 CPatternSequence::CPatternSequence( CPatternBasePtrs&& _elements,
 		const bool _transposition ) :
 	elements( move( _elements ) ),
@@ -558,8 +586,19 @@ void CPatternRegexp::Build( CPatternBuildContext& /*context*/,
 	if( maxSize > 0 ) {
 		CPatternVariant variant;
 		variant.emplace_back( &regexp );
+		variant.Parts.push_back( this );
 		variants.push_back( variant );
 	}
+}
+
+TVariantPartType CPatternRegexp::Type() const
+{
+	return VPR_Regexp;
+}
+
+string CPatternRegexp::Regexp() const
+{
+	return regexp;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -756,8 +795,19 @@ void CPatternElement::Build( CPatternBuildContext& /*context*/,
 	if( maxSize > 0 ) {
 		CPatternVariant variant;
 		variant.emplace_back( CPatternArgument( element ), signs );
+		variant.Parts.push_back( this );
 		variants.push_back( variant );
 	}
+}
+
+TVariantPartType CPatternElement::Type() const
+{
+	return VPR_Word;
+}
+
+TElement CPatternElement::Word() const
+{
+	return element;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -810,10 +860,21 @@ void CPatternReference::Build( CPatternBuildContext& context,
 		}
 		if( !isEmpty ) {
 			*last = move( *variant );
+			last->Parts.front() = this;
 			++last;
 		}
 	}
 	variants.erase( last, variants.end() );
+}
+
+TVariantPartType CPatternReference::Type() const
+{
+	return VPR_Instance;
+}
+
+TReference CPatternReference::Instance() const
+{
+	return reference;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -821,11 +882,17 @@ void CPatternReference::Build( CPatternBuildContext& context,
 CPattern::CPattern( const string& _name, CPatternBasePtr&& _root,
 		const CPatternArguments& _arguments ) :
 	name( _name ),
+	reference( numeric_limits<TReference>::max() ),
 	root( move( _root ) ),
 	arguments( _arguments )
 {
 	debug_check_logic( !name.empty() );
 	debug_check_logic( static_cast<bool>( root ) );
+}
+
+void CPattern::SetReference( const TReference _reference )
+{
+	reference = _reference;
 }
 
 void CPattern::Print( const CPatterns& context, ostream& out ) const
@@ -857,8 +924,6 @@ TVariantSize CPattern::MinSizePrediction() const
 void CPattern::Build( CPatternBuildContext& context,
 	CPatternVariants& variants, const TVariantSize maxSize ) const
 {
-	const TReference reference = context.Patterns().PatternReference( name );
-
 	const TVariantSize correctMaxSize = context.PushMaxSize( reference, maxSize );
 	root->Build( context, variants, correctMaxSize );
 	const TVariantSize topMaxSize = context.PopMaxSize( reference );
@@ -868,10 +933,13 @@ void CPattern::Build( CPatternBuildContext& context,
 		variants.erase( variants.begin() );
 	}
 
-	// correct ids
+	// correct ids and add first part
 	const TElement mainSize =
 		context.Patterns().Configuration().Attributes().Main().ValuesCount();
 	for( CPatternVariant& variant : variants ) {
+		variant.Parts.push_front( this );
+		variant.Parts.push_back( nullptr );
+
 		for( CPatternWord& word : variant ) {
 			if( word.Id.Type != PAT_Element ) {
 				continue;
@@ -886,6 +954,16 @@ void CPattern::Build( CPatternBuildContext& context,
 			}
 		}
 	}
+}
+
+TVariantPartType CPattern::Type() const
+{
+	return VPR_Instance;
+}
+
+TReference CPattern::Instance() const
+{
+	return reference;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1025,6 +1103,26 @@ void CPatternVariant::Print( const CPatterns& context, ostream& out ) const
 		out << " ";
 		word.Print( context, out );
 	}
+#if 0
+	out << endl << "   ";
+	for( const CBaseVariantPart* const ve : Parts ) {
+		if( ve == nullptr ) {
+			out << "} ";
+		} else {
+			switch( ve->Type() ) {
+				case VPR_Word:
+					out << context.Element( ve->Word() ) << " ";
+					break;
+				case VPR_Regexp:
+					out << ve->Regexp() << " ";
+					break;
+				case VPR_Instance:
+					out << context.Reference( ve->Instance() ) << "{ ";
+					break;
+			}
+		}
+	}
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
