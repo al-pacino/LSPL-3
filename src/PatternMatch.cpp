@@ -499,10 +499,8 @@ bool CSaveAction::Run( const CMatchContext& context ) const
 {
 	IRecognitionCallback* const callback = context.RecognitionCallback();
 	if( callback != nullptr ) {
-		const TWordIndex begin = context.InitialWord();
-		const TWordIndex end = context.Word();
-		const CText& text = context.Text();
-		callback->OnRecognized( begin, end, text, parts );
+		callback->OnRecognized( context.InitialWord(), context.Word(),
+			context.Text(), context.Data(), parts );
 	}
 
 	return true;

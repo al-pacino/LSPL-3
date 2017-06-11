@@ -22,7 +22,7 @@ public:
 
 	void OnRecognized(
 		const Text::TWordIndex begin, const Text::TWordIndex end,
-		const Text::CText& text,
+		const Text::CText& text, const CData& data,
 		const CVariantParts& parts ) override;
 
 private:
@@ -36,7 +36,7 @@ CRecognitionCallback::CRecognitionCallback( const CPatterns& _patterns ) :
 
 void CRecognitionCallback::OnRecognized(
 	const TWordIndex begin, const TWordIndex end,
-	const CText& text,
+	const CText& text, const CData& /*data*/,
 	const CVariantParts& parts )
 {
 	TWordIndex wi = begin;

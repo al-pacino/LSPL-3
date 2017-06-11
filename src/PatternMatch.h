@@ -9,20 +9,6 @@ namespace Pattern {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CBaseVariantPart;
-typedef vector<const CBaseVariantPart*> CVariantParts;
-
-class IRecognitionCallback {
-public:
-	virtual ~IRecognitionCallback() {}
-	virtual void OnRecognized(
-		const Text::TWordIndex begin, const Text::TWordIndex end,
-		const Text::CText& text,
-		const CVariantParts& parts ) = 0;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-
 typedef uint8_t TVariantSize;
 const TVariantSize MaxVariantSize = numeric_limits<TVariantSize>::max();
 
@@ -71,6 +57,20 @@ public:
 private:
 	CData& data;
 	mutable unordered_map<CData::size_type, CData::value_type> dump;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+class CBaseVariantPart;
+typedef vector<const CBaseVariantPart*> CVariantParts;
+
+class IRecognitionCallback {
+public:
+	virtual ~IRecognitionCallback() {}
+	virtual void OnRecognized(
+		const Text::TWordIndex begin, const Text::TWordIndex end,
+		const Text::CText& text, const CData& data,
+		const CVariantParts& parts ) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -171,6 +171,7 @@ public:
 	CMatchContext( const Text::CText& text, const CStates& states );
 
 	const Text::CText& Text() const { return text; }
+	const CData& Data() const { return data; }
 	const CDataEditor& DataEditor() const;
 	const Text::TWordIndex InitialWord() const { return initialWordIndex; }
 	const Text::TWordIndex Word() const;
